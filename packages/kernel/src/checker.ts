@@ -1,0 +1,365 @@
+import { Result, Ok, Err, deepEqual } from "./common.ts";
+import {
+  Rule,
+  Judgement,
+  substFormula,
+  freeInFormula,
+  freeInFormulas,
+} from "./ast.ts";
+
+export function judgeOne(
+  rule: Rule,
+  goals: Judgement[]
+): Result<Judgement[], string> {
+  if (goals.length === 0) {
+    return Err("No goal");
+  }
+  const [{ assms, concls }, ...restGoals] = goals;
+  switch (rule.tag) {
+    //
+    // -------- (I)
+    //  A |- A
+    case "I": {
+      if (assms.length !== 1 || concls.length !== 1) {
+        return Err("The number of assumptions and conclusions must be 1");
+      }
+      if (!deepEqual(assms[0], concls[0])) {
+        return Err("The assumption and the conclusion must be the same");
+      }
+      return Ok(restGoals);
+    }
+    //  Γ |- A, Δ    A, Γ |- Δ
+    // ------------------------ (Cut)
+    //          Γ |- Δ
+    case "Cut": {
+      const subgoal1 = { assms, concls: [rule.formula, ...concls] };
+      const subgoal2 = { assms: [rule.formula, ...assms], concls };
+      return Ok([subgoal1, subgoal2, ...restGoals]);
+    }
+    //    A, Γ |- Δ
+    // ---------------- (AndL1)
+    //  A /\ B, Γ |- Δ
+    case "AndL1": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      if (assm.tag !== "And") {
+        return Err("The assumption must be a conjunction");
+      }
+      const subgoal = { assms: [assm.left, ...restAssms], concls };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //    B, Γ |- Δ
+    // ---------------- (AndL2)
+    //  A /\ B, Γ |- Δ
+    case "AndL2": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      if (assm.tag !== "And") {
+        return Err("The assumption must be a conjunction");
+      }
+      const subgoal = { assms: [assm.right, ...restAssms], concls };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //  Γ |- A, Δ    Γ |- B, Δ
+    // ------------------------ (AndR)
+    //      Γ |- A /\ B, Δ
+    case "AndR": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      if (concl.tag !== "And") {
+        return Err("The assumption must be a conjunction");
+      }
+      const subgoal1 = { assms, concls: [concl.left, ...restConcls] };
+      const subgoal2 = { assms, concls: [concl.right, ...restConcls] };
+      return Ok([subgoal1, subgoal2, ...restGoals]);
+    }
+    //  A, Γ |- Δ    B, Γ |- Δ
+    // ------------------------ (OrL)
+    //      A \/ B, Γ |- Δ
+    case "OrL": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      if (assm.tag !== "Or") {
+        return Err("The assumption must be a disjunction");
+      }
+      const subgoal1 = { assms: [assm.left, ...restAssms], concls };
+      const subgoal2 = { assms: [assm.right, ...restAssms], concls };
+      return Ok([subgoal1, subgoal2, ...restGoals]);
+    }
+    //    Γ |- A, Δ
+    // ---------------- (OrR1)
+    //  Γ |- A \/ B, Δ
+    case "OrR1": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      if (concl.tag !== "Or") {
+        return Err("The conclusion must be a disjunction");
+      }
+      const subgoal = { assms, concls: [concl.left, ...restConcls] };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //    Γ |- B, Δ
+    // ---------------- (OrR2)
+    //  Γ |- A \/ B, Δ
+    case "OrR2": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      if (concl.tag !== "Or") {
+        return Err("The conclusion must be a disjunction");
+      }
+      const subgoal = { assms, concls: [concl.right, ...restConcls] };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //  Γ |- A, Δ    B, Γ |- Δ
+    // ------------------------ (ImpL)
+    //      A -> B, Γ |- Δ
+    case "ImpL": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      if (assm.tag !== "Imply") {
+        return Err("The assumption must be an implication");
+      }
+      const subgoal1 = { assms: restAssms, concls: [assm.left, ...concls] };
+      const subgoal2 = { assms: [assm.right, ...assms], concls };
+      return Ok([subgoal1, subgoal2, ...restGoals]);
+    }
+    //   A, Γ |- B, Δ
+    // ---------------- (ImpR)
+    //  Γ |- A -> B, Δ
+    case "ImpR": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      if (concl.tag !== "Imply") {
+        return Err("The conclusion must be an implication");
+      }
+      const subgoal = {
+        assms: [concl.left, ...assms],
+        concls: [concl.right, ...restConcls],
+      };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //
+    // ----------- (BottomL)
+    //  ⊥, Γ |- Δ
+    case "BottomL": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      if (assms[0].tag !== "Bottom") {
+        return Err("The assumption must be a bottom");
+      }
+      return Ok(restGoals);
+    }
+    //
+    // ----------- (TopR)
+    //  Γ |- ⊤, Δ
+    case "TopR": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      if (concls[0].tag !== "Top") {
+        return Err("The conclusion must be a top");
+      }
+      return Ok(restGoals);
+    }
+    //  A[x:=t], Γ |- Δ
+    // ----------------- (ForallL)
+    //   ∀x. A, Γ |- Δ
+    case "ForallL": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      if (assm.tag !== "Forall") {
+        return Err("The assumption must be a universal quantification");
+      }
+      const subgoal = {
+        assms: [substFormula(assm.body, assm.ident, rule.term), ...restAssms],
+        concls,
+      };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //  Γ |- A[x:=z], Δ    z does not appear free
+    // ------------------------------------------- (ForallR)
+    //              Γ |- ∀x. A, Δ
+    case "ForallR": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      if (concl.tag !== "Forall") {
+        return Err("The conclusion must be a universal quantification");
+      }
+      if (
+        freeInFormulas(assms, rule.ident) ||
+        freeInFormulas(restConcls, rule.ident) ||
+        freeInFormula(concl.body, rule.ident)
+      ) {
+        return Err("The variable must not appear free in the conclusion");
+      }
+      const subgoal = {
+        assms,
+        concls: [
+          substFormula(concl.body, concl.ident, {
+            tag: "Var",
+            ident: rule.ident,
+          }),
+          ...restConcls,
+        ],
+      };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //  A[x:=z], Γ |- Δ    z does not appear free
+    // ------------------------------------------- (ExistL)
+    //            ∃x. A, Γ |- Δ
+    case "ExistL": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      if (assm.tag !== "Exist") {
+        return Err("The assumption must be an existential quantification");
+      }
+      if (
+        freeInFormulas(restAssms, rule.ident) ||
+        freeInFormulas(concls, rule.ident) ||
+        freeInFormula(assm.body, rule.ident)
+      ) {
+        return Err("The variable must not appear free in the conclusion");
+      }
+      const subgoal = {
+        assms: [
+          substFormula(assm.body, assm.ident, {
+            tag: "Var",
+            ident: rule.ident,
+          }),
+          ...restAssms,
+        ],
+        concls,
+      };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //  Γ |- A[x:=t], Δ
+    // ----------------- (ExistR)
+    //   Γ |- ∃x. A, Δ
+    case "ExistR": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      if (concl.tag !== "Exist") {
+        return Err("The conclusion must be an existential quantification");
+      }
+      const subgoal = {
+        assms,
+        concls: [
+          substFormula(concl.body, concl.ident, rule.term),
+          ...restConcls,
+        ],
+      };
+      return Ok([subgoal, ...restGoals]);
+    }
+    //  A, Γ |- Δ
+    // ----------- (WL)
+    //   Γ |- Δ
+    case "WL": {
+      if (assms.length === 0) {
+        return Err("No assumption");
+      }
+      return Ok([{ assms: assms.slice(1), concls }, ...restGoals]);
+    }
+    //  Γ |- A, Δ
+    // ----------- (WR)
+    //   Γ |- Δ
+    case "WR": {
+      if (concls.length === 0) {
+        return Err("No conclusion");
+      }
+      return Ok([{ assms, concls: concls.slice(1) }, ...restGoals]);
+    }
+    //  A, A, Γ |- Δ
+    // -------------- (CL)
+    //   A, Γ |- Δ
+    case "CL": {
+      if (assms.length == 0) {
+        return Err("No assumption");
+      }
+      const [assm, ...restAssms] = assms;
+      return Ok([{ assms: [assm, assm, ...restAssms], concls }, ...restGoals]);
+    }
+    //  Γ |- A, A, Δ
+    // -------------- (CR)
+    //   Γ |- A, Δ
+    case "CR": {
+      if (concls.length == 0) {
+        return Err("No conclusion");
+      }
+      const [concl, ...restConcls] = concls;
+      return Ok([
+        { assms, concls: [concl, concl, ...restConcls] },
+        ...restGoals,
+      ]);
+    }
+    //  A, Γ, Γ' |- Δ
+    // --------------- (PL)
+    //  Γ, A, Γ' |- Δ
+    case "PL": {
+      if (assms.length <= rule.index) {
+        return Err("The index is out of range");
+      }
+      return Ok([
+        {
+          assms: [assms[rule.index], ...assms.toSpliced(rule.index, 1)],
+          concls,
+        },
+        ...restGoals,
+      ]);
+    }
+    //  Γ |- A, Δ, Δ'
+    // --------------- (PR)
+    //  Γ |- Δ, A, Δ'
+    case "PR": {
+      if (concls.length <= rule.index) {
+        return Err("The index is out of range");
+      }
+      return Ok([
+        {
+          assms,
+          concls: [concls[rule.index], ...concls.toSpliced(rule.index, 1)],
+        },
+        ...restGoals,
+      ]);
+    }
+  }
+  throw new Error("Unreachable");
+}
+
+export function judgeMany(
+  rules: Rule[],
+  goals: Judgement[]
+): Result<Judgement[], [cause: Rule, error: string, restGoals: Judgement[]]> {
+  for (const rule of rules) {
+    const result = judgeOne(rule, goals);
+    if (result.tag === "Err") {
+      return Err([rule, result.error, goals]);
+    }
+    goals = result.value;
+  }
+  return Ok(goals);
+}

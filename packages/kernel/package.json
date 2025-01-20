@@ -1,0 +1,19 @@
+{
+  "name": "@repo/kernel",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "exports": {
+    "./ast": "./src/ast.ts",
+    "./checker": "./src/checker.ts",
+    "./common": "./src/common.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.10.7",
+    "typescript": "5.5.4"
+  }
+}
