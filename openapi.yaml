@@ -62,7 +62,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PrivateFile'
+                $ref: '#/components/schemas/PrivateFileMeta'
         '404':
           description: File not found
     delete:
@@ -172,7 +172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicFile'
+                $ref: '#/components/schemas/PublicFileMeta'
         '404':
           description: File not found
   /files/{user_name}/{file_name}/{version}:
