@@ -267,6 +267,9 @@ components:
             format: date-time
           offset:
             type: integer
+          length:
+            description: Must be between 1 and 100
+            type: integer
 
   schemas:
     # common schemas
