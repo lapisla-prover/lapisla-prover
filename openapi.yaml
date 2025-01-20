@@ -209,6 +209,23 @@ paths:
                 $ref: '#/components/schemas/Snapshot'
         '404':
           description: Permalink not found
+  /search:
+    get:
+      tags:
+        - search
+      summary: Search for public snapshots
+      parameters:
+        - $ref: '#/components/parameters/search_query'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Invalid input
+
 
 components:
   parameters:
@@ -236,6 +253,21 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/PermalinkId'
+    search_query:
+      name: query
+      in: query
+      required: true
+      schema:
+        type: object
+        properties:
+          query:
+            type: string
+          before:
+            type: string
+            format: date-time
+          offset:
+            type: integer
+
   schemas:
     # common schemas
     Version:
@@ -343,6 +375,19 @@ components:
           $ref: '#/components/schemas/SnapshotMeta'
         content:
           $ref: '#/components/schemas/SourceCode'
+    # search schemas
+    SearchResult:
+      type: object
+      properties:
+        before:
+          type: string
+          format: date-time
+        offset:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotMeta'
 
   securitySchemes:
     GitHubAuth:
