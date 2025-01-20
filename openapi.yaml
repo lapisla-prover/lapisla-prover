@@ -249,7 +249,7 @@ components:
       in: path
       required: true
       schema:
-        type: string
+        $ref: '#/components/schemas/FileName'
     version:
       name: version
       in: path
@@ -261,7 +261,7 @@ components:
       in: path
       required: true
       schema:
-        type: string
+        $ref: '#/components/schemas/User'
     permalink_id:
       name: permalink_id
       in: path
@@ -300,17 +300,25 @@ components:
       type: string
     PermalinkId:
       type: string
+      pattern: '^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}@[0-9]+$'
     SnapshotId:
       type: string
+      pattern: '^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}@[0-9]+$'
+    User:
+      type: string
+      pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
+    FileName:
+      type: string
+      pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
     # metadata schemas
     PrivateFileMeta:
       description: Metadata shown to the owner
       type: object
       properties:
         owner:
-          type: string
+          $ref: '#/components/schemas/User'
         file_name:
-          type: string
+          $ref: '#/components/schemas/FileName'
         versions:
           type: array
           items:
@@ -337,9 +345,9 @@ components:
       type: object
       properties:
         owner:
-          type: string
+          $ref: '#/components/schemas/User'
         file_name:
-          type: string
+          $ref: '#/components/schemas/FileName'
         registered_versions:
           type: array
           items:
@@ -362,9 +370,9 @@ components:
         id:
           $ref: '#/components/schemas/SnapshotId'
         owner:
-          type: string
+          $ref: '#/components/schemas/User'
         file_name:
-          type: string
+          $ref: '#/components/schemas/FileName'
         version:
           $ref: '#/components/schemas/Version'
         registered:
