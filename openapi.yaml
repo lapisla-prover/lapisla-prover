@@ -396,6 +396,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SourceCode'
+      required:
+        - meta
+        - content
     PublicFile:
       type: object
       properties:
@@ -405,6 +408,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SourceCode'
+      required:
+        - meta
+        - content
     Snapshot:
       type: object
       properties:
@@ -412,6 +418,9 @@ components:
           $ref: '#/components/schemas/SnapshotMeta'
         content:
           $ref: '#/components/schemas/SourceCode'
+      required:
+        - meta
+        - content
     # search schemas
     SearchResult:
       type: object
@@ -425,6 +434,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SnapshotMeta'
+      required:
+        - before
+        - offset
+        - results
     # registry schemas
     Dependency:
       type: object
@@ -433,6 +446,9 @@ components:
           $ref: '#/components/schemas/SnapshotId'
         snapshot:
           $ref: '#/components/schemas/Snapshot'
+      required:
+        - id
+        - snapshot
     Project:
       type: object
       properties:
@@ -442,6 +458,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Dependency'
+      required:
+        - id
+        - dependencies
 
   securitySchemes:
     GitHubAuth:
