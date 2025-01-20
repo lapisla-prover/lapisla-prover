@@ -225,7 +225,22 @@ paths:
                 $ref: '#/components/schemas/SearchResult'
         '400':
           description: Invalid input
-
+  /registry/{snapshot_id}:
+    get:
+      tags:
+        - registry
+      summary: Get the project dependencies of a snapshot
+      parameters:
+        - $ref: '#/components/parameters/snapshot_id'
+      responses:
+        '200':
+          description: Project dependencies retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Snapshot not found
 
 components:
   parameters:
@@ -270,6 +285,12 @@ components:
           length:
             description: Must be between 1 and 100
             type: integer
+    snapshot_id:
+      name: snapshot_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/SnapshotId'
 
   schemas:
     # common schemas
@@ -278,6 +299,8 @@ components:
     SourceCode:
       type: string
     PermalinkId:
+      type: string
+    SnapshotId:
       type: string
     # metadata schemas
     PrivateFileMeta:
@@ -336,6 +359,8 @@ components:
     SnapshotMeta:
       type: object
       properties:
+        id:
+          $ref: '#/components/schemas/SnapshotId'
         owner:
           type: string
         file_name:
@@ -348,6 +373,7 @@ components:
           type: string
           format: date-time
       required:
+        - id
         - owner
         - file_name
         - version
@@ -391,6 +417,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SnapshotMeta'
+    # registry schemas
+    Dependency:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/SnapshotId'
+        snapshot:
+          $ref: '#/components/schemas/Snapshot'
+    Project:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/SnapshotId'
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dependency'
 
   securitySchemes:
     GitHubAuth:
