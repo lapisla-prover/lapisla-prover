@@ -1,0 +1,356 @@
+openapi: 3.0.0
+info:
+  title: Lapisla Prover API
+  version: 1.0.0
+  description: |
+    Lapisla Prover is a theorem proving assistant system with a web-based development environment and registry.
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging.api.example.com/v1
+    description: Staging server
+
+paths:
+  /me/files:
+    get:
+      tags: 
+        - me
+      summary: Get metadata of all files owned by the user
+      responses:
+        '200':
+          description: File metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PrivateFileMeta'
+  /me/files/{file_name}:
+    post:
+      tags: 
+        - me
+      summary: Create a new file
+      parameters:
+        - $ref: '#/components/parameters/file_name'
+      responses:
+        '201':
+          description: File created successfully
+          headers:
+            Location:
+              description: URL of the newly created file
+              schema:
+                type: string
+                format: uri
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateFileMeta'
+        '400':
+          description: Invalid input
+        '409':
+          description: File already exists
+    get:
+      tags: 
+        - me
+      summary: Fetch a private file
+      parameters:
+        - $ref: '#/components/parameters/file_name'
+      responses:
+        '200':
+          description: File
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateFile'
+        '404':
+          description: File not found
+    delete:
+      tags: 
+        - me
+      summary: Delete a file
+      parameters:
+        - $ref: '#/components/parameters/file_name'
+      responses:
+        '204':
+          description: File deleted successfully
+        '404':
+          description: File not found
+    patch:
+      tags: 
+        - me
+      summary: Upload a snapshot of the file
+      parameters:
+        - $ref: '#/components/parameters/file_name'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SourceCode'
+      responses:
+        '200':
+          description: Snapshot uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotMeta'
+        '404':
+          description: File not found
+  /me/files/{file_name}/{version}/register:
+    post:
+      tags: 
+        - me
+      summary: Register a snapshot to the public registry
+      parameters:
+        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/version'
+      responses:
+        '201':
+          description: Snapshot registered successfully
+          headers:
+            Location:
+              description: URL of the registered snapshot
+              schema:
+                type: string
+                format: uri
+        '400':
+          description: Invalid input
+        '404':
+          description: File or snapshot not found
+  /me/files/{file_name}/{version}/permalink:
+    post:
+      tags: 
+        - me
+      summary: Create a permalink to the snapshot
+      parameters:
+        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/version'
+      responses:
+        '201':
+          description: Permalink created successfully
+          headers:
+            Location:
+              description: URL of the permalink
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermalinkId'
+        '404':
+          description: File or snapshot not found
+  /files/{user_name}:
+    get:
+      tags: 
+        - files
+      summary: Get metadata of all public files owned by the user
+      parameters:
+        - $ref: '#/components/parameters/user_name'
+      responses:
+        '200':
+          description: File metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicFileMeta'
+        '404':
+          description: User not found
+  /files/{user_name}/{file_name}:
+    get:
+      tags: 
+        - files
+      summary: Fetch a public file
+      parameters:
+        - $ref: '#/components/parameters/user_name'
+        - $ref: '#/components/parameters/file_name'
+      responses:
+        '200':
+          description: File
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicFile'
+        '404':
+          description: File not found
+  /files/{user_name}/{file_name}/{version}:
+    get:
+      tags: 
+        - files
+      summary: Fetch a public snapshot
+      parameters:
+        - $ref: '#/components/parameters/user_name'
+        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/version'
+      responses:
+        '200':
+          description: Snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Snapshot'
+        '404':
+          description: Snapshot not found
+  /permalinks/{permalink_id}:
+    get:
+      tags: 
+        - permalinks
+      summary: Fetch a snapshot by permalink
+      parameters:
+        - $ref: '#/components/parameters/permalink_id'
+      responses:
+        '200':
+          description: Snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Snapshot'
+        '404':
+          description: Permalink not found
+
+components:
+  parameters:
+    file_name:
+      name: file_name
+      in: path
+      required: true
+      schema:
+        type: string
+    version:
+      name: version
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Version'
+    user_name:
+      name: user_name
+      in: path
+      required: true
+      schema:
+        type: string
+    permalink_id:
+      name: permalink_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/PermalinkId'
+  schemas:
+    # common schemas
+    Version:
+      type: integer
+    SourceCode:
+      type: string
+    PermalinkId:
+      type: string
+    # metadata schemas
+    PrivateFileMeta:
+      description: Metadata shown to the owner
+      type: object
+      properties:
+        owner:
+          type: string
+        file_name:
+          type: string
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Version'
+        registered_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Version'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - owner
+        - file_name
+        - versions
+        - registered_versions
+        - created_at
+        - updated_at
+    PublicFileMeta:
+      description: Metadata shown to the public
+      type: object
+      properties:
+        owner:
+          type: string
+        file_name:
+          type: string
+        registered_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Version'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - owner
+        - file_name
+        - registered_versions
+        - created_at
+        - updated_at
+    SnapshotMeta:
+      type: object
+      properties:
+        owner:
+          type: string
+        file_name:
+          type: string
+        version:
+          $ref: '#/components/schemas/Version'
+        registered:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - owner
+        - file_name
+        - version
+        - created_at
+    # content schemas
+    PrivateFile:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/PrivateFileMeta'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceCode'
+    PublicFile:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/PublicFileMeta'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceCode'
+    Snapshot:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/SnapshotMeta'
+        content:
+          $ref: '#/components/schemas/SourceCode'
+
+  securitySchemes:
+    GitHubAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://github.com/login/oauth/authorize
+          tokenUrl: https://github.com/login/oauth/access_token
+          scopes:
+            read:user: Read user profile data
+            user:email: Read user email addresses
