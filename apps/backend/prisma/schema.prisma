@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id           String   @id @default(uuid())
+  name         String   @unique
+}
+
+model files {
+  id           String   @id @default(uuid()) // permalink_id 
+  owner        String
+  name         String
+  version      Int
+  registered   Boolean @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@unique([owner, name, version])
+  @@index([owner, name, version])
+}
+
+// file_id と 紐づけて持つ
+model contents {
+  file_id      String  @unique
+  content      String
+}
