@@ -8,11 +8,13 @@ export type ValidationSuccess = {
 };
 
 export type ValidationFailed = {
+  success: false;
   reason: 'source_error';
   errorMessage: string;
 };
 
 export type KernelError = {
+  success: false;
   reason: 'kernel_error';
   errorMessage: string;
 };
