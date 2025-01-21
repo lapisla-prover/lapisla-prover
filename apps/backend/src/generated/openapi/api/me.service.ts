@@ -61,6 +61,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
         ];
@@ -104,6 +110,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -149,6 +161,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -199,6 +217,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -249,6 +273,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -299,6 +329,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
         ];
@@ -338,6 +374,12 @@ export class MeService {
 
         let accessTokenObservable: Observable<any> = of(null);
 
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'

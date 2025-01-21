@@ -26,6 +26,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PrivateFileMeta'
+      security:
+        - BearerAuth: []
   /me/files/{fileName}:
     post:
       tags: 
@@ -50,6 +52,9 @@ paths:
           description: Invalid input
         '409':
           description: File already exists
+      security:
+        - BearerAuth: []
+      
     get:
       tags: 
         - me
@@ -65,6 +70,9 @@ paths:
                 $ref: '#/components/schemas/PrivateFileMeta'
         '404':
           description: File not found
+      security:
+        - BearerAuth: []
+      
     delete:
       tags: 
         - me
@@ -76,6 +84,8 @@ paths:
           description: File deleted successfully
         '404':
           description: File not found
+      security:
+        - BearerAuth: []
     patch:
       tags: 
         - me
@@ -96,6 +106,8 @@ paths:
                 $ref: '#/components/schemas/SnapshotMeta'
         '404':
           description: File not found
+      security:
+        - BearerAuth: []
   /me/files/{fileName}/{version}/register:
     post:
       tags: 
@@ -117,6 +129,8 @@ paths:
           description: Invalid input
         '404':
           description: File or snapshot not found
+      security:
+        - BearerAuth: []
   /me/files/{fileName}/{version}/permalink:
     post:
       tags: 
@@ -140,6 +154,8 @@ paths:
                 $ref: '#/components/schemas/PermalinkId'
         '404':
           description: File or snapshot not found
+      security:
+        - BearerAuth: []
   
   /login:
     get:
@@ -514,3 +530,7 @@ components:
             read:user: Read user profile data
             user:email: Read user email addresses
       description: 'OAuth 2.0認可'
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
