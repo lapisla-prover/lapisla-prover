@@ -34,7 +34,7 @@ export class History {
         return this.steps[this.steps.length - 1];
     }
 
-    // Pop cur
+    // Pop current goals
     pop(): Result<Judgement[], string> {
         if (this.steps.length === 1) {
             return Err("No history to pop.");
