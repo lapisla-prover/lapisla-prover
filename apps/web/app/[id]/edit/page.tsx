@@ -1,7 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Mic, Save, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronsDown,
+  ChevronsUp,
+  ChevronUp,
+  Mic,
+  Save,
+  Search,
+} from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +33,20 @@ export default function Edit() {
           </Button>
           <Share />
           <Register />
+        </div>
+        <div className="flex gap-2 justify-end">
+          <Button className="flex items-center gap-1 p-2">
+            <ChevronUp />
+          </Button>
+          <Button className="flex items-center gap-1 p-2">
+            <ChevronDown />
+          </Button>
+          <Button className="flex items-center gap-1 p-2">
+            <ChevronsUp />
+          </Button>
+          <Button className="flex items-center gap-1 p-2">
+            <ChevronsDown />
+          </Button>
         </div>
 
         <Editor
