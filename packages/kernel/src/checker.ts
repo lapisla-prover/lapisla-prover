@@ -5,7 +5,10 @@ import {
   substFormula,
   freeInFormula,
   freeInFormulas,
+  Formula,
 } from "./ast.ts";
+import { Env } from "./env.ts";
+import { History } from "./history.ts";
 
 export function judgeOne(
   rule: Rule,
@@ -347,7 +350,6 @@ export function judgeOne(
       ]);
     }
   }
-  throw new Error("Unreachable");
 }
 
 export function judgeMany(
@@ -362,4 +364,87 @@ export function judgeMany(
     goals = result.value;
   }
   return Ok(goals);
+}
+
+export type ProofCmd =
+  | { tag: "Apply"; rule: Rule }
+  | { tag: "Use"; thm: string }
+  | { tag: "Undo" };
+
+export function* proofM(
+  history: History
+): Generator<Result<void, string>, never, ProofCmd> {
+  let result: Result<void, string> = Ok();
+
+  while (true) {
+    const com = yield result;
+
+    switch (com.tag) {
+      case "Apply": {
+        const res = history.applyRule(com.rule);
+        if (res.tag === "Err") {
+          result = Err(res.error);
+          continue;
+        }
+        result = Ok();
+        continue;
+      }
+      case "Use":
+        throw new Error("unimplemented");
+      case "Undo":
+        history.pop();
+        result = Ok();
+        continue;
+    }
+  }
+}
+
+export type DeclCmd =
+  | { tag: "ThmD"; name: string; formula: Formula }
+  | { tag: "Qed" };
+
+export type TopCmd = ProofCmd | DeclCmd;
+
+export function isProofCmd(cmd: TopCmd): cmd is ProofCmd {
+  return ["Apply", "Use", "Qed", "Undo"].includes(cmd.tag);
+}
+
+export function* toplevelM(): Generator<Result<void, string>, never, TopCmd> {
+  let result: Result<void, string> = Ok();
+
+  while (true) {
+    const topCmd = yield result;
+
+    switch (topCmd.tag) {
+      case "ThmD": {
+        const history = new History([{ assms: [], concls: [topCmd.formula] }]);
+        const cms = proofM(history);
+        let proofResult: Result<void, string> = Ok();
+
+        proofMode: while (true) {
+          const topCmd = yield proofResult;
+          if (topCmd.tag === "Qed") {
+            if (history.isFinished()) {
+              result = Ok();
+              break proofMode;
+            }
+            proofResult = Err("The proof is not finished");
+            continue;
+          }
+
+          if (!isProofCmd(topCmd)) {
+            proofResult = Err("Invalid command; we are in proof mode");
+            continue;
+          }
+
+          const res = cms.next(topCmd);
+          if (res.done) {
+            res.value satisfies never;
+            throw new Error("Unreachable");
+          }
+          proofResult = res.value;
+        }
+      }
+    }
+  }
 }
