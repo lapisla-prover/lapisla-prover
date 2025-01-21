@@ -285,7 +285,7 @@ export function allFreeVarsInTerm(term: Term): Set<Ident> {
     case "Var":
       return new Set([term.ident]);
     case "Abs":
-      return allFreeVarsInTerm(term.body).difference(new Set([term.idents]));
+      return allFreeVarsInTerm(term.body).difference(new Set(term.idents));
     case "App":
       return term.args.reduce((acc, arg) => acc.union(allFreeVarsInTerm(arg)), allFreeVarsInTerm(term.func));
   }
