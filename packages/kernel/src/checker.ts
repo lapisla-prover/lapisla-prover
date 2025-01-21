@@ -7,7 +7,6 @@ import {
   freeInFormulas,
   Formula,
 } from "./ast.ts";
-import { Env } from "./env.ts";
 import { History } from "./history.ts";
 
 export function judgeOne(
@@ -371,7 +370,7 @@ export type ProofCmd =
   | { tag: "Use"; thm: string }
   | { tag: "Undo" };
 
-export function* proofM(
+export function* proofLoop(
   history: History
 ): Generator<Result<void, string>, never, ProofCmd> {
   let result: Result<void, string> = Ok();
@@ -409,7 +408,7 @@ export function isProofCmd(cmd: TopCmd): cmd is ProofCmd {
   return ["Apply", "Use", "Qed", "Undo"].includes(cmd.tag);
 }
 
-export function* toplevelM(): Generator<Result<void, string>, never, TopCmd> {
+export function* topLoop(): Generator<Result<void, string>, never, TopCmd> {
   let result: Result<void, string> = Ok();
 
   while (true) {
@@ -418,7 +417,8 @@ export function* toplevelM(): Generator<Result<void, string>, never, TopCmd> {
     switch (topCmd.tag) {
       case "ThmD": {
         const history = new History([{ assms: [], concls: [topCmd.formula] }]);
-        const cms = proofM(history);
+        const ploop = proofLoop(history);
+        ploop.next(); // 最初の `yield` まで進める
         let proofResult: Result<void, string> = Ok();
 
         proofMode: while (true) {
@@ -437,7 +437,7 @@ export function* toplevelM(): Generator<Result<void, string>, never, TopCmd> {
             continue;
           }
 
-          const res = cms.next(topCmd);
+          const res = ploop.next(topCmd);
           if (res.done) {
             res.value satisfies never;
             throw new Error("Unreachable");

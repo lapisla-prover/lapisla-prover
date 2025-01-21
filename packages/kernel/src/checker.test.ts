@@ -1,7 +1,15 @@
-import { describe, expect, expectTypeOf, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { Formula, Judgement, Rule, Term } from "./ast";
-import { judgeMany, judgeOne } from "./checker";
+import {
+  judgeMany,
+  judgeOne,
+  ProofCmd,
+  proofLoop,
+  TopCmd,
+  topLoop,
+} from "./checker";
 import { expectErr, expectOk } from "./test-util";
+import { History } from "./history";
 
 test("∀x.((P(x) ∨ Q())) ⊢ (∀x.(P(x)) ∨ Q()) can be proven", () => {
   const sampleAssms: Formula[] = [
@@ -522,5 +530,92 @@ describe("rules", () => {
       { tag: "Pred", ident: "P2", args: [] },
       { tag: "Pred", ident: "P3", args: [] },
     ]);
+  });
+
+  test("proofLoop", () => {
+    const sampleAssms: Formula[] = [
+      {
+        tag: "Forall",
+        ident: "x",
+        body: {
+          tag: "Or",
+          left: { tag: "Pred", ident: "P", args: [{ tag: "Var", ident: "x" }] },
+          right: { tag: "Pred", ident: "Q", args: [] },
+        },
+      },
+    ];
+
+    const sampleConcls: Formula[] = [
+      {
+        tag: "Or",
+        left: {
+          tag: "Forall",
+          ident: "x",
+          body: { tag: "Pred", ident: "P", args: [{ tag: "Var", ident: "x" }] },
+        },
+        right: { tag: "Pred", ident: "Q", args: [] },
+      },
+    ];
+
+    const initialJudgement: Judgement = {
+      assms: sampleAssms,
+      concls: sampleConcls,
+    };
+    const cmds: ProofCmd[] = [
+      { tag: "Apply", rule: { tag: "CR" } },
+      { tag: "Apply", rule: { tag: "OrR2" } },
+      { tag: "Apply", rule: { tag: "PR", index: 1 } },
+      { tag: "Apply", rule: { tag: "OrR1" } },
+      { tag: "Apply", rule: { tag: "ForallR", ident: "y" } },
+      {
+        tag: "Apply",
+        rule: { tag: "ForallL", term: { tag: "Var", ident: "y" } },
+      },
+      { tag: "Apply", rule: { tag: "OrL" } },
+      { tag: "Apply", rule: { tag: "PR", index: 1 } },
+      { tag: "Apply", rule: { tag: "WR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Apply", rule: { tag: "WR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+    ];
+    const history = new History([initialJudgement]);
+
+    const loop = proofLoop(history);
+    loop.next(); // 初回のnextは最初のyieldまで進めるため
+    for (const cmd of cmds) {
+      const res = loop.next(cmd);
+      if (res.done) {
+        res.value satisfies never;
+        throw new Error("Unreachable");
+      }
+      expectOk(res.value);
+    }
+    expect(history.isFinished()).toBe(true);
+  });
+
+  test("topLoop", () => {
+    // a ==> a
+    const sampleFormula: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "a", args: [] },
+      right: { tag: "Pred", ident: "a", args: [] },
+    };
+    const cmds: TopCmd[] = [
+      { tag: "ThmD", name: "id", formula: sampleFormula },
+      { tag: "Apply", rule: { tag: "ImpR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Qed" },
+    ];
+
+    const loop = topLoop();
+    loop.next(); // 初回のnextは最初のyieldまで進めるため
+    for (const cmd of cmds) {
+      const res = loop.next(cmd);
+      if (res.done) {
+        res.value satisfies never;
+        throw new Error("Unreachable");
+      }
+      expectOk(res.value);
+    }
   });
 });
