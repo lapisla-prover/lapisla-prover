@@ -2,7 +2,7 @@
 ```bash
 cd apps/backend
 pnpm install
-pnpm prisma:generate
+source .env.dev && pnpm prisma:generate
 ```
 
 # run (for development)
