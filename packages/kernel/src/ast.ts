@@ -331,7 +331,7 @@ export function freeInTerm(term: Term, v: Ident): boolean {
 export function freeInFormula(formula: Formula, v: Ident): boolean {
   switch (formula.tag) {
     case "Pred":
-      return formula.args.some((arg) => freeInTerm(arg, v));
+      return v === formula.ident || formula.args.some((arg) => freeInTerm(arg, v));
     case "Top":
     case "Bottom":
       return false;
