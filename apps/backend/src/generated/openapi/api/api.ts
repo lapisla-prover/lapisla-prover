@@ -1,0 +1,11 @@
+export * from './files.service';
+import { FilesService } from './files.service';
+export * from './me.service';
+import { MeService } from './me.service';
+export * from './permalinks.service';
+import { PermalinksService } from './permalinks.service';
+export * from './registry.service';
+import { RegistryService } from './registry.service';
+export * from './search.service';
+import { SearchService } from './search.service';
+export const APIS = [FilesService, MeService, PermalinksService, RegistryService, SearchService];
