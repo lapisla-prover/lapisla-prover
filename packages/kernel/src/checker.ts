@@ -134,7 +134,7 @@ export function judgeOne(
         return Err("The assumption must be an implication");
       }
       const subgoal1 = { assms: restAssms, concls: [assm.left, ...concls] };
-      const subgoal2 = { assms: [assm.right, ...assms], concls };
+      const subgoal2 = { assms: [assm.right, ...restAssms], concls };
       return Ok([subgoal1, subgoal2, ...restGoals]);
     }
     //   A, Γ |- B, Δ
@@ -275,18 +275,18 @@ export function judgeOne(
       };
       return Ok([subgoal, ...restGoals]);
     }
-    //  A, Γ |- Δ
-    // ----------- (WL)
     //   Γ |- Δ
+    // ----------- (WL)
+    //  A, Γ |- Δ
     case "WL": {
       if (assms.length === 0) {
         return Err("No assumption");
       }
       return Ok([{ assms: assms.slice(1), concls }, ...restGoals]);
     }
-    //  Γ |- A, Δ
-    // ----------- (WR)
     //   Γ |- Δ
+    // ----------- (WR)
+    //  A, Γ |- Δ
     case "WR": {
       if (concls.length === 0) {
         return Err("No conclusion");
