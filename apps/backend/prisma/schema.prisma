@@ -18,6 +18,7 @@ model files {
   name         String
   version      Int
   registered   Boolean @default(false)
+  content      contents?
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 
@@ -26,6 +27,7 @@ model files {
 }
 
 model contents {
-  file_id      String  @unique
+  file_id      String  @id
   content      String
+  file         files   @relation(fields: [file_id], references: [id])
 }
