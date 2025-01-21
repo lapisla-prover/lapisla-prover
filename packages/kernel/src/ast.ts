@@ -92,6 +92,74 @@ export function formatJudgement(judgement: Judgement): string {
   return `${assms} ⊢ ${concls}`;
 }
 
+export function renameTerm(term: Term, from_to_table: Map<Ident, Ident>): Term {
+  switch (term.tag) {
+    case "Var":
+      return { tag: "Var", ident: from_to_table.get(term.ident) ?? term.ident };
+    case "Abs": {
+      const new_table = new Map(from_to_table);
+      term.idents.forEach((ident) => new_table.delete(ident));
+      return { tag: "Abs", idents: term.idents, body: renameTerm(term.body, new_table) };
+    }
+    case "App":
+      return {
+        tag: "App",
+        func: renameTerm(term.func, from_to_table),
+        args: term.args.map((arg) => renameTerm(arg, from_to_table)),
+      };
+  }
+}
+
+export function renameFormula(formula: Formula, from_to_table: Map<Ident, Ident>): Formula {
+  switch (formula.tag) {
+    case "Pred":
+      return {
+        tag: "Pred",
+        ident: formula.ident,
+        args: formula.args.map((arg) => renameTerm(arg, from_to_table)),
+      };
+    case "Top":
+    case "Bottom":
+      return formula;
+    case "And":
+      return {
+        tag: "And",
+        left: renameFormula(formula.left, from_to_table),
+        right: renameFormula(formula.right, from_to_table),
+      };
+    case "Or":
+      return {
+        tag: "Or",
+        left: renameFormula(formula.left, from_to_table),
+        right: renameFormula(formula.right, from_to_table),
+      };
+    case "Imply":
+      return {
+        tag: "Imply",
+        left: renameFormula(formula.left, from_to_table),
+        right: renameFormula(formula.right, from_to_table),
+      };
+    case "Forall": {
+      const new_table = new Map(from_to_table);
+      new_table.delete(formula.ident);
+      return {
+        tag: "Forall",
+        ident: formula.ident,
+        body: renameFormula(formula.body, new_table),
+      };
+    }
+    case "Exist": {
+      const new_table = new Map(from_to_table);
+      new_table.delete(formula.ident);
+      return {
+        tag: "Exist",
+        ident: formula.ident,
+        body: renameFormula(formula.body, new_table),
+      };
+    }
+  }
+}
+
 export function substTerm(term: Term, v: Ident, target: Term): Term {
   switch (term.tag) {
     case "Var":
@@ -100,6 +168,23 @@ export function substTerm(term: Term, v: Ident, target: Term): Term {
       if (term.idents.includes(v)) {
         return term;
       }
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      const fvarsInTarget = allFreeVarsInTerm(target);
+      const rename_table = new Map();
+      for (const ident of term.idents) {
+        if (fvarsInTarget.has(ident)) {
+          rename_table.set(ident, freshen(fvarsInTarget, ident));
+        }
+      }
+      if (rename_table.size > 0) {
+        return {
+          tag: "Abs",
+          idents: term.idents.map((ident) => rename_table.get(ident) ?? ident),
+          body: substTerm(renameTerm(term.body, rename_table), v, target),
+        }
+      }
+
       return {
         tag: "Abs",
         idents: term.idents,
@@ -148,25 +233,86 @@ export function substFormula(
         left: substFormula(formula.left, v, target),
         right: substFormula(formula.right, v, target),
       };
-    case "Forall":
+    case "Forall": {
       if (formula.ident === v) {
         return formula;
       }
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      const fvarsInTarget = allFreeVarsInTerm(target);
+      if (fvarsInTarget.has(formula.ident)) {
+        const new_ident = freshen(fvarsInTarget, formula.ident);
+        return {
+          tag: "Forall",
+          ident: new_ident,
+          body: substFormula(renameFormula(formula, new Map([[formula.ident, new_ident]])), v, target),
+        };
+      }
+
       return {
         tag: "Forall",
         ident: formula.ident,
         body: substFormula(formula.body, v, target),
       };
-    case "Exist":
+    }
+    case "Exist": {
       if (formula.ident === v) {
         return formula;
       }
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      const fvarsInTarget = allFreeVarsInTerm(target);
+      if (fvarsInTarget.has(formula.ident)) {
+        const new_ident = freshen(fvarsInTarget, formula.ident);
+        return {
+          tag: "Exist",
+          ident: new_ident,
+          body: substFormula(renameFormula(formula, new Map([[formula.ident, new_ident]])), v, target),
+        };
+      }
+
       return {
         tag: "Exist",
         ident: formula.ident,
         body: substFormula(formula.body, v, target),
       };
+    }
   }
+}
+
+export function allFreeVarsInTerm(term: Term): Set<Ident> {
+  switch (term.tag) {
+    case "Var":
+      return new Set([term.ident]);
+    case "Abs":
+      return allFreeVarsInTerm(term.body).difference(new Set(term.idents));
+    case "App":
+      return term.args.reduce((acc, arg) => acc.union(allFreeVarsInTerm(arg)), allFreeVarsInTerm(term.func));
+  }
+}
+
+export function allFreeVarsInFormula(formula: Formula): Set<Ident> {
+  switch (formula.tag) {
+    case "Pred":
+      return formula.args.reduce((acc, arg) => acc.union(allFreeVarsInTerm(arg)), new Set([formula.ident]));
+    case "Top":
+    case "Bottom":
+      return new Set();
+    case "And":
+    case "Or":
+    case "Imply":
+      return allFreeVarsInFormula(formula.left).union(allFreeVarsInFormula(formula.right));
+    case "Forall":
+    case "Exist":
+      return allFreeVarsInFormula(formula.body).difference(new Set([formula.ident]));
+  }
+}
+
+export function freshen(idents: Set<Ident>, x: Ident): Ident {
+  while (idents.has(x)) {
+    x = `${x}'`;
+  }
+  return x;
 }
 
 export function freeInTerm(term: Term, v: Ident): boolean {
@@ -185,7 +331,7 @@ export function freeInTerm(term: Term, v: Ident): boolean {
 export function freeInFormula(formula: Formula, v: Ident): boolean {
   switch (formula.tag) {
     case "Pred":
-      return formula.args.some((arg) => freeInTerm(arg, v));
+      return v === formula.ident || formula.args.some((arg) => freeInTerm(arg, v));
     case "Top":
     case "Bottom":
       return false;

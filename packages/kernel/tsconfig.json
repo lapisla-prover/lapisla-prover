@@ -2,6 +2,7 @@
   "compilerOptions": {
     "lib": [
       "es2023",
+      "ESNext.Collection",
     ],
     "types": [
       "node"
