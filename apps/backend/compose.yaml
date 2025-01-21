@@ -1,0 +1,29 @@
+services:
+  app:
+    working_dir: /usr/src/app
+    environment:
+      DATABASE_URL: mysql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:${DATABASE_PORT}/${DATABASE_DB}
+    volumes:
+      - .:/usr/src/app
+    build:
+      context: ../../
+      dockerfile: apps/backend/dev.Dockerfile
+    command: sh -c "cd /app/apps/backend && npx prisma db push --schema=./prisma/mock.prisma && pnpm run start:dev"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.5
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_DB}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
+volumes:
+  db-data:

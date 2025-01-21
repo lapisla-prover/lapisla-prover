@@ -78,7 +78,7 @@ export class RegistryService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<Project>(`${this.basePath}/registry/${encodeURIComponent(String(snapshot_id))}`,
+                return this.httpClient.get<Project>(`${this.basePath}/registry/${encodeURIComponent(String(snapshotId))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
