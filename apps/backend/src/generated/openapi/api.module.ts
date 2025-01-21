@@ -3,6 +3,7 @@ import { HttpModule, HttpService } from '@nestjs/axios';
 import { AsyncConfiguration, Configuration, ConfigurationFactory } from './configuration';
 
 import { FilesService } from './api/files.service';
+import { LoginService } from './api/login.service';
 import { MeService } from './api/me.service';
 import { PermalinksService } from './api/permalinks.service';
 import { RegistryService } from './api/registry.service';
@@ -13,6 +14,7 @@ import { SearchService } from './api/search.service';
   imports:      [ HttpModule ],
   exports:      [
     FilesService,
+    LoginService,
     MeService,
     PermalinksService,
     RegistryService,
@@ -20,6 +22,7 @@ import { SearchService } from './api/search.service';
   ],
   providers: [
     FilesService,
+    LoginService,
     MeService,
     PermalinksService,
     RegistryService,

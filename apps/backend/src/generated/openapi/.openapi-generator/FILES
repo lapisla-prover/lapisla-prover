@@ -3,6 +3,7 @@ README.md
 api.module.ts
 api/api.ts
 api/files.service.ts
+api/login.service.ts
 api/me.service.ts
 api/permalinks.service.ts
 api/registry.service.ts
