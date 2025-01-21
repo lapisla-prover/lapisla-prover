@@ -140,6 +140,47 @@ paths:
                 $ref: '#/components/schemas/PermalinkId'
         '404':
           description: File or snapshot not found
+  
+  /login:
+    get:
+      tags: 
+        - login
+      summary: Login with GitHub
+      responses:
+        '302':
+          description: Redirect to GitHub login page
+          headers:
+            Location:
+              description: URL of the GitHub login page
+              schema:
+                type: string
+                format: uri
+  /login/callback:
+    get:
+      tags: 
+        - login
+      summary: Callback for GitHub OAuth
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the app
+          headers:
+            Location:
+              description: URL of the app
+              schema:
+                type: string
+                format: uri
+
   /files/{userName}:
     get:
       tags: 
@@ -472,3 +513,4 @@ components:
           scopes:
             read:user: Read user profile data
             user:email: Read user email addresses
+      description: 'OAuth 2.0認可'
