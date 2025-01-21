@@ -25,7 +25,6 @@ model files {
   @@index([owner, name, version])
 }
 
-// file_id と 紐づけて持つ
 model contents {
   file_id      String  @unique
   content      String
