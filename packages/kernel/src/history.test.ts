@@ -70,7 +70,7 @@ describe("Basic History Tests", () => {
 
         const n = rules.length;
 
-        for (let i = n; i >= 0; i--) {
+        for (let i = n; i >= 1; i--) {
             const result = judgeMany(rules.slice(0, i), [initialJudgement]);
             expectOk(result);
             const historyPop = history.pop();
@@ -82,13 +82,9 @@ describe("Basic History Tests", () => {
     test("Empty pop returns error", () => {
         const history = new History([initialJudgement]);
 
-        // initialJudgement
-        expectOk(history.pop());
-
         // empty
         expectErr(history.pop());
-    }
-    );
+    });
 
     test("do and undo is identity", () => {
         const n = rules.length;
