@@ -78,7 +78,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.delete<any>(`${this.basePath}/me/files/${encodeURIComponent(String(file_name))}`,
+                return this.httpClient.delete<any>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
@@ -122,7 +122,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<PrivateFileMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(file_name))}`,
+                return this.httpClient.get<PrivateFileMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
@@ -172,7 +172,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(file_name))}`,
+                return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
                     body,
                     {
                         withCredentials: this.configuration.withCredentials,
@@ -217,7 +217,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<PrivateFileMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(file_name))}`,
+                return this.httpClient.post<PrivateFileMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
                     null,
                     {
                         withCredentials: this.configuration.withCredentials,
@@ -267,7 +267,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<string>(`${this.basePath}/me/files/${encodeURIComponent(String(file_name))}/${encodeURIComponent(String(version))}/permalink`,
+                return this.httpClient.post<string>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/permalink`,
                     null,
                     {
                         withCredentials: this.configuration.withCredentials,
@@ -316,7 +316,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<any>(`${this.basePath}/me/files/${encodeURIComponent(String(file_name))}/${encodeURIComponent(String(version))}/register`,
+                return this.httpClient.post<any>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
                     null,
                     {
                         withCredentials: this.configuration.withCredentials,

@@ -78,7 +78,7 @@ export class PermalinksService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<Snapshot>(`${this.basePath}/permalinks/${encodeURIComponent(String(permalink_id))}`,
+                return this.httpClient.get<Snapshot>(`${this.basePath}/permalinks/${encodeURIComponent(String(permalinkId))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers

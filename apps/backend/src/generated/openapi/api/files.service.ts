@@ -84,7 +84,7 @@ export class FilesService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<PublicFileMeta>(`${this.basePath}/files/${encodeURIComponent(String(user_name))}/${encodeURIComponent(String(file_name))}`,
+                return this.httpClient.get<PublicFileMeta>(`${this.basePath}/files/${encodeURIComponent(String(userName))}/${encodeURIComponent(String(fileName))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
@@ -138,7 +138,7 @@ export class FilesService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<Snapshot>(`${this.basePath}/files/${encodeURIComponent(String(user_name))}/${encodeURIComponent(String(file_name))}/${encodeURIComponent(String(version))}`,
+                return this.httpClient.get<Snapshot>(`${this.basePath}/files/${encodeURIComponent(String(userName))}/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
@@ -182,7 +182,7 @@ export class FilesService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<Array<PublicFileMeta>>(`${this.basePath}/files/${encodeURIComponent(String(user_name))}`,
+                return this.httpClient.get<Array<PublicFileMeta>>(`${this.basePath}/files/${encodeURIComponent(String(userName))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers

@@ -26,7 +26,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PrivateFileMeta'
-  /me/files/{file_name}:
+  /me/files/{fileName}:
     post:
       tags: 
         - me
@@ -96,7 +96,7 @@ paths:
                 $ref: '#/components/schemas/SnapshotMeta'
         '404':
           description: File not found
-  /me/files/{file_name}/{version}/register:
+  /me/files/{fileName}/{version}/register:
     post:
       tags: 
         - me
@@ -117,7 +117,7 @@ paths:
           description: Invalid input
         '404':
           description: File or snapshot not found
-  /me/files/{file_name}/{version}/permalink:
+  /me/files/{fileName}/{version}/permalink:
     post:
       tags: 
         - me
@@ -140,7 +140,7 @@ paths:
                 $ref: '#/components/schemas/PermalinkId'
         '404':
           description: File or snapshot not found
-  /files/{user_name}:
+  /files/{userName}:
     get:
       tags: 
         - files
@@ -158,7 +158,7 @@ paths:
                   $ref: '#/components/schemas/PublicFileMeta'
         '404':
           description: User not found
-  /files/{user_name}/{file_name}:
+  /files/{userName}/{fileName}:
     get:
       tags: 
         - files
@@ -175,7 +175,7 @@ paths:
                 $ref: '#/components/schemas/PublicFileMeta'
         '404':
           description: File not found
-  /files/{user_name}/{file_name}/{version}:
+  /files/{userName}/{fileName}/{version}:
     get:
       tags: 
         - files
@@ -193,7 +193,7 @@ paths:
                 $ref: '#/components/schemas/Snapshot'
         '404':
           description: Snapshot not found
-  /permalinks/{permalink_id}:
+  /permalinks/{permalinkId}:
     get:
       tags: 
         - permalinks
@@ -225,7 +225,7 @@ paths:
                 $ref: '#/components/schemas/SearchResult'
         '400':
           description: Invalid input
-  /registry/{snapshot_id}:
+  /registry/{snapshotId}:
     get:
       tags:
         - registry
