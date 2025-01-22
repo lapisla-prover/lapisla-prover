@@ -6,8 +6,14 @@ import {
   freeInFormula,
   freeInFormulas,
   Formula,
+  ProofCmd,
+  DeclCmd,
+  TopCmd,
+  isProofCmd,
+  UndoCmd,
+  isDeclCmd,
 } from "./ast.ts";
-import { History } from "./history.ts";
+import { ProofHistory, TopHistory } from "./history.ts";
 
 export function judgeOne(
   rule: Rule,
@@ -365,17 +371,12 @@ export function judgeMany(
   return Ok(goals);
 }
 
-export type ProofCmd =
-  | { tag: "Apply"; rule: Rule }
-  | { tag: "Use"; thm: string }
-  | { tag: "Undo" };
-
 export function* proofLoop(
-  history: History
-): Generator<Result<void, string>, never, ProofCmd> {
+  history: ProofHistory
+): Generator<Result<void, string>, Result<void, string>, ProofCmd | UndoCmd> {
   let result: Result<void, string> = Ok();
 
-  while (true) {
+  loop: while (true) {
     const com = yield result;
 
     switch (com.tag) {
@@ -383,68 +384,100 @@ export function* proofLoop(
         const res = history.applyRule(com.rule);
         if (res.tag === "Err") {
           result = Err(res.error);
-          continue;
+        } else {
+          result = Ok();
         }
-        result = Ok();
-        continue;
+        continue loop;
       }
       case "Use":
         throw new Error("unimplemented");
       case "Undo":
         history.pop();
         result = Ok();
-        continue;
+        continue loop;
+      case "Qed":
+        if (history.isFinished()) {
+          return Ok();
+        }
+        result = Err("The proof is not finished");
+        continue loop;
+      default:
+        com satisfies never;
+        throw new Error("Unreachable");
     }
   }
 }
 
-export type DeclCmd =
-  | { tag: "ThmD"; name: string; formula: Formula }
-  | { tag: "Qed" };
-
-export type TopCmd = ProofCmd | DeclCmd;
-
-export function isProofCmd(cmd: TopCmd): cmd is ProofCmd {
-  return ["Apply", "Use", "Qed", "Undo"].includes(cmd.tag);
-}
-
-export function* topLoop(): Generator<Result<void, string>, never, TopCmd> {
+export function* topLoop(
+  topHistory: TopHistory
+): Generator<Result<void, string>, never, TopCmd> {
   let result: Result<void, string> = Ok();
 
+  // 全体のループ
   while (true) {
-    const topCmd = yield result;
+    // topModeからproofModeに移行する際に必要な情報
+    let thmName: string; // 示そうとしている定理の名前
+    let thmFormula: Formula; // 示そうとしている定理の式
+    let proofHistory: ProofHistory; // 証明の履歴
 
-    switch (topCmd.tag) {
-      case "ThmD": {
-        const history = new History([{ assms: [], concls: [topCmd.formula] }]);
-        const ploop = proofLoop(history);
-        ploop.next(); // 最初の `yield` まで進める
-        let proofResult: Result<void, string> = Ok();
+    // トップレベルのコマンドを受け取る
+    topMode: while (true) {
+      const topCmd = yield result;
 
-        proofMode: while (true) {
-          const topCmd = yield proofResult;
-          if (topCmd.tag === "Qed") {
-            if (history.isFinished()) {
-              result = Ok();
-              break proofMode;
-            }
-            proofResult = Err("The proof is not finished");
-            continue;
-          }
-
-          if (!isProofCmd(topCmd)) {
-            proofResult = Err("Invalid command; we are in proof mode");
-            continue;
-          }
-
-          const res = ploop.next(topCmd);
-          if (res.done) {
-            res.value satisfies never;
-            throw new Error("Unreachable");
-          }
-          proofResult = res.value;
-        }
+      if (isProofCmd(topCmd)) {
+        result = Err("Invalid command; we are not in proof mode");
+        continue topMode;
       }
+
+      if (topCmd.tag === "ThmD") {
+        thmName = topCmd.name;
+        thmFormula = topCmd.formula;
+        proofHistory = new ProofHistory([{ assms: [], concls: [thmFormula] }]);
+        result = Ok();
+        break topMode;
+      }
+
+      if (topCmd.tag === "Undo") {
+        const prevStep = topHistory.top();
+        // 前のstepがThmDの場合はproofModeに移行する
+        if (prevStep.tag === "ThmD") {
+          thmName = prevStep.name;
+          thmFormula = prevStep.formula;
+          proofHistory = prevStep.proofHistory;
+          result = Ok();
+          break topMode;
+        }
+
+        topHistory.pop();
+        result = Ok();
+        continue topMode;
+      }
+
+      topCmd satisfies never;
+      throw new Error("Unreachable");
+    }
+
+    const ploop = proofLoop(proofHistory);
+    ploop.next(); // 最初の `yield` まで進める
+
+    // proofモードのループ
+    proofMode: while (true) {
+      const topCmd = yield result;
+
+      if (isDeclCmd(topCmd)) {
+        result = Err("Invalid command; we are in proof mode");
+        continue proofMode;
+      }
+
+      const res = ploop.next(topCmd);
+      // Qedにより証明が終了した場合
+      if (res.done) {
+        topHistory.insertThm(thmName, thmFormula, proofHistory);
+        result = Ok();
+        break proofMode;
+      }
+      // proofLoopはQedの時以外終わらないので，このasは安全なはず
+      result = res.value;
     }
   }
 }
