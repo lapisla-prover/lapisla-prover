@@ -29,14 +29,11 @@ import {
 } from './controllers/controllers';
 
 @Module({
-  imports: [ ApiModule, HttpModule ],
-  exports: [ ApiModule ],
+  imports: [ HttpModule ],
+  exports: [  ],
   providers: [
     PrismaService,
-    {
-      provide: FilesService,
-      useClass: MyFilesService
-    },
+    MyFilesService,
     {
       provide: LoginService,
       useClass: MyLoginService
