@@ -15,27 +15,27 @@ model users {
 
 model files {
   id           String   @id @default(uuid()) // permalink_id 
-  owner_id     String
+  ownerId      String
   name         String
-  created_at   DateTime @default(now())
-  @@unique([owner_id, name])
-  @@index([owner_id])
+  createdAt    DateTime @default(now())
+  @@unique([ownerId, name])
+  @@index([ownerId])
 }
 
 model snapshots {
   id           String   @id @default(uuid())
-  file_id      String
+  fileId       String
   version      Int
-  is_public    Boolean
-  created_at   DateTime @default(now())
+  isPublic     Boolean
+  createdAt    DateTime @default(now())
   content      String  @db.Text
-  @@unique([file_id, version])
-  @@index([file_id])
+  @@unique([fileId, version])
+  @@index([fileId])
 }
 
 model dependencies {
   id           String   @id @default(uuid())
-  depender_id  String
-  dependee_id  String
-  @@index([depender_id])
+  dependerId   String
+  dependeeId   String
+  @@index([dependerId])
 }
