@@ -309,7 +309,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
+                $ref: '#/components/schemas/ProjectFetchResult'
         '404':
           description: Snapshot not found
       operationId: getProjectDependencies
@@ -533,6 +533,19 @@ components:
       required:
         - id
         - dependencies
+    ProjectFetchResult:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [ok, error]
+        ok:
+          $ref: '#/components/schemas/Project'
+        error:
+          type: string
+      required:
+        - result
+
 
   securitySchemes:
     GitHubAuth:
