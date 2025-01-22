@@ -35,8 +35,8 @@ export class FilesService {
             .finally(() => {});
         const file = await this.prisma.files.findUnique({
             where: {
-                owner_id_name: {
-                    owner_id: userId,
+                ownerId_name: {
+                    ownerId: userId,
                     name: fileName
                 }
             }
@@ -53,8 +53,8 @@ export class FilesService {
             .finally(() => {});
         const public_snapshots = await this.prisma.snapshots.findMany({
             where: {
-                file_id: file.id,
-                is_public: true
+                fileId: file.id,
+                isPublic: true
             }
         })
             .catch((err) => {
@@ -68,10 +68,10 @@ export class FilesService {
             owner: userName,
             file_name: fileName,
             registered_versions: public_snapshots.map((snapshot) => snapshot.version).sort((a, b) => a - b),
-            created_at: file.created_at.toISOString(),
+            created_at: file.createdAt.toISOString(),
             updated_at: public_snapshots.reduce((acc, snapshot) => {
-                return snapshot.created_at > acc ? snapshot.created_at : acc;
-            }, file.created_at).toISOString()
+                return snapshot.createdAt > acc ? snapshot.createdAt : acc;
+            }, file.createdAt).toISOString()
         };
         return fileMeta;
     }
@@ -94,8 +94,8 @@ export class FilesService {
             .finally(() => {});
         const file = await this.prisma.files.findUnique({
             where: {
-                owner_id_name: {
-                    owner_id: userId,
+                ownerId_name: {
+                    ownerId: userId,
                     name: fileName
                 }
             }
@@ -112,8 +112,8 @@ export class FilesService {
             .finally(() => {});
         const snapshot = await this.prisma.snapshots.findUnique({
             where: {
-                file_id_version: {
-                    file_id: file.id,
+                fileId_version: {
+                    fileId: file.id,
                     version: parseInt(version)
                 }
             }
@@ -133,8 +133,8 @@ export class FilesService {
             owner: userName,
             file_name: fileName,
             version: parseInt(version),
-            registered: snapshot.is_public,
-            created_at: snapshot.created_at.toISOString()
+            registered: snapshot.isPublic,
+            created_at: snapshot.createdAt.toISOString()
         };
         return {
             meta: snapshotMeta,
@@ -160,7 +160,7 @@ export class FilesService {
             .finally(() => {});
         const files = await this.prisma.files.findMany({
             where: {
-                owner_id: userId
+                ownerId: userId
             }
         })
             .catch((err) => {
@@ -172,10 +172,10 @@ export class FilesService {
             .finally(() => {});
         const publicSnapshots = await this.prisma.snapshots.findMany({
             where: {
-                file_id: {
+                fileId: {
                     in: files.map((file) => file.id)
                 },
-                is_public: true
+                isPublic: true
             }
         })
             .catch((err) => {
@@ -194,14 +194,14 @@ export class FilesService {
             fileNameToSnapshots.set(file.name, []);
         });
         publicSnapshots.forEach((snapshot) => {
-            const fileName = fileIdToFileName.get(snapshot.file_id);
+            const fileName = fileIdToFileName.get(snapshot.fileId);
             if (!fileNameToSnapshots.has(fileName)) {
                 fileNameToSnapshots.set(fileName, []);
             }
             fileNameToSnapshots.get(fileName).push({
-                file_id: snapshot.file_id,
+                file_id: snapshot.fileId,
                 version: snapshot.version,
-                created_at: snapshot.created_at
+                created_at: snapshot.createdAt
             });
         });
         const publicFileMeta: PublicFileMeta[] = files.map((file) => {
@@ -209,10 +209,10 @@ export class FilesService {
                 owner: userName,
                 file_name: file.name,
                 registered_versions: fileNameToSnapshots.get(file.name).map((snapshot) => snapshot.version).sort((a, b) => a - b),
-                created_at: file.created_at.toISOString(),
+                created_at: file.createdAt.toISOString(),
                 updated_at: fileNameToSnapshots.get(file.name).reduce((acc, snapshot) => {
                     return snapshot.created_at > acc ? snapshot.created_at : acc;
-                }, file.created_at).toISOString()
+                }, file.createdAt).toISOString()
             };
         });
         return publicFileMeta;
