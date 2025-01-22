@@ -15,22 +15,22 @@ model users {
 
 model files {
   id           String   @id @default(uuid()) // permalink_id 
-  owner        String
+  owner_id     String
   name         String
-  version      Int
-  registered   Boolean @default(false)
-  content      contents?
   created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-
-  @@unique([owner, name, version])
-  @@index([owner, name, version])
+  @@unique([owner_id, name])
+  @@index([owner_id])
 }
 
-model contents {
-  file_id      String  @id
-  content      String
-  file         files   @relation(fields: [file_id], references: [id])
+model snapshots {
+  id           String   @id @default(uuid())
+  file_id      String
+  version      Int
+  is_public    Boolean
+  created_at   DateTime @default(now())
+  content      String  @db.Text
+  @@unique([file_id, version])
+  @@index([file_id])
 }
 
 model dependencies {
