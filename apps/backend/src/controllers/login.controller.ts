@@ -1,17 +1,17 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { LoginService } from '../generated/openapi';
+import { LoginService } from '../api/login.service';
 
 @Controller('login')
 export class LoginController {
     constructor(private loginService: LoginService) {}
 
     @Get()
-    login() {
-        return this.loginService.loginWithGitHub();
+    async login() {
+        return await this.loginService.loginWithGitHub();
     }
 
     @Get('callback')
-    loginCallback(@Query('code') code: string, @Query('state') state: string) {
-        return this.loginService.callbackGitHubOAuth(code, state);
+    async loginCallback(@Query('code') code: string, @Query('state') state: string) {
+        return await this.loginService.callbackGitHubOAuth(code, state);
     }
 }

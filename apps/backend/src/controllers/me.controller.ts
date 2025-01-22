@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Delete, Patch, Param, Query, Body } from '@nestjs/common';
-import { MeService } from '../generated/openapi';
+import { MeService } from '../api/me.service';
 
 
 @Controller('me')
@@ -7,37 +7,37 @@ export class MeController {
     constructor(private meService: MeService) {}
 
     @Get('files')
-    getFiles() {
-        return this.meService.getMyFiles();
+    async getFiles() {
+        return await this.meService.getMyFiles();
     }
 
     @Post('files/:fileName')
-    postFile(@Param('fileName') fileName: string) {
-        return this.meService.createMyFile(fileName);
+    async postFile(@Param('fileName') fileName: string) {
+        return await this.meService.createMyFile(fileName);
     }
 
     @Get('files/:fileName')
-    getFile(@Param('fileName') fileName: string) {
-        return this.meService.getMyFile(fileName);
+    async getFile(@Param('fileName') fileName: string) {
+        return await this.meService.getMyFile(fileName);
     }
 
     @Delete('files/:fileName')
-    deleteFile(@Param('fileName') fileName: string) {
-        return this.meService.deleteMyFile(fileName);
+    async deleteFile(@Param('fileName') fileName: string) {
+        return await this.meService.deleteMyFile(fileName);
     }
 
     @Patch('files/:fileName')
-    patchFile(@Param('fileName') fileName: string, @Body() body: string) {
-        return this.meService.uploadMySnapshot(fileName, body);
+    async patchFile(@Param('fileName') fileName: string, @Body() body: string) {
+        return await this.meService.uploadMySnapshot(fileName, body);
     }
 
     @Post('files/:fileName/:version/register')
-    postPermalink(@Param('fileName') fileName: string, @Param('version') version: number) {
-        return this.meService.createMyPermalink(fileName, version);
+    async postPermalink(@Param('fileName') fileName: string, @Param('version') version: number) {
+        return await this.meService.createMyPermalink(fileName, version);
     }
 
     @Post('files/:fileName/:version/permalink')
-    postSnapshot(@Param('fileName') fileName: string, @Param('version') version: number) {
-        return this.meService.registerMySnapshot(fileName, version);
+    async postSnapshot(@Param('fileName') fileName: string, @Param('version') version: number) {
+        return await this.meService.registerMySnapshot(fileName, version);
     }
 }

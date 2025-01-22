@@ -1,12 +1,12 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { RegistryService } from '../generated/openapi';
+import { RegistryService } from '../api/registry.service';
 
 @Controller('registry')
 export class RegistryController {
     constructor(private registryService: RegistryService) {}
 
     @Get(":snapshotId")
-    getSnapshot(@Param("snapshotId") snapshotId: string) {
-        return this.registryService.getProjectDependencies(snapshotId);
+    async getSnapshot(@Param("snapshotId") snapshotId: string) {
+        return await this.registryService.getProjectDependencies(snapshotId);
     }
 }

@@ -1,12 +1,12 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { PermalinksService } from '../generated/openapi';
+import { PermalinksService } from '../api/permalinks.service';
 
 @Controller('permalinks')
 export class PermalinksController {
     constructor(private permalinksService: PermalinksService) {}
 
     @Get(':permalinkId')
-    getPermalink(@Param('permalinkId') permalinkId: string) {
-        return this.permalinksService.getPermalink(permalinkId);
+    async getPermalink(@Param('permalinkId') permalinkId: string) {
+        return await this.permalinksService.getPermalink(permalinkId);
     }
 }

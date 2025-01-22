@@ -1,9 +1,9 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { MyFilesService } from '../api/files.service';
+import { FilesService } from '../api/files.service';
 
 @Controller('files')
 export class FilesController {
-    constructor(private filesService: MyFilesService) {}
+    constructor(private filesService: FilesService) {}
 
     @Get(':userName')
     async getFiles(@Param('userName') userName: string) {

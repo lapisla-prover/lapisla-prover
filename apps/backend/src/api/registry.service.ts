@@ -1,4 +1,3 @@
-import { RegistryService } from '../generated/openapi/api/registry.service';
 import { PrismaService } from '../prisma.service';
 
 import { Injectable, Optional } from '@nestjs/common';
@@ -11,23 +10,15 @@ import { COLLECTION_FORMATS } from '../generated/openapi/variables';
 
 
 @Injectable()
-export class MyRegistryService extends RegistryService {
+export class RegistryService {
 
     protected prisma: PrismaService;
 
-    constructor(httpClient: HttpService, @Optional() configuration: Configuration, private prismaService: PrismaService) {
-        super(httpClient, configuration);
+    constructor(private prismaService: PrismaService) {
         this.prisma = prismaService;
     }
 
-    /**
-     * Get the project dependencies of a snapshot
-     * 
-     * @param snapshotId 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getProjectDependencies(snapshotId: string, ): Observable<AxiosResponse<Project>> {
+    public async getProjectDependencies(snapshotId: string, ): Promise<Project> {
         throw new Error('Method not implemented.');
     }
 }
