@@ -7,6 +7,6 @@ export class PermalinksController {
 
     @Get(':permalinkId')
     getPermalink(@Param('permalinkId') permalinkId: string) {
-        return this.permalinksService.permalinksPermalinkIdGet(permalinkId);
+        return this.permalinksService.getPermalink(permalinkId);
     }
 }

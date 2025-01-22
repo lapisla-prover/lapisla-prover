@@ -7,16 +7,16 @@ export class FilesController {
 
     @Get(':userName')
     getFiles(@Param('userName') userName: string) {
-        return this.filesService.filesUserNameGet(userName);
+        return this.filesService.getPublicFiles(userName);
     }
 
     @Get(':userName/:fileName')
     getFile(@Param('userName') userName: string, @Param('fileName') fileName: string) {
-        return this.filesService.filesUserNameFileNameGet(userName, fileName);
+        return this.filesService.getPublicFile(userName, fileName);
     }
 
     @Get(':userName/:fileName/version')
     getFileVersion(@Param('userName') userName: string, @Param('fileName') fileName: string, @Query('version') version: number) {
-        return this.filesService.filesUserNameFileNameVersionGet(userName, fileName, version);
+        return this.filesService.getPublicSnapshot(userName, fileName, version);
     }
 }

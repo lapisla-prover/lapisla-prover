@@ -50,10 +50,10 @@ export class PermalinksService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public permalinksPermalinkIdGet(permalinkId: string, ): Observable<AxiosResponse<Snapshot>>;
-    public permalinksPermalinkIdGet(permalinkId: string, ): Observable<any> {
+    public getPermalink(permalinkId: string, ): Observable<AxiosResponse<Snapshot>>;
+    public getPermalink(permalinkId: string, ): Observable<any> {
         if (permalinkId === null || permalinkId === undefined) {
-            throw new Error('Required parameter permalinkId was null or undefined when calling permalinksPermalinkIdGet.');
+            throw new Error('Required parameter permalinkId was null or undefined when calling getPermalink.');
         }
 
         let headers = {...this.defaultHeaders};

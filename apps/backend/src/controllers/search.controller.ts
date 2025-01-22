@@ -7,6 +7,6 @@ export class SearchController {
 
     @Get()
     search(@Query('q') q: string) {
-        return this.searchService.searchGet(q);
+        return this.searchService.searchSnapshots(q);
     }
 }

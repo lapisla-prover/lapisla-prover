@@ -28,6 +28,7 @@ paths:
                   $ref: '#/components/schemas/PrivateFileMeta'
       security:
         - BearerAuth: []
+      operationId: getMyFiles
   /me/files/{fileName}:
     post:
       tags: 
@@ -54,6 +55,7 @@ paths:
           description: File already exists
       security:
         - BearerAuth: []
+      operationId: createMyFile
       
     get:
       tags: 
@@ -72,6 +74,7 @@ paths:
           description: File not found
       security:
         - BearerAuth: []
+      operationId: getMyFile
       
     delete:
       tags: 
@@ -86,6 +89,7 @@ paths:
           description: File not found
       security:
         - BearerAuth: []
+      operationId: deleteMyFile
     patch:
       tags: 
         - me
@@ -108,6 +112,7 @@ paths:
           description: File not found
       security:
         - BearerAuth: []
+      operationId: uploadMySnapshot
   /me/files/{fileName}/{version}/register:
     post:
       tags: 
@@ -131,6 +136,7 @@ paths:
           description: File or snapshot not found
       security:
         - BearerAuth: []
+      operationId: registerMySnapshot
   /me/files/{fileName}/{version}/permalink:
     post:
       tags: 
@@ -156,6 +162,7 @@ paths:
           description: File or snapshot not found
       security:
         - BearerAuth: []
+      operationId: createMyPermalink
   
   /login:
     get:
@@ -171,6 +178,7 @@ paths:
               schema:
                 type: string
                 format: uri
+      operationId: loginWithGitHub
   /login/callback:
     get:
       tags: 
@@ -196,6 +204,7 @@ paths:
               schema:
                 type: string
                 format: uri
+      operationId: callbackGitHubOAuth
 
   /files/{userName}:
     get:
@@ -215,6 +224,7 @@ paths:
                   $ref: '#/components/schemas/PublicFileMeta'
         '404':
           description: User not found
+      operationId: getPublicFiles
   /files/{userName}/{fileName}:
     get:
       tags: 
@@ -232,6 +242,7 @@ paths:
                 $ref: '#/components/schemas/PublicFileMeta'
         '404':
           description: File not found
+      operationId: getPublicFile
   /files/{userName}/{fileName}/{version}:
     get:
       tags: 
@@ -250,6 +261,7 @@ paths:
                 $ref: '#/components/schemas/Snapshot'
         '404':
           description: Snapshot not found
+      operationId: getPublicSnapshot
   /permalinks/{permalinkId}:
     get:
       tags: 
@@ -266,6 +278,7 @@ paths:
                 $ref: '#/components/schemas/Snapshot'
         '404':
           description: Permalink not found
+      operationId: getPermalink
   /search:
     get:
       tags:
@@ -282,6 +295,7 @@ paths:
                 $ref: '#/components/schemas/SearchResult'
         '400':
           description: Invalid input
+      operationId: searchSnapshots
   /registry/{snapshotId}:
     get:
       tags:
@@ -298,6 +312,7 @@ paths:
                 $ref: '#/components/schemas/Project'
         '404':
           description: Snapshot not found
+      operationId: getProjectDependencies
 
 components:
   parameters:

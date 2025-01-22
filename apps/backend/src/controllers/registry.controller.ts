@@ -7,6 +7,6 @@ export class RegistryController {
 
     @Get(":snapshotId")
     getSnapshot(@Param("snapshotId") snapshotId: string) {
-        return this.registryService.registrySnapshotIdGet(snapshotId);
+        return this.registryService.getProjectDependencies(snapshotId);
     }
 }

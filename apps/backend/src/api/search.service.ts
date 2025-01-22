@@ -5,7 +5,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
-import { SearchGetQueryParameter } from '../generated/openapi/model/searchGetQueryParameter';
+import { SearchSnapshotsQueryParameter } from '../generated/openapi/model/searchSnapshotsQueryParameter';
 import { SearchResult } from '../generated/openapi/model/searchResult';
 import { Configuration } from '../generated/openapi/configuration';
 import { COLLECTION_FORMATS } from '../generated/openapi/variables';
@@ -28,7 +28,7 @@ export class MySearchService extends SearchService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public searchGet(query: SearchGetQueryParameter, ): Observable<AxiosResponse<SearchResult>> {
+    public searchSnapshots(query: SearchSnapshotsQueryParameter, ): Observable<AxiosResponse<SearchResult>> {
         console.log("Search GET called");
         throw new Error('Method not implemented.');
     }

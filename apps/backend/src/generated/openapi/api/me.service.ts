@@ -45,172 +45,16 @@ export class MeService {
     }
 
     /**
-     * Delete a file
-     * 
-     * @param fileName 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public meFilesFileNameDelete(fileName: string, ): Observable<AxiosResponse<any>>;
-    public meFilesFileNameDelete(fileName: string, ): Observable<any> {
-        if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNameDelete.');
-        }
-
-        let headers = {...this.defaultHeaders};
-
-        let accessTokenObservable: Observable<any> = of(null);
-
-        // authentication (BearerAuth) required
-        if (typeof this.configuration.accessToken === 'function') {
-            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
-        } else if (this.configuration.accessToken) {
-            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
-        }
-        // to determine the Accept header
-        let httpHeaderAccepts: string[] = [
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected != undefined) {
-            headers['Accept'] = httpHeaderAcceptSelected;
-        }
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-        ];
-        return accessTokenObservable.pipe(
-            switchMap((accessToken) => {
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
-                return this.httpClient.delete<any>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
-                    {
-                        withCredentials: this.configuration.withCredentials,
-                        headers: headers
-                    }
-                );
-            })
-        );
-    }
-    /**
-     * Fetch a private file
-     * 
-     * @param fileName 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public meFilesFileNameGet(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>>;
-    public meFilesFileNameGet(fileName: string, ): Observable<any> {
-        if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNameGet.');
-        }
-
-        let headers = {...this.defaultHeaders};
-
-        let accessTokenObservable: Observable<any> = of(null);
-
-        // authentication (BearerAuth) required
-        if (typeof this.configuration.accessToken === 'function') {
-            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
-        } else if (this.configuration.accessToken) {
-            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
-        }
-        // to determine the Accept header
-        let httpHeaderAccepts: string[] = [
-            'application/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected != undefined) {
-            headers['Accept'] = httpHeaderAcceptSelected;
-        }
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-        ];
-        return accessTokenObservable.pipe(
-            switchMap((accessToken) => {
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
-                return this.httpClient.get<PrivateFileMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
-                    {
-                        withCredentials: this.configuration.withCredentials,
-                        headers: headers
-                    }
-                );
-            })
-        );
-    }
-    /**
-     * Upload a snapshot of the file
-     * 
-     * @param fileName 
-     * @param body 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public meFilesFileNamePatch(fileName: string, body?: string, ): Observable<AxiosResponse<SnapshotMeta>>;
-    public meFilesFileNamePatch(fileName: string, body?: string, ): Observable<any> {
-        if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNamePatch.');
-        }
-
-        let headers = {...this.defaultHeaders};
-
-        let accessTokenObservable: Observable<any> = of(null);
-
-        // authentication (BearerAuth) required
-        if (typeof this.configuration.accessToken === 'function') {
-            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
-        } else if (this.configuration.accessToken) {
-            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
-        }
-        // to determine the Accept header
-        let httpHeaderAccepts: string[] = [
-            'application/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected != undefined) {
-            headers['Accept'] = httpHeaderAcceptSelected;
-        }
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected != undefined) {
-            headers['Content-Type'] = httpContentTypeSelected;
-        }
-        return accessTokenObservable.pipe(
-            switchMap((accessToken) => {
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
-                return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
-                    body,
-                    {
-                        withCredentials: this.configuration.withCredentials,
-                        headers: headers
-                    }
-                );
-            })
-        );
-    }
-    /**
      * Create a new file
      * 
      * @param fileName 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNamePost(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>>;
-    public meFilesFileNamePost(fileName: string, ): Observable<any> {
+    public createMyFile(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>>;
+    public createMyFile(fileName: string, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNamePost.');
+            throw new Error('Required parameter fileName was null or undefined when calling createMyFile.');
         }
 
         let headers = {...this.defaultHeaders};
@@ -259,14 +103,14 @@ export class MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNameVersionPermalinkPost(fileName: string, version: number, ): Observable<AxiosResponse<string>>;
-    public meFilesFileNameVersionPermalinkPost(fileName: string, version: number, ): Observable<any> {
+    public createMyPermalink(fileName: string, version: number, ): Observable<AxiosResponse<string>>;
+    public createMyPermalink(fileName: string, version: number, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNameVersionPermalinkPost.');
+            throw new Error('Required parameter fileName was null or undefined when calling createMyPermalink.');
         }
 
         if (version === null || version === undefined) {
-            throw new Error('Required parameter version was null or undefined when calling meFilesFileNameVersionPermalinkPost.');
+            throw new Error('Required parameter version was null or undefined when calling createMyPermalink.');
         }
 
         let headers = {...this.defaultHeaders};
@@ -308,6 +152,150 @@ export class MeService {
         );
     }
     /**
+     * Delete a file
+     * 
+     * @param fileName 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public deleteMyFile(fileName: string, ): Observable<AxiosResponse<any>>;
+    public deleteMyFile(fileName: string, ): Observable<any> {
+        if (fileName === null || fileName === undefined) {
+            throw new Error('Required parameter fileName was null or undefined when calling deleteMyFile.');
+        }
+
+        let headers = {...this.defaultHeaders};
+
+        let accessTokenObservable: Observable<any> = of(null);
+
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers['Accept'] = httpHeaderAcceptSelected;
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+        return accessTokenObservable.pipe(
+            switchMap((accessToken) => {
+                if (accessToken) {
+                    headers['Authorization'] = `Bearer ${accessToken}`;
+                }
+
+                return this.httpClient.delete<any>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
+                    {
+                        withCredentials: this.configuration.withCredentials,
+                        headers: headers
+                    }
+                );
+            })
+        );
+    }
+    /**
+     * Fetch a private file
+     * 
+     * @param fileName 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getMyFile(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>>;
+    public getMyFile(fileName: string, ): Observable<any> {
+        if (fileName === null || fileName === undefined) {
+            throw new Error('Required parameter fileName was null or undefined when calling getMyFile.');
+        }
+
+        let headers = {...this.defaultHeaders};
+
+        let accessTokenObservable: Observable<any> = of(null);
+
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers['Accept'] = httpHeaderAcceptSelected;
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+        return accessTokenObservable.pipe(
+            switchMap((accessToken) => {
+                if (accessToken) {
+                    headers['Authorization'] = `Bearer ${accessToken}`;
+                }
+
+                return this.httpClient.get<PrivateFileMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
+                    {
+                        withCredentials: this.configuration.withCredentials,
+                        headers: headers
+                    }
+                );
+            })
+        );
+    }
+    /**
+     * Get metadata of all files owned by the user
+     * 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getMyFiles(): Observable<AxiosResponse<Array<PrivateFileMeta>>>;
+    public getMyFiles(): Observable<any> {
+        let headers = {...this.defaultHeaders};
+
+        let accessTokenObservable: Observable<any> = of(null);
+
+        // authentication (BearerAuth) required
+        if (typeof this.configuration.accessToken === 'function') {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken()));
+        } else if (this.configuration.accessToken) {
+            accessTokenObservable = from(Promise.resolve(this.configuration.accessToken));
+        }
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers['Accept'] = httpHeaderAcceptSelected;
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+        return accessTokenObservable.pipe(
+            switchMap((accessToken) => {
+                if (accessToken) {
+                    headers['Authorization'] = `Bearer ${accessToken}`;
+                }
+
+                return this.httpClient.get<Array<PrivateFileMeta>>(`${this.basePath}/me/files`,
+                    {
+                        withCredentials: this.configuration.withCredentials,
+                        headers: headers
+                    }
+                );
+            })
+        );
+    }
+    /**
      * Register a snapshot to the public registry
      * 
      * @param fileName 
@@ -315,14 +303,14 @@ export class MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNameVersionRegisterPost(fileName: string, version: number, ): Observable<AxiosResponse<any>>;
-    public meFilesFileNameVersionRegisterPost(fileName: string, version: number, ): Observable<any> {
+    public registerMySnapshot(fileName: string, version: number, ): Observable<AxiosResponse<any>>;
+    public registerMySnapshot(fileName: string, version: number, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNameVersionRegisterPost.');
+            throw new Error('Required parameter fileName was null or undefined when calling registerMySnapshot.');
         }
 
         if (version === null || version === undefined) {
-            throw new Error('Required parameter version was null or undefined when calling meFilesFileNameVersionRegisterPost.');
+            throw new Error('Required parameter version was null or undefined when calling registerMySnapshot.');
         }
 
         let headers = {...this.defaultHeaders};
@@ -363,13 +351,19 @@ export class MeService {
         );
     }
     /**
-     * Get metadata of all files owned by the user
+     * Upload a snapshot of the file
      * 
+     * @param fileName 
+     * @param body 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesGet(): Observable<AxiosResponse<Array<PrivateFileMeta>>>;
-    public meFilesGet(): Observable<any> {
+    public uploadMySnapshot(fileName: string, body?: string, ): Observable<AxiosResponse<SnapshotMeta>>;
+    public uploadMySnapshot(fileName: string, body?: string, ): Observable<any> {
+        if (fileName === null || fileName === undefined) {
+            throw new Error('Required parameter fileName was null or undefined when calling uploadMySnapshot.');
+        }
+
         let headers = {...this.defaultHeaders};
 
         let accessTokenObservable: Observable<any> = of(null);
@@ -391,14 +385,20 @@ export class MeService {
 
         // to determine the Content-Type header
         const consumes: string[] = [
+            'application/json'
         ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected != undefined) {
+            headers['Content-Type'] = httpContentTypeSelected;
+        }
         return accessTokenObservable.pipe(
             switchMap((accessToken) => {
                 if (accessToken) {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<Array<PrivateFileMeta>>(`${this.basePath}/me/files`,
+                return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
+                    body,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers

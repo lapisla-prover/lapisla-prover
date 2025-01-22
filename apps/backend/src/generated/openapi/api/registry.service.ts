@@ -50,10 +50,10 @@ export class RegistryService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public registrySnapshotIdGet(snapshotId: string, ): Observable<AxiosResponse<Project>>;
-    public registrySnapshotIdGet(snapshotId: string, ): Observable<any> {
+    public getProjectDependencies(snapshotId: string, ): Observable<AxiosResponse<Project>>;
+    public getProjectDependencies(snapshotId: string, ): Observable<any> {
         if (snapshotId === null || snapshotId === undefined) {
-            throw new Error('Required parameter snapshotId was null or undefined when calling registrySnapshotIdGet.');
+            throw new Error('Required parameter snapshotId was null or undefined when calling getProjectDependencies.');
         }
 
         let headers = {...this.defaultHeaders};
