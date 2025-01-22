@@ -15,19 +15,19 @@ model users {
 
 model files {
   id           String   @id @default(uuid()) // permalink_id 
-  ownerId     String
+  ownerId      String
   name         String
-  createdAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
   @@unique([ownerId, name])
   @@index([ownerId])
 }
 
 model snapshots {
   id           String   @id @default(uuid())
-  fileId      String
+  fileId       String
   version      Int
-  isPublic    Boolean
-  createdAt   DateTime @default(now())
+  isPublic     Boolean
+  createdAt    DateTime @default(now())
   content      String  @db.Text
   @@unique([fileId, version])
   @@index([fileId])
@@ -35,7 +35,7 @@ model snapshots {
 
 model dependencies {
   id           String   @id @default(uuid())
-  dependerId  String
-  dependeeId  String
+  dependerId   String
+  dependeeId   String
   @@index([dependerId])
 }
