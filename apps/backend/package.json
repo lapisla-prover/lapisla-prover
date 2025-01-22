@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "openapi:generate": "openapi-generator-cli generate -i ../../openapi.yaml -g typescript-nestjs -o ./src/generated/openapi",
     "prisma:generate-mock": "prisma generate --schema prisma/mock.prisma",
-    "prisma:generate": "prisma generate --schema prisma/schema.prisma"
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
