@@ -27,7 +27,7 @@ export class MyLoginService extends LoginService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public loginCallbackGet(code: string, state: string, ): Observable<AxiosResponse<any>> {
+    public callbackGitHubOAuth(code: string, state: string, ): Observable<AxiosResponse<any>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -36,7 +36,7 @@ export class MyLoginService extends LoginService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public loginGet(): Observable<AxiosResponse<any>> {
+    public loginWithGitHub(): Observable<AxiosResponse<any>> {
         throw new Error('Method not implemented.');
     }
 }

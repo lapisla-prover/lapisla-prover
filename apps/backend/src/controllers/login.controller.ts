@@ -7,11 +7,11 @@ export class LoginController {
 
     @Get()
     login() {
-        return this.loginService.loginGet();
+        return this.loginService.loginWithGitHub();
     }
 
     @Get('callback')
     loginCallback(@Query('code') code: string, @Query('state') state: string) {
-        return this.loginService.loginCallbackGet(code, state);
+        return this.loginService.callbackGitHubOAuth(code, state);
     }
 }

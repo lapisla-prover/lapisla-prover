@@ -28,7 +28,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNameDelete(fileName: string, ): Observable<AxiosResponse<any>> {
+    public deleteMyFile(fileName: string, ): Observable<AxiosResponse<any>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -38,7 +38,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNameGet(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>> {
+    public getMyFile(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -49,7 +49,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNamePatch(fileName: string, body?: string, ): Observable<AxiosResponse<SnapshotMeta>> {
+    public uploadMySnapshot(fileName: string, body?: string, ): Observable<AxiosResponse<SnapshotMeta>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -59,7 +59,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNamePost(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>> {
+    public createMyFile(fileName: string, ): Observable<AxiosResponse<PrivateFileMeta>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -70,7 +70,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNameVersionPermalinkPost(fileName: string, version: number, ): Observable<AxiosResponse<string>> {
+    public createMyPermalink(fileName: string, version: number, ): Observable<AxiosResponse<string>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -81,7 +81,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesFileNameVersionRegisterPost(fileName: string, version: number, ): Observable<AxiosResponse<any>> {
+    public registerMySnapshot(fileName: string, version: number, ): Observable<AxiosResponse<any>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -90,7 +90,7 @@ export class MyMeService extends MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public meFilesGet(): Observable<AxiosResponse<Array<PrivateFileMeta>>> {
+    public getMyFiles(): Observable<AxiosResponse<Array<PrivateFileMeta>>> {
         throw new Error('Method not implemented.');
     }
 }

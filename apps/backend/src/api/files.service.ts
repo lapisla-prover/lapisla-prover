@@ -22,6 +22,8 @@ export class MyFilesService extends FilesService{
         this.prisma = prismaService;
     }
 
+
+
     /**
      * Fetch a public file
      * 
@@ -30,7 +32,7 @@ export class MyFilesService extends FilesService{
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public filesUserNameFileNameGet(userName: string, fileName: string, ): Observable<AxiosResponse<PublicFileMeta>> {
+    public getPublicFile(userName: string, fileName: string, ): Observable<AxiosResponse<PublicFileMeta>> {
         throw new Error('Method not implemented.');
     }
     /**
@@ -42,7 +44,7 @@ export class MyFilesService extends FilesService{
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public filesUserNameFileNameVersionGet(userName: string, fileName: string, version: number, ): Observable<AxiosResponse<Snapshot>> {
+    public getPublicSnapshot(userName: string, fileName: string, version: number, ): Observable<AxiosResponse<Snapshot>> {
         throw new Error('Method not implemented.');
     }
    /**
@@ -52,7 +54,7 @@ export class MyFilesService extends FilesService{
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public filesUserNameGet(userName: string, ): Observable<AxiosResponse<Array<PublicFileMeta>>> {
+    public getPublicFiles(userName: string, ): Observable<AxiosResponse<Array<PublicFileMeta>>> {
         throw new Error('Method not implemented.');
     }
 }

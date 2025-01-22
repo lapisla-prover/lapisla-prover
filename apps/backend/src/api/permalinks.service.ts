@@ -27,7 +27,7 @@ export class MyPermalinksService extends PermalinksService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public permalinksPermalinkIdGet(permalinkId: string, ): Observable<AxiosResponse<Snapshot>> {
+    public getPermalink(permalinkId: string, ): Observable<AxiosResponse<Snapshot>> {
         throw new Error('Method not implemented.');
     }
 }

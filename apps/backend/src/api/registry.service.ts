@@ -27,7 +27,7 @@ export class MyRegistryService extends RegistryService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public registrySnapshotIdGet(snapshotId: string, ): Observable<AxiosResponse<Project>> {
+    public getProjectDependencies(snapshotId: string, ): Observable<AxiosResponse<Project>> {
         throw new Error('Method not implemented.');
     }
 }
