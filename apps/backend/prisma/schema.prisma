@@ -32,3 +32,10 @@ model contents {
   content      String
   file         files   @relation(fields: [file_id], references: [id])
 }
+
+model dependencies {
+  id           String   @id @default(uuid())
+  depender_id  String
+  dependee_id  String
+  @@index([depender_id])
+}
