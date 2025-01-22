@@ -9,7 +9,7 @@ import { COLLECTION_FORMATS } from '../generated/openapi/variables';
 import { SnapshotMeta } from 'src/generated/openapi';
 
 @Injectable()
-export class MyFilesService {
+export class FilesService {
 
     protected prisma: PrismaService;
 

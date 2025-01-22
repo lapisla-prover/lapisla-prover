@@ -2,21 +2,12 @@ import { Module } from '@nestjs/common';
 import { HttpModule, HttpService } from '@nestjs/axios';
 
 import {
-  ApiModule,
   FilesService,
   LoginService,
   MeService,
   PermalinksService,
   RegistryService,
   SearchService
-} from './generated/openapi';
-import {
-  MyFilesService,
-  MyLoginService,
-  MyMeService,
-  MyPermalinksService,
-  MyRegistryService,
-  MySearchService
 } from './api/api';
 import { PrismaService } from './prisma.service';
 import {
@@ -33,27 +24,12 @@ import {
   exports: [  ],
   providers: [
     PrismaService,
-    MyFilesService,
-    {
-      provide: LoginService,
-      useClass: MyLoginService
-    },
-    {
-      provide: MeService,
-      useClass: MyMeService
-    },
-    {
-      provide: PermalinksService,
-      useClass: MyPermalinksService
-    },
-    {
-      provide: RegistryService,
-      useClass: MyRegistryService
-    },
-    {
-      provide: SearchService,
-      useClass: MySearchService
-    }
+    FilesService,
+    LoginService,
+    MeService,
+    PermalinksService,
+    RegistryService,
+    SearchService
   ],
   controllers: [
     FilesController,
@@ -65,4 +41,4 @@ import {
   ],
 
 })
-export class AppModule extends ApiModule {}
+export class AppModule {}
