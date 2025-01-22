@@ -11,7 +11,7 @@
  */
 
 
-export interface SearchGetQueryParameter { 
+export interface SearchSnapshotsQueryParameter { 
     query?: string;
     before?: string;
     offset?: number;

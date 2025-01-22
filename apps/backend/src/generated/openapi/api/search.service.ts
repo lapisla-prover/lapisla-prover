@@ -15,8 +15,8 @@ import { Injectable, Optional } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
-import { SearchGetQueryParameter } from '../model/searchGetQueryParameter';
 import { SearchResult } from '../model/searchResult';
+import { SearchSnapshotsQueryParameter } from '../model/searchSnapshotsQueryParameter';
 import { Configuration } from '../configuration';
 import { COLLECTION_FORMATS } from '../variables';
 
@@ -51,10 +51,10 @@ export class SearchService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public searchGet(query: SearchGetQueryParameter, ): Observable<AxiosResponse<SearchResult>>;
-    public searchGet(query: SearchGetQueryParameter, ): Observable<any> {
+    public searchSnapshots(query: SearchSnapshotsQueryParameter, ): Observable<AxiosResponse<SearchResult>>;
+    public searchSnapshots(query: SearchSnapshotsQueryParameter, ): Observable<any> {
         if (query === null || query === undefined) {
-            throw new Error('Required parameter query was null or undefined when calling searchGet.');
+            throw new Error('Required parameter query was null or undefined when calling searchSnapshots.');
         }
 
         let queryParameters = new URLSearchParams();

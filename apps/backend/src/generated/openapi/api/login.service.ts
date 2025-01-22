@@ -50,14 +50,14 @@ export class LoginService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public loginCallbackGet(code: string, state: string, ): Observable<AxiosResponse<any>>;
-    public loginCallbackGet(code: string, state: string, ): Observable<any> {
+    public callbackGitHubOAuth(code: string, state: string, ): Observable<AxiosResponse<any>>;
+    public callbackGitHubOAuth(code: string, state: string, ): Observable<any> {
         if (code === null || code === undefined) {
-            throw new Error('Required parameter code was null or undefined when calling loginCallbackGet.');
+            throw new Error('Required parameter code was null or undefined when calling callbackGitHubOAuth.');
         }
 
         if (state === null || state === undefined) {
-            throw new Error('Required parameter state was null or undefined when calling loginCallbackGet.');
+            throw new Error('Required parameter state was null or undefined when calling callbackGitHubOAuth.');
         }
 
         let queryParameters = new URLSearchParams();
@@ -105,8 +105,8 @@ export class LoginService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public loginGet(): Observable<AxiosResponse<any>>;
-    public loginGet(): Observable<any> {
+    public loginWithGitHub(): Observable<AxiosResponse<any>>;
+    public loginWithGitHub(): Observable<any> {
         let headers = {...this.defaultHeaders};
 
         let accessTokenObservable: Observable<any> = of(null);

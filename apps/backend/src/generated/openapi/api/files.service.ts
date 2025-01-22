@@ -52,14 +52,14 @@ export class FilesService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public filesUserNameFileNameGet(userName: string, fileName: string, ): Observable<AxiosResponse<PublicFileMeta>>;
-    public filesUserNameFileNameGet(userName: string, fileName: string, ): Observable<any> {
+    public getPublicFile(userName: string, fileName: string, ): Observable<AxiosResponse<PublicFileMeta>>;
+    public getPublicFile(userName: string, fileName: string, ): Observable<any> {
         if (userName === null || userName === undefined) {
-            throw new Error('Required parameter userName was null or undefined when calling filesUserNameFileNameGet.');
+            throw new Error('Required parameter userName was null or undefined when calling getPublicFile.');
         }
 
         if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling filesUserNameFileNameGet.');
+            throw new Error('Required parameter fileName was null or undefined when calling getPublicFile.');
         }
 
         let headers = {...this.defaultHeaders};
@@ -94,70 +94,16 @@ export class FilesService {
         );
     }
     /**
-     * Fetch a public snapshot
-     * 
-     * @param userName 
-     * @param fileName 
-     * @param version 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public filesUserNameFileNameVersionGet(userName: string, fileName: string, version: number, ): Observable<AxiosResponse<Snapshot>>;
-    public filesUserNameFileNameVersionGet(userName: string, fileName: string, version: number, ): Observable<any> {
-        if (userName === null || userName === undefined) {
-            throw new Error('Required parameter userName was null or undefined when calling filesUserNameFileNameVersionGet.');
-        }
-
-        if (fileName === null || fileName === undefined) {
-            throw new Error('Required parameter fileName was null or undefined when calling filesUserNameFileNameVersionGet.');
-        }
-
-        if (version === null || version === undefined) {
-            throw new Error('Required parameter version was null or undefined when calling filesUserNameFileNameVersionGet.');
-        }
-
-        let headers = {...this.defaultHeaders};
-
-        let accessTokenObservable: Observable<any> = of(null);
-
-        // to determine the Accept header
-        let httpHeaderAccepts: string[] = [
-            'application/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected != undefined) {
-            headers['Accept'] = httpHeaderAcceptSelected;
-        }
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-        ];
-        return accessTokenObservable.pipe(
-            switchMap((accessToken) => {
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
-                return this.httpClient.get<Snapshot>(`${this.basePath}/files/${encodeURIComponent(String(userName))}/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}`,
-                    {
-                        withCredentials: this.configuration.withCredentials,
-                        headers: headers
-                    }
-                );
-            })
-        );
-    }
-    /**
      * Get metadata of all public files owned by the user
      * 
      * @param userName 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public filesUserNameGet(userName: string, ): Observable<AxiosResponse<Array<PublicFileMeta>>>;
-    public filesUserNameGet(userName: string, ): Observable<any> {
+    public getPublicFiles(userName: string, ): Observable<AxiosResponse<Array<PublicFileMeta>>>;
+    public getPublicFiles(userName: string, ): Observable<any> {
         if (userName === null || userName === undefined) {
-            throw new Error('Required parameter userName was null or undefined when calling filesUserNameGet.');
+            throw new Error('Required parameter userName was null or undefined when calling getPublicFiles.');
         }
 
         let headers = {...this.defaultHeaders};
@@ -183,6 +129,60 @@ export class FilesService {
                 }
 
                 return this.httpClient.get<Array<PublicFileMeta>>(`${this.basePath}/files/${encodeURIComponent(String(userName))}`,
+                    {
+                        withCredentials: this.configuration.withCredentials,
+                        headers: headers
+                    }
+                );
+            })
+        );
+    }
+    /**
+     * Fetch a public snapshot
+     * 
+     * @param userName 
+     * @param fileName 
+     * @param version 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getPublicSnapshot(userName: string, fileName: string, version: number, ): Observable<AxiosResponse<Snapshot>>;
+    public getPublicSnapshot(userName: string, fileName: string, version: number, ): Observable<any> {
+        if (userName === null || userName === undefined) {
+            throw new Error('Required parameter userName was null or undefined when calling getPublicSnapshot.');
+        }
+
+        if (fileName === null || fileName === undefined) {
+            throw new Error('Required parameter fileName was null or undefined when calling getPublicSnapshot.');
+        }
+
+        if (version === null || version === undefined) {
+            throw new Error('Required parameter version was null or undefined when calling getPublicSnapshot.');
+        }
+
+        let headers = {...this.defaultHeaders};
+
+        let accessTokenObservable: Observable<any> = of(null);
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers['Accept'] = httpHeaderAcceptSelected;
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+        return accessTokenObservable.pipe(
+            switchMap((accessToken) => {
+                if (accessToken) {
+                    headers['Authorization'] = `Bearer ${accessToken}`;
+                }
+
+                return this.httpClient.get<Snapshot>(`${this.basePath}/files/${encodeURIComponent(String(userName))}/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
