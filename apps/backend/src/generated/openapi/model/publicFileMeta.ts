@@ -16,9 +16,9 @@
  */
 export interface PublicFileMeta { 
     owner: string;
-    file_name: string;
-    registered_versions: Array<number>;
-    created_at: string;
-    updated_at: string;
+    fileName: string;
+    registeredVersions: Array<number>;
+    createdAt: string;
+    updatedAt: string;
 }
 

@@ -5,6 +5,5 @@ export * from './project';
 export * from './publicFile';
 export * from './publicFileMeta';
 export * from './searchResult';
-export * from './searchSnapshotsQueryParameter';
 export * from './snapshot';
 export * from './snapshotMeta';
