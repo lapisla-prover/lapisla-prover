@@ -53,6 +53,16 @@ export function tokenize(str: string): Result<Token[], string> {
   const tokens: Token[] = [];
   let pos = 0;
   let loc: Location = { line: 0, column: 0 };
+
+  while (pos < str.length && /\s/.test(str[pos])) {
+    if (str[pos] === "\n") {
+      loc = nextLine(loc);
+    } else {
+      loc = nextColumn(loc);
+    }
+    pos++;
+  }
+
   while (pos < str.length) {
     const c = str[pos];
     switch (c) {

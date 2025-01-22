@@ -4,6 +4,22 @@ import { expectErr, expectOk } from "./test-util.ts";
 import { formatJudgement } from "./ast.ts";
 
 describe("tokenize", () => {
+  test("head spaces", () => {
+    const tokens = tokenize("   a");
+    expectOk(tokens);
+    expect(tokens.value).toEqual([
+      {
+        tag: "Ident",
+        ident: "a",
+        loc: { start: { line: 0, column: 3 }, end: { line: 0, column: 4 } },
+      },
+      {
+        tag: "EOF",
+        loc: { start: { line: 0, column: 4 }, end: { line: 0, column: 4 } },
+      },
+    ]);
+  });
+
   test("∀x.((P(x) ∨ Q())) can be tokenized", () => {
     const tokens = tokenize("∀x.((P(x) ∨ Q()))");
     expectOk(tokens);
