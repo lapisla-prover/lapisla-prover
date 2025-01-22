@@ -617,10 +617,6 @@ describe("rules", () => {
     loop.next(); // 初回のnextは最初のyieldまで進めるため
     for (const cmd of cmds) {
       const res = loop.next(cmd);
-      if (res.done) {
-        res.value satisfies never;
-        throw new Error("Unreachable");
-      }
       expectOk(res.value);
     }
   });
@@ -637,11 +633,45 @@ describe("rules", () => {
     loop.next(); // 初回のnextは最初のyieldまで進めるため
     loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
     loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
+    // proof mode中なので、ThmDを送ってもErrが返る
     const res = loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
-    if (res.done) {
-      res.value satisfies never;
-      throw new Error("Unreachable");
-    }
+    expectErr(res.value);
+  });
+
+  test("Sending Undo after Qed goes back to proof mode", () => {
+    // a ==> a
+    const sampleFormula: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "a", args: [] },
+      right: { tag: "Pred", ident: "a", args: [] },
+    };
+    const loop = topLoop(new TopHistory());
+    loop.next(); // 初回のnextは最初のyieldまで進めるため
+    loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
+    loop.next({ tag: "Apply", rule: { tag: "I" } });
+    loop.next({ tag: "Qed" });
+    // Qed後にUndoを送ると、proof modeに戻る
+    loop.next({ tag: "Undo" });
+    // proof mode中なので、ThmDを送ってもErrが返る
+    const res = loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    expectErr(res.value);
+  });
+
+  test("Sending Undo right after ThmD goes back to top mode", () => {
+    // a ==> a
+    const sampleFormula: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "a", args: [] },
+      right: { tag: "Pred", ident: "a", args: [] },
+    };
+
+    const loop = topLoop(new TopHistory());
+    loop.next(); // 初回のnextは最初のyieldまで進めるため
+    loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    loop.next({ tag: "Undo" });
+    // top mode中なので，Applyを送ってもErrが返る
+    const res = loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
     expectErr(res.value);
   });
 });

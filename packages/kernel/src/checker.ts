@@ -391,10 +391,14 @@ export function* proofLoop(
       }
       case "Use":
         throw new Error("unimplemented");
-      case "Undo":
-        history.pop();
+      case "Undo": {
+        const res = history.pop();
+        if (res.tag === "Err") {
+          return Err(res.error);
+        }
         result = Ok();
         continue loop;
+      }
       case "Qed":
         if (history.isFinished()) {
           return Ok();
@@ -438,7 +442,13 @@ export function* topLoop(
       }
 
       if (topCmd.tag === "Undo") {
-        const prevStep = topHistory.top();
+        const maybePrevStep = topHistory.pop();
+        if (maybePrevStep.tag === "Err") {
+          result = Err(maybePrevStep.error);
+          continue topMode;
+        }
+
+        const prevStep = maybePrevStep.value;
         // 前のstepがThmDの場合はproofModeに移行する
         if (prevStep.tag === "ThmD") {
           thmName = prevStep.name;
@@ -448,7 +458,6 @@ export function* topLoop(
           break topMode;
         }
 
-        topHistory.pop();
         result = Ok();
         continue topMode;
       }
@@ -470,13 +479,16 @@ export function* topLoop(
       }
 
       const res = ploop.next(topCmd);
-      // Qedにより証明が終了した場合
+      // Qedにより証明が終了した場合(res.valueがOk)，またはUndoで証明の履歴が空になった場合(res.valueがErr)
+      // FIXME: もう少しいいやり方がある気がする
       if (res.done) {
-        topHistory.insertThm(thmName, thmFormula, proofHistory);
+        if (res.value.tag === "Ok") {
+          topHistory.insertThm(thmName, thmFormula, proofHistory);
+        }
         result = Ok();
         break proofMode;
       }
-      // proofLoopはQedの時以外終わらないので，このasは安全なはず
+      // proofLoopはQed|Undoの時以外終わらないので，このasは安全なはず
       result = res.value;
     }
   }
