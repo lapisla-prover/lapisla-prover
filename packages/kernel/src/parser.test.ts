@@ -95,7 +95,7 @@ describe("tokenize", () => {
     ]);
   });
   test("all tokens can be tokenized", () => {
-    const tokens = tokenize("∀∃λlam\\.,⊤⊥∧∨→⊢");
+    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢");
     expectOk(tokens);
     expect(tokens.value).toEqual([
       {
@@ -111,48 +111,40 @@ describe("tokenize", () => {
         loc: { start: { line: 0, column: 2 }, end: { line: 0, column: 3 } },
       },
       {
-        tag: "Lambda",
-        loc: { start: { line: 0, column: 3 }, end: { line: 0, column: 6 } },
-      },
-      {
-        tag: "Lambda",
-        loc: { start: { line: 0, column: 6 }, end: { line: 0, column: 7 } },
-      },
-      {
         tag: "Dot",
-        loc: { start: { line: 0, column: 7 }, end: { line: 0, column: 8 } },
+        loc: { start: { line: 0, column: 3 }, end: { line: 0, column: 4 } },
       },
       {
         tag: "Comma",
-        loc: { start: { line: 0, column: 8 }, end: { line: 0, column: 9 } },
+        loc: { start: { line: 0, column: 4 }, end: { line: 0, column: 5 } },
       },
       {
         tag: "Top",
-        loc: { start: { line: 0, column: 9 }, end: { line: 0, column: 10 } },
+        loc: { start: { line: 0, column: 5 }, end: { line: 0, column: 6 } },
       },
       {
         tag: "Bottom",
-        loc: { start: { line: 0, column: 10 }, end: { line: 0, column: 11 } },
+        loc: { start: { line: 0, column: 6 }, end: { line: 0, column: 7 } },
       },
       {
         tag: "And",
-        loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 12 } },
+        loc: { start: { line: 0, column: 7 }, end: { line: 0, column: 8 } },
       },
       {
         tag: "Or",
-        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 13 } },
+        loc: { start: { line: 0, column: 8 }, end: { line: 0, column: 9 } },
       },
       {
         tag: "Imply",
-        loc: { start: { line: 0, column: 13 }, end: { line: 0, column: 14 } },
+        loc: { start: { line: 0, column: 9 }, end: { line: 0, column: 10 } },
       },
       {
         tag: "VDash",
-        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
+        loc: { start: { line: 0, column: 10 }, end: { line: 0, column: 11 } },
       },
       {
         tag: "EOF",
-        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 15 } },
+        loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 11 } },
       },
     ]);
   });
@@ -244,7 +236,7 @@ describe("parser", () => {
     });
 
     test("lambda abstraction", () => {
-      const str = "\\x, y, z. x(y, z)()";
+      const str = "λx, y, z. x(y, z)()";
       const term = parseTerm(str);
       expectOk(term);
       expect(term.value).toEqual({
@@ -266,7 +258,7 @@ describe("parser", () => {
     });
 
     test("lambda abstraction with application", () => {
-      const str = "(lam x. x)(y)";
+      const str = "(λx. x)(y)";
       const term = parseTerm(str);
       expectOk(term);
       expect(term.value).toEqual({
@@ -290,11 +282,11 @@ describe("parser", () => {
     });
 
     test("misplaced comma", () => {
-      const str = "lam x. f(x, g(y,))";
+      const str = "λ x. f(x, g(y,))";
       const term = parseTerm(str);
       expectErr(term);
       expect(term.error).toEqual(
-        "expected term but got unexpected token RParen at 0:16"
+        "expected term but got unexpected token RParen at 0:14"
       );
     });
   });

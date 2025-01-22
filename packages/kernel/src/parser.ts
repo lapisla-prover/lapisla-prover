@@ -66,7 +66,6 @@ export function tokenize(str: string): Result<Token[], string> {
   while (pos < str.length) {
     const c = str[pos];
     switch (c) {
-      case "\\":
       case "λ": {
         tokens.push({
           tag: "Lambda",
@@ -183,11 +182,7 @@ export function tokenize(str: string): Result<Token[], string> {
             pos++;
             loc = nextColumn(loc);
           }
-          if (ident === "lam") {
-            tokens.push({ tag: "Lambda", loc: { start, end: loc } });
-          } else {
-            tokens.push({ tag: "Ident", loc: { start, end: loc }, ident });
-          }
+          tokens.push({ tag: "Ident", loc: { start, end: loc }, ident });
         } else {
           return Err(`unexpected character ${c} at ${pos}`);
         }
