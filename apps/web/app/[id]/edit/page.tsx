@@ -1,14 +1,28 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import Editor from "@monaco-editor/react"
-import { useMonaco } from "@monaco-editor/react"
-import { ChevronDown, ChevronsDown, ChevronsUp, ChevronUp, Mic, Search } from "lucide-react"
 import { SideMenu } from "@/components/sidemenu"
+import { Register } from "@/components/register";
+import { Share } from "@/components/share";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { configureMonaco } from "@/lib/monacoConfig";
+import Editor, { useMonaco } from "@monaco-editor/react";
+import {
+  ChevronDown,
+  ChevronsDown,
+  ChevronsUp,
+  ChevronUp,
+  Mic,
+  Save,
+  Search,
+} from "lucide-react";
 
 export default function Edit() {
+  const monaco = useMonaco();
+  if (monaco) {
+    configureMonaco(monaco);
+  }
 
   return (
     <div className="flex h-screen">
@@ -21,6 +35,22 @@ export default function Edit() {
           </div>
 
           <div className="h-0.5 w-full bg-gray-200" />
+
+          <Editor
+            className="h-full w-full mt-4 border border-black"
+            height={"calc(100vh - 200px)"}
+            theme="vs"
+            language="lapisla"
+            options={{
+              unicodeHighlight: {
+                ambiguousCharacters: false
+              }
+            }}
+            defaultValue="# Write your proof here!"
+
+          />
+        </div>
+
 
           <div className="flex justify-end items-center">
             <div className="flex gap-2">
