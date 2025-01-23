@@ -159,7 +159,7 @@ export const configureMonaco = (monaco: Monaco) => {
 
     monaco.languages.setMonarchTokensProvider("proof-state", {
         defaultToken: "invalid",
-        keywords: [],
+        keywords: ["Goal"],
         operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
         symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
         tokenizer: {
