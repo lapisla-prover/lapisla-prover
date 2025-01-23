@@ -10,7 +10,9 @@
   "exports": {
     "./ast": "./src/ast.ts",
     "./checker": "./src/checker.ts",
-    "./common": "./src/common.ts"
+    "./common": "./src/common.ts",
+    "./parser": "./src/parser.ts",
+    "./kernel": "./src/kernel.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
