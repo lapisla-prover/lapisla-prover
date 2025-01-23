@@ -5,7 +5,6 @@ import { AsyncConfiguration, Configuration, ConfigurationFactory } from './confi
 import { FilesService } from './api/files.service';
 import { LoginService } from './api/login.service';
 import { MeService } from './api/me.service';
-import { PermalinksService } from './api/permalinks.service';
 import { RegistryService } from './api/registry.service';
 import { SearchService } from './api/search.service';
 
@@ -16,7 +15,6 @@ import { SearchService } from './api/search.service';
     FilesService,
     LoginService,
     MeService,
-    PermalinksService,
     RegistryService,
     SearchService
   ],
@@ -24,7 +22,6 @@ import { SearchService } from './api/search.service';
     FilesService,
     LoginService,
     MeService,
-    PermalinksService,
     RegistryService,
     SearchService
   ]

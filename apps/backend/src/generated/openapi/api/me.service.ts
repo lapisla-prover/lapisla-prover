@@ -16,6 +16,7 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
 import { PrivateFileMeta } from '../model/privateFileMeta';
+import { Snapshot } from '../model/snapshot';
 import { SnapshotMeta } from '../model/snapshotMeta';
 import { Configuration } from '../configuration';
 import { COLLECTION_FORMATS } from '../variables';
@@ -96,14 +97,14 @@ export class MeService {
         );
     }
     /**
-     * Create a permalink to the snapshot
+     * Get a snapshot of the file
      * 
      * @param fileName 
      * @param version 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createMyPermalink(fileName: string, version: number, ): Observable<AxiosResponse<string>>;
+    public createMyPermalink(fileName: string, version: number, ): Observable<AxiosResponse<Snapshot>>;
     public createMyPermalink(fileName: string, version: number, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
             throw new Error('Required parameter fileName was null or undefined when calling createMyPermalink.');
@@ -141,8 +142,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<string>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/permalink`,
-                    null,
+                return this.httpClient.get<Snapshot>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
