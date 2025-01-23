@@ -55,6 +55,8 @@ export type UndoCmd = { tag: "Undo" };
 
 export type TopCmd = ProofCmd | DeclCmd | UndoCmd;
 
+export type KernelMode = "DeclareWait" | "Proving";
+
 export function isDeclCmd(cmd: TopCmd): cmd is DeclCmd {
   return cmd.tag === "Theorem";
 }
