@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { Injectable, Optional } from '@nestjs/common';
 import { PrivateFileMeta } from '../generated/openapi/model/privateFileMeta';
 import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
+import { Snapshot } from '../generated/openapi/model/snapshot';
 import { AbstractAuthService } from '../auth.service';
 
 @Injectable()
@@ -25,6 +26,10 @@ export class MeService<TokenType> {
     }
 
     public async uploadMySnapshot(fileName: string, body?: string, ): Promise<SnapshotMeta> {
+        throw new Error('Method not implemented.');
+    }
+
+    public async getMySnapshot(fileName: string, version: number, ): Promise<Snapshot> {
         throw new Error('Method not implemented.');
     }
 
