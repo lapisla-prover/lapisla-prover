@@ -1,6 +1,7 @@
 "use client";
 
 
+
 import { Register } from "@/components/register";
 import { Share } from "@/components/share";
 import { SideMenu } from "@/components/sidemenu";
@@ -84,7 +85,13 @@ export default function Edit() {
         </div>
           <div className="flex justify-end items-center">
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="p-1" title="Move Up">
+              <Button variant="ghost" size="sm" className="p-1" title="Move Up" onClick={() => {
+                if (goalEditorRef.current) {
+                  goalEditorRef.current.setValue("↑");
+                }
+              }
+              }>
+
                 <ChevronUp className="h-4 w-4" />
               </Button>
               <Button
