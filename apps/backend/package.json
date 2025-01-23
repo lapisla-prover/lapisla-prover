@@ -30,6 +30,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.2.1",
     "axios": "^1.7.9",
+    "neverthrow": "^8.1.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
