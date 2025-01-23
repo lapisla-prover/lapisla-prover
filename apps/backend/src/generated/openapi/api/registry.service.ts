@@ -15,7 +15,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
-import { Project } from '../model/project';
+import { ProjectFetchResult } from '../model/projectFetchResult';
 import { Configuration } from '../configuration';
 import { COLLECTION_FORMATS } from '../variables';
 
@@ -50,10 +50,10 @@ export class RegistryService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public registrySnapshotIdGet(snapshotId: string, ): Observable<AxiosResponse<Project>>;
-    public registrySnapshotIdGet(snapshotId: string, ): Observable<any> {
+    public getProjectDependencies(snapshotId: string, ): Observable<AxiosResponse<ProjectFetchResult>>;
+    public getProjectDependencies(snapshotId: string, ): Observable<any> {
         if (snapshotId === null || snapshotId === undefined) {
-            throw new Error('Required parameter snapshotId was null or undefined when calling registrySnapshotIdGet.');
+            throw new Error('Required parameter snapshotId was null or undefined when calling getProjectDependencies.');
         }
 
         let headers = {...this.defaultHeaders};
@@ -78,7 +78,7 @@ export class RegistryService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<Project>(`${this.basePath}/registry/${encodeURIComponent(String(snapshotId))}`,
+                return this.httpClient.get<ProjectFetchResult>(`${this.basePath}/registry/${encodeURIComponent(String(snapshotId))}`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers

@@ -14,9 +14,9 @@
 export interface SnapshotMeta { 
     id: string;
     owner: string;
-    file_name: string;
+    fileName: string;
     version: number;
     registered?: boolean;
-    created_at: string;
+    createdAt: string;
 }
 
