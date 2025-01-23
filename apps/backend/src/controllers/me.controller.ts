@@ -32,11 +32,6 @@ export class MeController<TokenType> {
         return await this.meService.uploadMySnapshot(fileName, body);
     }
 
-    @Post('files/:fileName/:version/register')
-    async postPermalink(@Param('fileName') fileName: string, @Param('version') version: number) {
-        return await this.meService.createMyPermalink(fileName, version);
-    }
-
     @Post('files/:fileName/:version/permalink')
     async postSnapshot(@Param('fileName') fileName: string, @Param('version') version: number) {
         return await this.meService.registerMySnapshot(fileName, version);
