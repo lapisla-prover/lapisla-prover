@@ -100,7 +100,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SourceCode'
+              $ref: '#/components/schemas/SourceCodeWrapper'
       responses:
         '200':
           description: Snapshot uploaded successfully
@@ -470,6 +470,13 @@ components:
           $ref: '#/components/schemas/SourceCode'
       required:
         - meta
+        - content
+    SourceCodeWrapper:
+      type: object
+      properties:
+        content:
+          $ref: '#/components/schemas/SourceCode'
+      required:
         - content
     # search schemas
     SearchResult:

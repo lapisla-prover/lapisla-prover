@@ -18,6 +18,7 @@ import { Observable, from, of, switchMap } from 'rxjs';
 import { PrivateFileMeta } from '../model/privateFileMeta';
 import { Snapshot } from '../model/snapshot';
 import { SnapshotMeta } from '../model/snapshotMeta';
+import { SourceCodeWrapper } from '../model/sourceCodeWrapper';
 import { Configuration } from '../configuration';
 import { COLLECTION_FORMATS } from '../variables';
 
@@ -354,12 +355,12 @@ export class MeService {
      * Upload a snapshot of the file
      * 
      * @param fileName 
-     * @param body 
+     * @param sourceCodeWrapper 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public uploadMySnapshot(fileName: string, body?: string, ): Observable<AxiosResponse<SnapshotMeta>>;
-    public uploadMySnapshot(fileName: string, body?: string, ): Observable<any> {
+    public uploadMySnapshot(fileName: string, sourceCodeWrapper?: SourceCodeWrapper, ): Observable<AxiosResponse<SnapshotMeta>>;
+    public uploadMySnapshot(fileName: string, sourceCodeWrapper?: SourceCodeWrapper, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
             throw new Error('Required parameter fileName was null or undefined when calling uploadMySnapshot.');
         }
@@ -398,7 +399,7 @@ export class MeService {
                 }
 
                 return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
-                    body,
+                    sourceCodeWrapper,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers

@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 README.md
 api.module.ts
 api/api.ts
@@ -22,4 +21,5 @@ model/publicFileMeta.ts
 model/searchResult.ts
 model/snapshot.ts
 model/snapshotMeta.ts
+model/sourceCodeWrapper.ts
 variables.ts
