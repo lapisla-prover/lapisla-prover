@@ -24,10 +24,15 @@ export default function Home() {
         The User-Friendly
         <br /> Theorem Proof Platform
       </div>
-      <div className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center font-black text-9xl m-8">
+      <div className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center font-black text-9xl m-8 mb-16">
         Lapisla.net
       </div>
-      <Button className="m-8">Login with GitHub</Button>
+      <Button className="m-2">Login with GitHub</Button>
+      <Button className="m-2">
+        <a href="https://github.com/lapisla-prover/lapisla-prover">
+          GitHub Repository
+        </a>
+      </Button>
     </div>
   );
 }
