@@ -5,13 +5,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { ShareIcon, Clipboard, Send } from "lucide-react"
-import { useState } from "react"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ShareIcon, Clipboard } from "lucide-react";
+import { useState } from "react";
 
 export const Share = () => {
-  const [permanentLink, setPermanentLink] = useState<string>("https://lapisla.net/view?id=hogehogehugahuga")
+  const [permanentLink, setPermanentLink] = useState<string>(
+    "https://lapisla.net/view?id=hogehogehugahuga"
+  );
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -28,7 +30,7 @@ export const Share = () => {
               <Button
                 className="w-full"
                 onClick={() => {
-                  navigator.clipboard.writeText(permanentLink)
+                  navigator.clipboard.writeText(permanentLink);
                 }}
               >
                 Copy
@@ -36,13 +38,12 @@ export const Share = () => {
               </Button>
               <Button className="w-full" onClick={() => {}}>
                 Post
-                <Send className="ml-2 h-4 w-4" />
+                <img src="/X.svg" className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
     </Dialog>
-  )
-}
-
+  );
+};
