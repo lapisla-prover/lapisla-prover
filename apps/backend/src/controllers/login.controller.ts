@@ -2,8 +2,8 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { LoginService } from '../api/login.service';
 
 @Controller('login')
-export class LoginController<TokenType> {
-    constructor(private loginService: LoginService<TokenType>) {}
+export class LoginController {
+    constructor(private loginService: LoginService) {}
 
     @Get()
     async login() {
