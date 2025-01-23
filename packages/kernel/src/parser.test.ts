@@ -1,5 +1,6 @@
 import { test, describe, expect } from "vitest";
 import {
+  CmdWithLoc,
   parseFormula,
   parseJudgement,
   parseProgram,
@@ -550,6 +551,13 @@ Theorem id P → P
   apply I
 qed
 
+Theorem thm ∀x. P(x) → P(f(y))
+  apply ImpR
+  apply
+    ForallL f(y)
+  apply I
+qed
+
 Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
   apply ImpR
   apply CR
@@ -569,47 +577,37 @@ Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
 `;
       const result = parseProgram(program);
       expectOk(result);
-      expect(result.value).toEqual<TopCmd[]>([
+      expect(result.value).toEqual<CmdWithLoc[]>([
         {
-          tag: "ThmD",
-          name: "id",
-          formula: {
-            tag: "Imply",
-            left: { tag: "Pred", ident: "P", args: [] },
-            right: { tag: "Pred", ident: "P", args: [] },
-          },
-        },
-        {
-          tag: "Apply",
-          rule: { tag: "ImpR" },
-        },
-        {
-          tag: "Apply",
-          rule: { tag: "I" },
-        },
-        {
-          tag: "Qed",
-        },
-        {
-          tag: "ThmD",
-          name: "thm1",
-          formula: {
-            tag: "Imply",
-            left: {
-              tag: "Forall",
-              ident: "x",
-              body: {
-                tag: "Or",
-                left: {
-                  tag: "Pred",
-                  ident: "P",
-                  args: [{ tag: "Var", ident: "x" }],
-                },
-                right: { tag: "Pred", ident: "Q", args: [] },
-              },
+          cmd: {
+            tag: "ThmD",
+            name: "id",
+            formula: {
+              tag: "Imply",
+              left: { tag: "Pred", ident: "P", args: [] },
+              right: { tag: "Pred", ident: "P", args: [] },
             },
-            right: {
-              tag: "Or",
+          },
+          loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 16 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "ImpR" } },
+          loc: { start: { line: 2, column: 2 }, end: { line: 2, column: 12 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "I" } },
+          loc: { start: { line: 3, column: 2 }, end: { line: 3, column: 9 } },
+        },
+        {
+          cmd: { tag: "Qed" },
+          loc: { start: { line: 4, column: 0 }, end: { line: 4, column: 3 } },
+        },
+        {
+          cmd: {
+            tag: "ThmD",
+            name: "thm",
+            formula: {
+              tag: "Imply",
               left: {
                 tag: "Forall",
                 ident: "x",
@@ -619,25 +617,113 @@ Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
                   args: [{ tag: "Var", ident: "x" }],
                 },
               },
-              right: { tag: "Pred", ident: "Q", args: [] },
+              right: {
+                tag: "Pred",
+                ident: "P",
+                args: [
+                  {
+                    tag: "App",
+                    func: { tag: "Var", ident: "f" },
+                    args: [{ tag: "Var", ident: "y" }],
+                  },
+                ],
+              },
             },
+          },
+          loc: { start: { line: 6, column: 0 }, end: { line: 6, column: 30 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "ImpR" } },
+          loc: { start: { line: 7, column: 2 }, end: { line: 7, column: 12 } },
+        },
+        {
+          cmd: {
+            tag: "Apply",
+            rule: {
+              tag: "ForallL",
+              term: {
+                tag: "App",
+                func: { tag: "Var", ident: "f" },
+                args: [{ tag: "Var", ident: "y" }],
+              },
+            },
+          },
+          loc: { start: { line: 8, column: 2 }, end: { line: 9, column: 16 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "I" } },
+          loc: { start: { line: 10, column: 2 }, end: { line: 10, column: 9 } },
+        },
+        {
+          cmd: { tag: "Qed" },
+          loc: { start: { line: 11, column: 0 }, end: { line: 11, column: 3 } },
+        },
+        {
+          cmd: {
+            tag: "ThmD",
+            name: "thm1",
+            formula: {
+              tag: "Imply",
+              left: {
+                tag: "Forall",
+                ident: "x",
+                body: {
+                  tag: "Or",
+                  left: {
+                    tag: "Pred",
+                    ident: "P",
+                    args: [{ tag: "Var", ident: "x" }],
+                  },
+                  right: { tag: "Pred", ident: "Q", args: [] },
+                },
+              },
+              right: {
+                tag: "Or",
+                left: {
+                  tag: "Forall",
+                  ident: "x",
+                  body: {
+                    tag: "Pred",
+                    ident: "P",
+                    args: [{ tag: "Var", ident: "x" }],
+                  },
+                },
+                right: { tag: "Pred", ident: "Q", args: [] },
+              },
+            },
+          },
+          loc: {
+            start: { line: 13, column: 0 },
+            end: { line: 13, column: 42 },
           },
         },
         {
-          tag: "Apply",
-          rule: { tag: "ImpR" },
+          cmd: { tag: "Apply", rule: { tag: "ImpR" } },
+          loc: {
+            start: { line: 14, column: 2 },
+            end: { line: 14, column: 12 },
+          },
         },
         {
-          tag: "Apply",
-          rule: { tag: "CR" },
+          cmd: { tag: "Apply", rule: { tag: "CR" } },
+          loc: {
+            start: { line: 15, column: 2 },
+            end: { line: 15, column: 10 },
+          },
         },
         {
-          tag: "Apply",
-          rule: { tag: "OrR2" },
+          cmd: { tag: "Apply", rule: { tag: "OrR2" } },
+          loc: {
+            start: { line: 16, column: 2 },
+            end: { line: 16, column: 12 },
+          },
         },
         {
-          tag: "Apply",
-          rule: { tag: "PR", index: 1 },
+          cmd: { tag: "Apply", rule: { tag: "PR", index: 1 } },
+          loc: {
+            start: { line: 17, column: 2 },
+            end: { line: 17, column: 12 },
+          },
         },
       ]);
     });

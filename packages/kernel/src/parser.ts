@@ -12,6 +12,11 @@ export type Range = {
   end: Location;
 };
 
+export type CmdWithLoc = {
+  cmd: TopCmd;
+  loc: Range;
+};
+
 const keywords = ["Theorem", "apply", "use", "qed"] as const;
 
 type KeywordsUnion = (typeof keywords)[number];
@@ -287,6 +292,10 @@ class Parser {
 
   peek(): Token {
     return this.#tokens[this.#pos];
+  }
+
+  peekPrev(): Token {
+    return this.#tokens[this.#pos - 1];
   }
 
   next(): Token {
@@ -730,12 +739,14 @@ class Parser {
     }
   }
 
-  parseCommand(): Result<TopCmd, string> {
+  parseCommand(): Result<CmdWithLoc, string> {
     const name = this.expect("Keyword");
     if (name.tag === "Err") {
       return name;
     }
     assert(name.value.tag === "Keyword");
+
+    const start = name.value.loc.start;
 
     switch (name.value.name) {
       case "Theorem": {
@@ -750,10 +761,11 @@ class Parser {
           return formula;
         }
 
+        const end = this.peekPrev().loc.end;
+
         return Ok({
-          tag: "ThmD",
-          name: ident.value.ident,
-          formula: formula.value,
+          cmd: { tag: "ThmD", name: ident.value.ident, formula: formula.value },
+          loc: { start, end },
         });
       }
       case "apply": {
@@ -761,7 +773,13 @@ class Parser {
         if (rule.tag === "Err") {
           return rule;
         }
-        return Ok({ tag: "Apply", rule: rule.value });
+
+        const end = this.peekPrev().loc.end;
+
+        return Ok({
+          cmd: { tag: "Apply", rule: rule.value },
+          loc: { start, end },
+        });
       }
       case "use": {
         const name = this.expect("Ident");
@@ -769,10 +787,18 @@ class Parser {
           return name;
         }
         assert(name.value.tag === "Ident");
-        return Ok({ tag: "Use", thm: name.value.ident });
+
+        const end = this.peekPrev().loc.end;
+
+        return Ok({
+          cmd: { tag: "Use", thm: name.value.ident },
+          loc: { start, end },
+        });
       }
       case "qed": {
-        return Ok({ tag: "Qed" });
+        const end = this.peekPrev().loc.end;
+
+        return Ok({ cmd: { tag: "Qed" }, loc: { start, end } });
       }
       default: {
         name.value.name satisfies never;
@@ -781,8 +807,8 @@ class Parser {
     }
   }
 
-  parseProgram(): Result<TopCmd[], string> {
-    const cmds: TopCmd[] = [];
+  parseProgram(): Result<CmdWithLoc[], string> {
+    const cmds: CmdWithLoc[] = [];
     while (!this.eof()) {
       const cmd = this.parseCommand();
       if (cmd.tag === "Err") {
@@ -845,7 +871,7 @@ export function parseJudgement(str: string): Result<Judgement, string> {
   return judgement;
 }
 
-export function parseProgram(str: string): Result<TopCmd[], string> {
+export function parseProgram(str: string): Result<CmdWithLoc[], string> {
   const tokens = tokenize(str);
   if (tokens.tag === "Err") {
     return tokens;
