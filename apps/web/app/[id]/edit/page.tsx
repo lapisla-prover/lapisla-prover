@@ -16,6 +16,8 @@ import {
 import { SideMenu } from "@/components/sidemenu";
 import { configureMonaco } from "@/lib/monacoConfig";
 
+export const runtime = "edge";
+
 export default function Edit() {
   const monaco = useMonaco();
   if (monaco) {
