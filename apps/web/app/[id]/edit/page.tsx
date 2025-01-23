@@ -1,6 +1,12 @@
 "use client";
 
+import { Register } from "@/components/register";
+import { Share } from "@/components/share";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { configureMonaco } from "@/lib/monacoConfig";
+import Editor, { useMonaco } from "@monaco-editor/react";
 import {
   ChevronDown,
   ChevronsDown,
@@ -10,16 +16,17 @@ import {
   Save,
   Search,
 } from "lucide-react";
-import Editor from "@monaco-editor/react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Share } from "@/components/share";
-import { Register } from "@/components/register";
 
 export default function Edit() {
+  const monaco = useMonaco();
+  if (monaco) {
+    configureMonaco(monaco);
+  }
+
+
   return (
     <div className="flex p-8 gap-8">
-      <div className="w-[60%] p-4 space-y-4">
+      <div className="w-[80%] p-4 space-y-4">
         <div className="flex justify-between items-end">
           <div className="text-2xl font-bold">abap34/simplest-sort.lapis</div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
@@ -53,6 +60,14 @@ export default function Edit() {
           className="h-full w-full mt-4 border border-black"
           height={"calc(100vh - 200px)"}
           theme="vs"
+          language="lapisla"
+          options={{
+            unicodeHighlight: {
+              ambiguousCharacters: false
+            }
+          }}
+          defaultValue="# Write your proof here!"
+          
         />
       </div>
 
@@ -114,3 +129,4 @@ export default function Edit() {
     </div>
   );
 }
+
