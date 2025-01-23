@@ -2,16 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { Result, Ok, Err } from "neverthrow";
 
 @Injectable()
-export abstract class AbstractAuthService<TokenType> {
+export abstract class AbstractAuthService {
     constructor() {}
 
-    abstract newToken(userId: string): Promise<TokenType>;
+    abstract newToken(userId: string): Promise<string>;
 
-    abstract authenticate(token: TokenType): Promise<Result<string, string>>;
+    abstract authenticate(token: string): Promise<Result<string, string>>;
 }
 
 @Injectable()
-export class MockAuthService extends AbstractAuthService<string> {
+export class MockAuthService extends AbstractAuthService {
     constructor() {
         super();
     }
@@ -21,10 +21,6 @@ export class MockAuthService extends AbstractAuthService<string> {
     }
 
     async authenticate(token: string): Promise<Result<string, string>> {
-        if (token.startsWith('mockToken_for_')) {
-            return new Ok(token.substring('mockToken_for_'.length));
-        } else {
-            return new Err('Invalid token');
-        }
+        return new Ok('testuser');
     }
 }

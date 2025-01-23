@@ -8,3 +8,4 @@ export * from './publicFileMeta';
 export * from './searchResult';
 export * from './snapshot';
 export * from './snapshotMeta';
+export * from './sourceCodeWrapper';
