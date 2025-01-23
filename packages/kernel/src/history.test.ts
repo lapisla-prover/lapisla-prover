@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { Formula, Judgement, Rule } from "./ast";
-import { judgeMany } from "./checker";
-import { ProofHistory } from "./history";
+import { Formula, Judgement, Rule, TopCmd } from "./ast";
+import { judgeMany, topLoop } from "./checker";
+import { ProofHistory, TopHistory } from "./history";
 import { expectErr, expectOk } from "./test-util";
 
 // Head case of `checker.test.ts`
@@ -110,3 +110,95 @@ describe("Basic History Tests", () => {
     expectErr(history.applyRule({ tag: "I" }));
   });
 });
+
+
+describe("TopHistory Tests", () => {
+  test("Basic TopHistory Tests", () => {
+    const sampleFormula: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "a", args: [] },
+      right: { tag: "Pred", ident: "a", args: [] },
+    };
+
+    const sampleFormula2: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "b", args: [] },
+      right: { tag: "Pred", ident: "b", args: [] },
+    };
+
+    const thm1: TopCmd[] = [
+      { tag: "ThmD", name: "id", formula: sampleFormula },
+      { tag: "Apply", rule: { tag: "ImpR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Qed" },
+    ]
+
+    const thm2: TopCmd[] = [
+      { tag: "ThmD", name: "id2", formula: sampleFormula2 },
+      { tag: "Apply", rule: { tag: "ImpR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Qed" },
+    ];
+
+    const loop = topLoop(new TopHistory());
+    loop.next(); // initialize
+
+    for (const cmd of thm1) {
+      const res = loop.next(cmd);
+      expectOk(res.value);
+    }
+
+    for (const cmd of thm2) {
+      const res = loop.next(cmd);
+      expectOk(res.value);
+    }
+
+    const history = new TopHistory();
+    const loop2 = topLoop(history);
+    loop2.next(); // initialize
+
+    // proof "id"
+    for (const cmd of thm1) {
+      const res = loop2.next(cmd);
+      expectOk(res.value);
+    }
+
+    
+    expect(history.top().tag).toEqual("ThmD");
+    const thms: Array<string> = Array.from(history.top().env.thms.keys());
+    expect(thms).toEqual(["id"]);
+
+    // undo
+    loop2.next({ tag: "Undo" });
+    expect(history.top().tag).toEqual("Other");
+    const thms2: Array<string> = Array.from(history.top().env.thms.keys());
+    expect(thms2).toEqual([]);
+
+
+    // redo qed
+    loop2.next({ tag: "Qed" });
+    expect(history.top().tag).toEqual("ThmD");
+
+    // proof "id2"
+    for (const cmd of thm2) {
+      const res = loop2.next(cmd);
+      expectOk(res.value);
+    }
+
+    expect(history.top().tag).toEqual("ThmD");
+    const thms3: Array<string> = Array.from(history.top().env.thms.keys());
+    expect(thms3).toEqual(["id", "id2"]);
+
+    // undo all command.
+    for (let i = 0; i < thm1.length + thm2.length; i++) {
+      loop2.next({ tag: "Undo" });
+    }
+
+    expect(history.top().tag).toEqual("Other");
+    const thms4: Array<string> = Array.from(history.top().env.thms.keys());
+    expect(thms4).toEqual([]);
+  });
+}
+
+
+);
