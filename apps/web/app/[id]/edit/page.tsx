@@ -1,7 +1,9 @@
 "use client";
 
+
 import { Register } from "@/components/register";
 import { Share } from "@/components/share";
+import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,9 +18,16 @@ import {
   Save,
   Search,
 } from "lucide-react";
+import * as monaco from 'monaco-editor';
+import { useRef } from "react";
+
+export const runtime = "edge";
 
 export default function Edit() {
   const monaco = useMonaco();
+  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
   if (monaco) {
     configureMonaco(monaco);
   }
@@ -55,6 +64,61 @@ export default function Edit() {
             <ChevronsDown />
           </Button>
         </div>
+          <div className="flex justify-end items-center">
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" className="p-1" title="Move Up" onClick={() => {
+                if (goalEditorRef.current) {
+                  goalEditorRef.current.setValue("↑");
+                }
+              }
+              }>
+
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1"
+                title="Move Down"
+                onClick={() => {
+                  if (goalEditorRef.current) {
+                    goalEditorRef.current.setValue("↓");
+                  }
+                }
+                }
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1"
+                title="Move to Top"
+                onClick={() => {
+                  if (goalEditorRef.current) {
+                    goalEditorRef.current.setValue("↑↑");
+                  }
+                }
+                }
+              >
+                <ChevronsUp className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1"
+                title="Move to Bottom"
+                onClick={() => {
+                  if (goalEditorRef.current) {
+                    goalEditorRef.current.setValue("↓↓");
+                  }
+                }
+                }
+              >
+                <ChevronsDown className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
         <Editor
           className="h-full w-full mt-4 border border-black"
@@ -94,11 +158,14 @@ export default function Edit() {
             height="100%"
             theme="vs"
             language="proof-state"
+
+    
             options={{
               readOnly: true,
               minimap: { enabled: false },
               lineNumbers: "off",
             }}
+
             value={`2 subgoals
 
 Goal 1 / 2:
@@ -112,6 +179,11 @@ Goal 2 / 2:
   P
  ──────────────────────
   Q`}
+            defaultValue="# Write your proof here!"
+            onMount={(editor, monaco) => {
+              mainEditorRef.current = editor;
+            }
+            }
           />
         </div>
 
@@ -120,19 +192,24 @@ Goal 2 / 2:
           <div className="text-gray-700">Proof Found!</div>
         </div>
 
-        <div className="w-full h-32 border border-black">
-          <Editor
-            className="h-full w-full"
-            height="100%"
-            theme="vs"
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              lineNumbers: "off",
-            }}
-            value="Proof: 1 + 1 = 2"
-          />
-        </div>
+
+          <div className="w-full h-64 border border-gray-200">
+            <Editor
+              className="h-full w-full"
+              height="100%"
+              theme="vs-light"
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                lineNumbers: "off",
+              }}
+              value="Proof: 1 + 1 = 2"
+              onMount={(editor, monaco) => {
+                goalEditorRef.current = editor;
+              }
+              }
+            />
+          </div>
 
         <div className="grid w-full gap-2">
           <Textarea placeholder="Chat with AI ..." />
