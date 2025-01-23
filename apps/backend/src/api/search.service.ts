@@ -1,7 +1,6 @@
 import { PrismaService } from '../prisma.service';
 
 import { Injectable, Optional } from '@nestjs/common';
-import { SearchSnapshotsQueryParameter } from '../generated/openapi/model/searchSnapshotsQueryParameter';
 import { SearchResult } from '../generated/openapi/model/searchResult';
 
 
@@ -14,7 +13,7 @@ export class SearchService {
         this.prisma = prismaService;
     }
 
-    public async searchSnapshots(query: SearchSnapshotsQueryParameter, ): Promise<SearchResult> {
+    public async searchSnapshots(query: string, offset: number = 0, limit: number = 5, before: string | undefined): Promise<SearchResult> {
         throw new Error('Method not implemented.');
     }
 }

@@ -1,3 +1,6 @@
+import { Injectable } from '@nestjs/common';
+import { Result } from 'neverthrow';
+
 export type ValidationResult =
   | ValidationSuccess
   | ValidationFailed
@@ -30,7 +33,31 @@ export interface Dependency {
   source: string;
 }
 
-export interface CodeAnalyzer {
-  listDirectDependencies(sourceCode: string): DependencyMetadata[];
+export type InvalidSingleSourceCode = {
+  success: false;
+  reason: 'invalid_single_source_code';
+  errorMessage: string;
+}
+
+export interface ICodeAnalyzer {
+  listDirectDependencies(sourceCode: string): Result<
+    {
+      kind: 'success', value: DependencyMetadata[]
+    }
+    | {
+      kind: 'invalid_source'
+    }, KernelError>;
   validate(sourceCode: string, dependencies: Dependency[]): ValidationResult;
+}
+
+@Injectable()
+export abstract class AbstractCodeAnalyzerService implements ICodeAnalyzer {
+  abstract listDirectDependencies(sourceCode: string): Result<
+    {
+      kind: 'success', value: DependencyMetadata[]
+    }
+    | {
+      kind: 'invalid_source'
+    }, KernelError>;
+  abstract validate(sourceCode: string, dependencies: Dependency[]): ValidationResult;
 }

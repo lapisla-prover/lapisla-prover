@@ -6,7 +6,7 @@ export class SearchController {
     constructor(private searchService: SearchService) {}
 
     @Get()
-    async search(@Query('q') q: string) {
-        return await this.searchService.searchSnapshots(q);
+    async search(@Query('q') q: string, @Query('before') before: string, @Query('offset') offset: number, @Query('limit') limit: number) {
+        return await this.searchService.searchSnapshots(q, offset, limit, before);
     }
 }

@@ -17,10 +17,10 @@ model/models.ts
 model/privateFile.ts
 model/privateFileMeta.ts
 model/project.ts
+model/projectFetchResult.ts
 model/publicFile.ts
 model/publicFileMeta.ts
 model/searchResult.ts
-model/searchSnapshotsQueryParameter.ts
 model/snapshot.ts
 model/snapshotMeta.ts
 variables.ts

@@ -9,15 +9,20 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Project } from './project';
 
 
-export interface SearchSnapshotsQueryParameter { 
-    query?: string;
-    before?: string;
-    offset?: number;
-    /**
-     * Must be between 1 and 100
-     */
-    length?: number;
+export interface ProjectFetchResult { 
+    result: ProjectFetchResult.ResultEnum;
+    ok?: Project;
+    error?: string;
 }
+export namespace ProjectFetchResult {
+    export type ResultEnum = 'ok' | 'error';
+    export const ResultEnum = {
+        Ok: 'ok' as ResultEnum,
+        Error: 'error' as ResultEnum
+    };
+}
+
 
