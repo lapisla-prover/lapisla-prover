@@ -32,10 +32,6 @@ export class MeService<TokenType> {
         throw new Error('Method not implemented.');
     }
 
-    public async createMyPermalink(fileName: string, version: number, ): Promise<string> {
-        throw new Error('Method not implemented.');
-    }
-
     public async registerMySnapshot(fileName: string, version: number, ): Promise<null> {
         throw new Error('Method not implemented.');
     }
