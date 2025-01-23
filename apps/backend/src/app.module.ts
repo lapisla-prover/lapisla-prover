@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { AbstractCodeAnalyzerService } from './kernel';
+import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
 
 import {
   FilesService,
@@ -29,7 +31,8 @@ import {
     MeService,
     PermalinksService,
     RegistryService,
-    SearchService
+    SearchService,
+    { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
   ],
   controllers: [
     FilesController,
