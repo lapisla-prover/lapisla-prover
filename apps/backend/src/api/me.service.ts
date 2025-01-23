@@ -3,15 +3,17 @@ import { PrismaService } from '../prisma.service';
 import { Injectable, Optional } from '@nestjs/common';
 import { PrivateFileMeta } from '../generated/openapi/model/privateFileMeta';
 import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
-
+import { AbstractAuthService } from '../auth.service';
 
 @Injectable()
-export class MeService {
+export class MeService<TokenType> {
 
     private prisma: PrismaService;
+    private auth: AbstractAuthService<TokenType>;
 
-    constructor(private prismaService: PrismaService) {
+    constructor(private prismaService: PrismaService, private authService: AbstractAuthService<TokenType>) {
         this.prisma = prismaService;
+        this.auth = authService;
     }
 
     public async deleteMyFile(fileName: string, ): Promise<null> {

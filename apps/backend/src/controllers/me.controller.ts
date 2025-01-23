@@ -1,10 +1,11 @@
 import { Controller, Get, Post, Delete, Patch, Param, Query, Body } from '@nestjs/common';
 import { MeService } from '../api/me.service';
+import { AbstractAuthService } from '../auth.service';
 
 
 @Controller('me')
-export class MeController {
-    constructor(private meService: MeService) {}
+export class MeController<TokenType> {
+    constructor(private meService: MeService<TokenType>) {}
 
     @Get('files')
     async getFiles() {
