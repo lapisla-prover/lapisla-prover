@@ -46,12 +46,12 @@ export class ProofHistory {
 
 export type TopStep =
   | {
-      tag: "ThmD";
-      name: string;
-      formula: Formula;
-      proofHistory: ProofHistory;
-      env: TopEnv;
-    }
+    tag: "Theorem";
+    name: string;
+    formula: Formula;
+    proofHistory: ProofHistory;
+    env: TopEnv;
+  }
   | { tag: "Other"; env: TopEnv };
 
 export class TopHistory {
@@ -64,7 +64,7 @@ export class TopHistory {
     }
     const new_env = insertThm(this.top().env, name, formula);
     this.steps.push({
-      tag: "ThmD",
+      tag: "Theorem",
       name,
       formula,
       proofHistory: history,

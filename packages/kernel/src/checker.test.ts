@@ -1,9 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { Formula, Judgement, Rule, Term, ProofCmd, TopCmd } from "./ast";
+import { Formula, Judgement, ProofCmd, Rule, Term, TopCmd } from "./ast";
 import { judgeMany, judgeOne, proofLoop, topLoop } from "./checker";
-import { expectErr, expectOk } from "./test-util";
 import { ProofHistory, TopHistory } from "./history";
-import { Result } from "./common";
+import { expectErr, expectOk } from "./test-util";
 
 test("∀x.((P(x) ∨ Q())) ⊢ (∀x.(P(x)) ∨ Q()) can be proven", () => {
   const sampleAssms: Formula[] = [
@@ -607,7 +606,7 @@ describe("rules", () => {
       right: { tag: "Pred", ident: "a", args: [] },
     };
     const cmds: TopCmd[] = [
-      { tag: "ThmD", name: "id", formula: sampleFormula },
+      { tag: "Theorem", name: "id", formula: sampleFormula },
       { tag: "Apply", rule: { tag: "ImpR" } },
       { tag: "Apply", rule: { tag: "I" } },
       { tag: "Qed" },
@@ -621,7 +620,7 @@ describe("rules", () => {
     }
   });
 
-  test("Sending ThmD returns Err when in proof mode", () => {
+  test("Sending Theorem returns Err when in proof mode", () => {
     // a ==> a
     const sampleFormula: Formula = {
       tag: "Imply",
@@ -631,10 +630,10 @@ describe("rules", () => {
 
     const loop = topLoop(new TopHistory());
     loop.next(); // 初回のnextは最初のyieldまで進めるため
-    loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
     loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
-    // proof mode中なので、ThmDを送ってもErrが返る
-    const res = loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    // proof mode中なので、Theoremを送ってもErrが返る
+    const res = loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
     expectErr(res.value);
   });
 
@@ -647,18 +646,18 @@ describe("rules", () => {
     };
     const loop = topLoop(new TopHistory());
     loop.next(); // 初回のnextは最初のyieldまで進めるため
-    loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
     loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
     loop.next({ tag: "Apply", rule: { tag: "I" } });
     loop.next({ tag: "Qed" });
     // Qed後にUndoを送ると、proof modeに戻る
     loop.next({ tag: "Undo" });
-    // proof mode中なので、ThmDを送ってもErrが返る
-    const res = loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    // proof mode中なので、Theoremを送ってもErrが返る
+    const res = loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
     expectErr(res.value);
   });
 
-  test("Sending Undo right after ThmD goes back to top mode", () => {
+  test("Sending Undo right after Theorem goes back to top mode", () => {
     // a ==> a
     const sampleFormula: Formula = {
       tag: "Imply",
@@ -668,7 +667,7 @@ describe("rules", () => {
 
     const loop = topLoop(new TopHistory());
     loop.next(); // 初回のnextは最初のyieldまで進めるため
-    loop.next({ tag: "ThmD", name: "id", formula: sampleFormula });
+    loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
     loop.next({ tag: "Undo" });
     // top mode中なので，Applyを送ってもErrが返る
     const res = loop.next({ tag: "Apply", rule: { tag: "ImpR" } });

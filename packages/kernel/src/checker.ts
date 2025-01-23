@@ -433,7 +433,7 @@ export function* topLoop(
         continue topMode;
       }
 
-      if (topCmd.tag === "ThmD") {
+      if (topCmd.tag === "Theorem") {
         thmName = topCmd.name;
         thmFormula = topCmd.formula;
         proofHistory = new ProofHistory([{ assms: [], concls: [thmFormula] }]);
@@ -449,8 +449,8 @@ export function* topLoop(
         }
 
         const prevStep = maybePrevStep.value;
-        // 前のstepがThmDの場合はproofModeに移行する
-        if (prevStep.tag === "ThmD") {
+        // 前のstepがTheoremの場合はproofModeに移行する
+        if (prevStep.tag === "Theorem") {
           thmName = prevStep.name;
           thmFormula = prevStep.formula;
           proofHistory = prevStep.proofHistory;

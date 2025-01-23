@@ -127,14 +127,14 @@ describe("TopHistory Tests", () => {
     };
 
     const thm1: TopCmd[] = [
-      { tag: "ThmD", name: "id", formula: sampleFormula },
+      { tag: "Theorem", name: "id", formula: sampleFormula },
       { tag: "Apply", rule: { tag: "ImpR" } },
       { tag: "Apply", rule: { tag: "I" } },
       { tag: "Qed" },
     ]
 
     const thm2: TopCmd[] = [
-      { tag: "ThmD", name: "id2", formula: sampleFormula2 },
+      { tag: "Theorem", name: "id2", formula: sampleFormula2 },
       { tag: "Apply", rule: { tag: "ImpR" } },
       { tag: "Apply", rule: { tag: "I" } },
       { tag: "Qed" },
@@ -163,8 +163,8 @@ describe("TopHistory Tests", () => {
       expectOk(res.value);
     }
 
-    
-    expect(history.top().tag).toEqual("ThmD");
+
+    expect(history.top().tag).toEqual("Theorem");
     const thms: Array<string> = Array.from(history.top().env.thms.keys());
     expect(thms).toEqual(["id"]);
 
@@ -177,7 +177,7 @@ describe("TopHistory Tests", () => {
 
     // redo qed
     loop2.next({ tag: "Qed" });
-    expect(history.top().tag).toEqual("ThmD");
+    expect(history.top().tag).toEqual("Theorem");
 
     // proof "id2"
     for (const cmd of thm2) {
@@ -185,7 +185,7 @@ describe("TopHistory Tests", () => {
       expectOk(res.value);
     }
 
-    expect(history.top().tag).toEqual("ThmD");
+    expect(history.top().tag).toEqual("Theorem");
     const thms3: Array<string> = Array.from(history.top().env.thms.keys());
     expect(thms3).toEqual(["id", "id2"]);
 

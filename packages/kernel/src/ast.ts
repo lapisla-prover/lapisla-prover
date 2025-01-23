@@ -49,14 +49,16 @@ export type ProofCmd =
   | { tag: "Use"; thm: string }
   | { tag: "Qed" };
 
-export type DeclCmd = { tag: "ThmD"; name: string; formula: Formula };
+export type DeclCmd = { tag: "Theorem"; name: string; formula: Formula };
 
 export type UndoCmd = { tag: "Undo" };
 
 export type TopCmd = ProofCmd | DeclCmd | UndoCmd;
 
+export type KernelMode = "DeclareWait" | "Proving";
+
 export function isDeclCmd(cmd: TopCmd): cmd is DeclCmd {
-  return cmd.tag === "ThmD";
+  return cmd.tag === "Theorem";
 }
 
 export function isProofCmd(cmd: TopCmd): cmd is ProofCmd {
