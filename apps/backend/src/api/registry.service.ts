@@ -2,11 +2,14 @@ import { PrismaService } from '../prisma.service';
 
 import { DependencyMetadata } from 'src/kernel';
 
-import { getSnapshotInfoFromId } from 'src/utils';
+import { getSnapshotInfoFromId, getSnapshotId } from 'src/utils';
 import { Injectable, Optional } from '@nestjs/common';
 import { Project } from '../generated/openapi/model/project';
 import { AbstractCodeAnalyzerService } from '../kernel/index';
 import { HttpException } from '@nestjs/common/exceptions/http.exception';
+import { ProjectFetchResult } from 'src/generated/openapi';
+import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
+import { Snapshot } from '../generated/openapi/model/snapshot';
 
 @Injectable()
 export class RegistryService {
@@ -19,14 +22,12 @@ export class RegistryService {
         this.codeAnalyzer = codeAnalyzerService;
     }
 
-    public async getProjectDependencies(snapshotId: string, ): Promise<Project> {
-        let snapshotInfo: {owner: string, fileName: string, version: number};
-        try {
-            snapshotInfo = getSnapshotInfoFromId(snapshotId);
-        }
-        catch (e) {
+    public async getProjectDependencies(snapshotId: string, ): Promise<ProjectFetchResult> {
+        let snapshotInfoResult = getSnapshotInfoFromId(snapshotId);
+        if (!snapshotInfoResult.isOk()) {
             throw new HttpException('Invalid snapshot id', 400);
         }
+        const snapshotInfo = snapshotInfoResult.value;
         const userId = await this.prisma.users.findUnique
         ({
             where: {
@@ -46,8 +47,8 @@ export class RegistryService {
         const file = await this.prisma.files.findUnique
         ({
             where: {
-                owner_id_name: {
-                    owner_id: userId,
+                ownerId_name: {
+                    ownerId: userId,
                     name: snapshotInfo.fileName
                 }
             }
@@ -65,8 +66,8 @@ export class RegistryService {
         const snapshot = await this.prisma.snapshots.findUnique
         ({
             where: {
-                file_id_version: {
-                    file_id: file.id,
+                fileId_version: {
+                    fileId: file.id,
                     version: snapshotInfo.version
                 }
             }
@@ -81,28 +82,84 @@ export class RegistryService {
                 return snapshot;
             })
             .finally(() => {});
-        let directDependees: DependencyMetadata[];
-        try {
-            directDependees = this.codeAnalyzer.listDirectDependencies(snapshot.content);
-        }
-        catch (e) {
-            throw new HttpException('Failed to analyze code', 500);
-        }
-        const ownersAndIdsList = await this.prisma.users.findMany({
+        let directDependees: DependencyMetadata[] = this.codeAnalyzer.listDirectDependencies(snapshot.content).match(
+            ok => {
+                if (ok.kind === 'success') {
+                    return ok.value;
+                }
+                else {
+                    throw new HttpException('Invalid source code', 400);
+                }
+            },
+            err => {
+                throw new HttpException('Failed to analyze code', 500);
+            }  
+        );
+        let dependeeSnapshotsDb = await this.prisma.users.findMany({
             where: {
                 name: {
                     in: directDependees.map(dep => dep.owner)
                 }
-            }
+            },
+            include: {
+                files: {
+                    where: {
+                        name: {
+                            in: directDependees.map(dep => dep.name)
+                        }
+                    },
+                    include: {
+                        snapshots: {
+                            where: {
+                                version: {
+                                    in: directDependees.map(dep => parseInt(dep.version))
+                                }
+                            }
+                        }
+                    }
+                }
+            },
         })
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
             })
             .then((users) => {
-                return users.map(user => ({owner: user.name, id: user.id}));
+                return users;
             })
             .finally(() => {});
-        
-        throw new Error('Method not implemented.');
+        let dependeeContents = new Map<{owner: string, name: string, version: string}, Snapshot>();
+        for (let user of dependeeSnapshotsDb) {
+            for (let file of user.files) {
+                for (let snapshot of file.snapshots) {
+                    dependeeContents.set({owner: user.name, name: file.name, version: snapshot.version.toString()}, {
+                        meta: {
+                            owner: user.name,
+                            file_name: file.name,
+                            version: snapshot.version,
+                            created_at: snapshot.createdAt.toISOString(),
+                            id: getSnapshotId(user.name, file.name, snapshot.version)
+                        },
+                        content: snapshot.content
+                    });
+                }
+            }
+        }
+        let projectDependencies = directDependees.map(dep => {
+            let snapshot = dependeeContents.get(dep);
+            if (!snapshot) {
+                throw new HttpException('Dependency not found', 404);
+            }
+            return {
+                id: getSnapshotId(dep.owner, dep.name, parseInt(dep.version)),
+                snapshot: snapshot
+            };
+        })
+        return {
+            result: ProjectFetchResult.ResultEnum.Ok,
+            ok: {
+                id: snapshotId,
+                dependencies: projectDependencies
+            }
+        }
     }
 }

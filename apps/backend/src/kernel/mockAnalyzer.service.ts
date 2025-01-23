@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { AbstractCodeAnalyzerService, DependencyMetadata, Dependency, ValidationResult } from "./index";
-
+import { Ok } from "neverthrow"
+import { KernelError } from "./index";
 @Injectable()
 export class MockAnalyzerService extends AbstractCodeAnalyzerService {
 
@@ -8,14 +9,8 @@ export class MockAnalyzerService extends AbstractCodeAnalyzerService {
         super();
     }
 
-    listDirectDependencies(sourceCode: string): DependencyMetadata[] {
-        return [
-            {
-                owner: 'test-owner',
-                name: 'test-name',
-                version: '0'
-            }
-        ]
+    listDirectDependencies(sourceCode: string): Ok<{kind: 'success', value: DependencyMetadata[]}, KernelError> {
+        return new Ok({kind: 'success', value: []});
     }
     validate(sourceCode: string, dependencies: Dependency[]): ValidationResult {
         return { success: true };
