@@ -33,12 +33,12 @@ export class MeController<TokenType> {
     }
 
     @Post('files/:fileName/:version/register')
-    async postPermalink(@Param('fileName') fileName: string, @Param('version') version: number) {
-        return await this.meService.createMyPermalink(fileName, version);
+    async registerSnapshot(@Param('fileName') fileName: string, @Param('version') version: number) {
+        return await this.meService.registerMySnapshot(fileName, version);
     }
 
-    @Post('files/:fileName/:version/permalink')
-    async postSnapshot(@Param('fileName') fileName: string, @Param('version') version: number) {
-        return await this.meService.registerMySnapshot(fileName, version);
+    @Get('files/:fileName/:version')
+    async getSnapshot(@Param('fileName') fileName: string, @Param('version') version: number) {
+        return await this.meService.getMySnapshot(fileName, version);
     }
 }

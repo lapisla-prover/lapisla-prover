@@ -8,7 +8,6 @@ import {
   FilesService,
   LoginService,
   MeService,
-  PermalinksService,
   RegistryService,
   SearchService
 } from './api/api';
@@ -17,7 +16,6 @@ import {
   FilesController,
   LoginController,
   MeController,
-  PermalinksController,
   RegistryController,
   SearchController
 } from './controllers/controllers';
@@ -30,7 +28,6 @@ import {
     FilesService,
     LoginService,
     MeService,
-    PermalinksService,
     RegistryService,
     SearchService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
@@ -40,7 +37,6 @@ import {
     FilesController,
     LoginController,
     MeController,
-    PermalinksController,
     RegistryController,
     SearchController
   ],

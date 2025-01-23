@@ -137,29 +137,23 @@ paths:
       security:
         - BearerAuth: []
       operationId: registerMySnapshot
-  /me/files/{fileName}/{version}/permalink:
-    post:
+  /me/files/{fileName}/{version}:
+    get:
       tags: 
         - me
-      summary: Create a permalink to the snapshot
+      summary: Get a snapshot of the file 
       parameters:
         - $ref: '#/components/parameters/fileName'
         - $ref: '#/components/parameters/version'
       responses:
-        '201':
-          description: Permalink created successfully
-          headers:
-            Location:
-              description: URL of the permalink
-              schema:
-                type: string
-                format: uri
+        '200':
+          description: Snapshot
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PermalinkId'
+                $ref: '#/components/schemas/Snapshot'
         '404':
-          description: File or snapshot not found
+          description: Snapshot not found
       security:
         - BearerAuth: []
       operationId: createMyPermalink
@@ -262,23 +256,6 @@ paths:
         '404':
           description: Snapshot not found
       operationId: getPublicSnapshot
-  /permalinks/{permalinkId}:
-    get:
-      tags: 
-        - permalinks
-      summary: Fetch a snapshot by permalink
-      parameters:
-        - $ref: '#/components/parameters/permalinkId'
-      responses:
-        '200':
-          description: Snapshot
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Snapshot'
-        '404':
-          description: Permalink not found
-      operationId: getPermalink
   /search:
     get:
       tags:
