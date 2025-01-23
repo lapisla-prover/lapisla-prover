@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -7,26 +9,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { Trash, Edit as EditIcon, FilePlus } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type File = {
+  owner: string;
+  fileName: string;
+  registeredVersions: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+const user = "hoge";
 
 export default function Edit() {
-  const files = [
-    {
-      name: "bubblesort.l",
-      lastUpdated: "2 minutes ago",
-      id: "1",
-    },
-    {
-      name: "quicksort.l",
-      lastUpdated: "3 minutes ago",
-      id: "2",
-    },
-    {
-      name: "mergesort.l",
-      lastUpdated: "4 minutes ago",
-      id: "3",
-    },
-  ];
+  const [files, setFiles] = useState<File[]>([]);
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/files/${user}`,
+        );
+        const data = await response.json();
+        console.log(data);
+        setFiles(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchFiles();
+  }, []);
+
   return (
     <div className="p-8 gap-8">
       <div className="w-[60%] p-4 space-y-4">
@@ -52,14 +66,14 @@ export default function Edit() {
         <TableBody>
           {files.map((file) => (
             <TableRow
-              key={file.name}
+              key={file.fileName}
               className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-200 truncate max-w-[300px]"
             >
               <TableCell className="px-4 py-2 text-blue-800 font-semibold">
-                {file.name}
+                {file.fileName}
               </TableCell>
               <TableCell className="px-4 py-2 text-gray-800 whitespace-nowrap">
-                {file.lastUpdated}
+                {formatRelativeTime(file.updatedAt)}
               </TableCell>
               <TableCell className="px-4 py-2 text-gray-800 text-center whitespace-nowrap">
                 <div className="flex gap-2 justify-end items-center">
