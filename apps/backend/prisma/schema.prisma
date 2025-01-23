@@ -19,7 +19,7 @@ model files {
   ownerId   String
   name      String
   createdAt DateTime    @default(now())
-  owner     users       @relation(fields: [ownerId], references: [id])
+  owner     users       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   snapshots snapshots[]
 
   @@unique([ownerId, name])
@@ -33,7 +33,7 @@ model snapshots {
   isPublic  Boolean
   createdAt DateTime @default(now())
   content   String   @db.Text
-  file      files    @relation(fields: [fileId], references: [id])
+  file      files    @relation(fields: [fileId], references: [id], onDelete: Cascade)
   dependees dependencies[]
 
   @@unique([fileId, version])
@@ -44,7 +44,7 @@ model dependencies {
   id         String @id @default(uuid())
   dependerId String
   dependeeId String
-  depender   snapshots @relation(fields: [dependerId], references: [id])
+  depender   snapshots @relation(fields: [dependerId], references: [id], onDelete: Cascade)
 
   @@index([dependerId])
 }
