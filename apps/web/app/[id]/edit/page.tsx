@@ -93,12 +93,25 @@ export default function Edit() {
             className="h-full w-full"
             height="100%"
             theme="vs"
+            language="proof-state"
             options={{
               readOnly: true,
               minimap: { enabled: false },
               lineNumbers: "off",
             }}
-            value="Proof: 1 + 1 = 2"
+            value={`2 subgoals
+
+Goal 1 / 2:
+  P ∧ Q → R
+ ──────────────────────
+  A(x),
+  Q
+
+Goal 2 / 2:
+  B,
+  P
+ ──────────────────────
+  Q`}
           />
         </div>
 
