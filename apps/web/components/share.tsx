@@ -5,20 +5,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Share as ShareIcon, Clipboard, Send } from "lucide-react";
-import { useState } from "react";
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { ShareIcon, Clipboard, Send } from "lucide-react"
+import { useState } from "react"
 
 export const Share = () => {
-  const [permanentLink, setPermanentLink] = useState<string>(
-    "https://lapisla.net/view?id=hogehogehugahuga"
-  );
+  const [permanentLink, setPermanentLink] = useState<string>("https://lapisla.net/view?id=hogehogehugahuga")
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-1 px-4 py-2">
-          Share <ShareIcon />
+        <Button variant="ghost" size="icon" title="Share">
+          <ShareIcon className="h-6 w-6" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -26,24 +24,25 @@ export const Share = () => {
           <DialogTitle>Permanent link here!</DialogTitle>
           <DialogDescription asChild>
             <div className="flex flex-col gap-2 justify-center items-center">
-              <div className="text-lg m-4">{permanentLink}</div>
+              <div className="text-lg m-4 break-all">{permanentLink}</div>
               <Button
-                className=""
+                className="w-full"
                 onClick={() => {
-                  navigator.clipboard.writeText(permanentLink);
+                  navigator.clipboard.writeText(permanentLink)
                 }}
               >
                 Copy
-                <Clipboard />
+                <Clipboard className="ml-2 h-4 w-4" />
               </Button>
-              <Button className="" onClick={() => {}}>
+              <Button className="w-full" onClick={() => {}}>
                 Post
-                <Send />
+                <Send className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
+
