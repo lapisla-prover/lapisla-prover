@@ -727,5 +727,43 @@ Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
         },
       ]);
     });
+    test("insert comment", () => {
+      const program = `
+Theorem id P → P
+  apply # aaa
+    ImpR
+  # bbb
+  apply I # ccc
+qed
+`;
+      const result = parseProgram(program);
+      expectOk(result);
+      expect(result.value).toEqual<CmdWithLoc[]>([
+        {
+          cmd: {
+            tag: "ThmD",
+            name: "id",
+            formula: {
+              tag: "Imply",
+              left: { tag: "Pred", ident: "P", args: [] },
+              right: { tag: "Pred", ident: "P", args: [] },
+            },
+          },
+          loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 16 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "ImpR" } },
+          loc: { start: { line: 2, column: 2 }, end: { line: 3, column: 8 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "I" } },
+          loc: { start: { line: 5, column: 2 }, end: { line: 5, column: 9 } },
+        },
+        {
+          cmd: { tag: "Qed" },
+          loc: { start: { line: 6, column: 0 }, end: { line: 6, column: 3 } },
+        },
+      ]);
+    });
   });
 });
