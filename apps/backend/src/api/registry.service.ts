@@ -113,7 +113,8 @@ export class RegistryService {
                             where: {
                                 version: {
                                     in: directDependees.map(dep => parseInt(dep.version))
-                                }
+                                },
+                                isPublic: true
                             }
                         }
                     }
