@@ -1,5 +1,7 @@
 import assert from "assert";
-import { Formula, Ident, Judgement, Rule, Term, TopCmd } from "./ast.ts";
+
+import { TopCmd, Formula, Ident, Judgement, Term, Rule } from "./ast.ts";
+
 import { Err, Ok, Result } from "./common.ts";
 
 export type Location = {
