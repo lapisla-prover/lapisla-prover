@@ -1,5 +1,5 @@
 import assert from "assert/strict";
-import { Formula, Ident, Judgement, Term } from "./ast.ts";
+import { TopCmd, Formula, Ident, Judgement, Term, Rule } from "./ast.ts";
 import { Err, Ok, Result } from "./common.ts";
 
 export type Location = {
@@ -12,8 +12,13 @@ export type Range = {
   end: Location;
 };
 
+const keywords = ["Theorem", "apply", "use", "qed"] as const;
+
+type KeywordsUnion = (typeof keywords)[number];
+
 export type Token =
   | { tag: "Ident"; ident: Ident; loc: Range }
+  | { tag: "Int"; value: number; loc: Range }
   | { tag: "Lambda"; loc: Range }
   | { tag: "Dot"; loc: Range }
   | { tag: "Comma"; loc: Range }
@@ -27,6 +32,9 @@ export type Token =
   | { tag: "Forall"; loc: Range }
   | { tag: "Exist"; loc: Range }
   | { tag: "VDash"; loc: Range }
+  | { tag: "Colon"; loc: Range }
+  | { tag: "Semicolon"; loc: Range }
+  | { tag: "Keyword"; name: KeywordsUnion; loc: Range }
   | { tag: "EOF"; loc: Range };
 
 export function dumpToken(token: Token): string {
@@ -49,159 +57,220 @@ export function formatLocation(loc: Location): string {
   return `${loc.line}:${loc.column}`;
 }
 
-export function tokenize(str: string): Result<Token[], string> {
-  const tokens: Token[] = [];
-  let pos = 0;
-  let loc: Location = { line: 0, column: 0 };
+export function isKeyword(ident: string): ident is KeywordsUnion {
+  return (keywords as readonly string[]).includes(ident);
+}
 
-  while (pos < str.length && /\s/.test(str[pos])) {
-    if (str[pos] === "\n") {
-      loc = nextLine(loc);
-    } else {
-      loc = nextColumn(loc);
-    }
-    pos++;
+class Tokenizer {
+  #pos = 0;
+  #str: string;
+  #loc: Location = { line: 0, column: 0 };
+
+  constructor(str: string) {
+    this.#str = str;
   }
 
-  while (pos < str.length) {
-    const c = str[pos];
-    switch (c) {
-      case "λ": {
-        tokens.push({
-          tag: "Lambda",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
+  advance() {
+    if (this.#pos >= this.#str.length) {
+      return;
+    }
+
+    if (this.#str[this.#pos] === "\n") {
+      this.#loc = nextLine(this.#loc);
+    } else {
+      this.#loc = nextColumn(this.#loc);
+    }
+
+    this.#pos++;
+  }
+
+  skipSpaces() {
+    while (this.#pos < this.#str.length) {
+      if (/\s/.test(this.#str[this.#pos])) {
+        this.advance();
+      } else if (this.#str[this.#pos] === "#") {
+        while (this.#pos < this.#str.length && this.#str[this.#pos] !== "\n") {
+          this.advance();
+        }
+      } else {
         break;
       }
-      case ".": {
-        tokens.push({ tag: "Dot", loc: { start: loc, end: nextColumn(loc) } });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case ",": {
-        tokens.push({
-          tag: "Comma",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "(": {
-        tokens.push({
-          tag: "LParen",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case ")": {
-        tokens.push({
-          tag: "RParen",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "⊤": {
-        tokens.push({ tag: "Top", loc: { start: loc, end: nextColumn(loc) } });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "⊥": {
-        tokens.push({
-          tag: "Bottom",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "∧": {
-        tokens.push({ tag: "And", loc: { start: loc, end: nextColumn(loc) } });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "∨": {
-        tokens.push({ tag: "Or", loc: { start: loc, end: nextColumn(loc) } });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "→": {
-        tokens.push({
-          tag: "Imply",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "∀": {
-        tokens.push({
-          tag: "Forall",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "∃": {
-        tokens.push({
-          tag: "Exist",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      case "⊢": {
-        tokens.push({
-          tag: "VDash",
-          loc: { start: loc, end: nextColumn(loc) },
-        });
-        pos++;
-        loc = nextColumn(loc);
-        break;
-      }
-      default: {
-        const start = loc;
-        if (/[a-zA-Z_]/.test(c)) {
-          let ident = c;
-          pos++;
-          loc = nextColumn(loc);
-          while (pos < str.length && /[a-zA-Z0-9_]/.test(str[pos])) {
-            ident += str[pos];
-            pos++;
-            loc = nextColumn(loc);
+    }
+  }
+
+  read(): string {
+    const c = this.#str[this.#pos];
+    this.advance();
+    return c;
+  }
+
+  tokenize(): Result<Token[], string> {
+    const tokens: Token[] = [];
+
+    this.skipSpaces();
+
+    while (this.#pos < this.#str.length) {
+      const start = this.#loc;
+      const c = this.read();
+      switch (c) {
+        case "λ": {
+          tokens.push({
+            tag: "Lambda",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case ".": {
+          tokens.push({
+            tag: "Dot",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case ",": {
+          tokens.push({
+            tag: "Comma",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "(": {
+          tokens.push({
+            tag: "LParen",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case ")": {
+          tokens.push({
+            tag: "RParen",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "⊤": {
+          tokens.push({
+            tag: "Top",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "⊥": {
+          tokens.push({
+            tag: "Bottom",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "∧": {
+          tokens.push({
+            tag: "And",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "∨": {
+          tokens.push({
+            tag: "Or",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "→": {
+          tokens.push({
+            tag: "Imply",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "∀": {
+          tokens.push({
+            tag: "Forall",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "∃": {
+          tokens.push({
+            tag: "Exist",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "⊢": {
+          tokens.push({
+            tag: "VDash",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case ":": {
+          tokens.push({
+            tag: "Colon",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case ";": {
+          tokens.push({
+            tag: "Semicolon",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        default: {
+          if (/[a-zA-Z_]/.test(c)) {
+            let ident = c;
+            while (
+              this.#pos < this.#str.length &&
+              /[a-zA-Z0-9_]/.test(this.#str[this.#pos])
+            ) {
+              ident += this.read();
+            }
+            if (isKeyword(ident)) {
+              tokens.push({
+                tag: "Keyword",
+                name: ident,
+                loc: { start, end: this.#loc },
+              });
+            } else {
+              tokens.push({
+                tag: "Ident",
+                ident,
+                loc: { start, end: this.#loc },
+              });
+            }
+          } else if (/[0-9]/.test(c)) {
+            let num = c;
+            while (
+              this.#pos < this.#str.length &&
+              /[0-9]/.test(this.#str[this.#pos])
+            ) {
+              num += this.read();
+            }
+            tokens.push({
+              tag: "Int",
+              loc: { start, end: this.#loc },
+              value: parseInt(num),
+            });
+          } else {
+            return Err(`unexpected character ${c} at ${formatLocation(start)}`);
           }
-          tokens.push({ tag: "Ident", loc: { start, end: loc }, ident });
-        } else {
-          return Err(`unexpected character ${c} at ${pos}`);
         }
       }
+
+      this.skipSpaces();
     }
 
-    while (pos < str.length && /\s/.test(str[pos])) {
-      if (str[pos] === "\n") {
-        loc = nextLine(loc);
-      } else {
-        loc = nextColumn(loc);
-      }
-      pos++;
-    }
+    tokens.push({ tag: "EOF", loc: { start: this.#loc, end: this.#loc } });
+
+    return Ok(tokens);
   }
+}
 
-  tokens.push({ tag: "EOF", loc: { start: loc, end: loc } });
-
-  return Ok(tokens);
+export function tokenize(str: string): Result<Token[], string> {
+  const tokenizer = new Tokenizer(str);
+  return tokenizer.tokenize();
 }
 
 class Parser {
@@ -576,6 +645,153 @@ class Parser {
 
     return Ok({ assms, concls });
   }
+
+  parseRule(): Result<Rule, string> {
+    const name = this.expect("Ident");
+    if (name.tag === "Err") {
+      return name;
+    }
+    assert(name.value.tag === "Ident");
+
+    switch (name.value.ident) {
+      case "Cut": {
+        const formula = this.parseFormula();
+        if (formula.tag === "Err") {
+          return formula;
+        }
+        return Ok({ tag: "Cut", formula: formula.value });
+      }
+      case "PL": {
+        const index = this.expect("Int", "rule PL");
+        if (index.tag === "Err") {
+          return index;
+        }
+        assert(index.value.tag === "Int");
+        return Ok({ tag: "PL", index: index.value.value });
+      }
+      case "PR": {
+        const index = this.expect("Int", "rule PR");
+        if (index.tag === "Err") {
+          return index;
+        }
+        assert(index.value.tag === "Int");
+        return Ok({ tag: "PR", index: index.value.value });
+      }
+      case "ForallL": {
+        const term = this.parseTerm();
+        if (term.tag === "Err") {
+          return term;
+        }
+        return Ok({ tag: "ForallL", term: term.value });
+      }
+      case "ForallR": {
+        const ident = this.expect("Ident", "rule ForallR");
+        if (ident.tag === "Err") {
+          return ident;
+        }
+        assert(ident.value.tag === "Ident");
+        return Ok({ tag: "ForallR", ident: ident.value.ident });
+      }
+      case "ExistL": {
+        const ident = this.expect("Ident", "rule ExistL");
+        if (ident.tag === "Err") {
+          return ident;
+        }
+        assert(ident.value.tag === "Ident");
+        return Ok({ tag: "ExistL", ident: ident.value.ident });
+      }
+      case "ExistR": {
+        const term = this.parseTerm();
+        if (term.tag === "Err") {
+          return term;
+        }
+        return Ok({ tag: "ExistR", term: term.value });
+      }
+      case "I":
+      case "AndL1":
+      case "AndL2":
+      case "AndR":
+      case "OrL":
+      case "OrR1":
+      case "OrR2":
+      case "ImpL":
+      case "ImpR":
+      case "BottomL":
+      case "TopR":
+      case "WL":
+      case "WR":
+      case "CL":
+      case "CR": {
+        return Ok({ tag: name.value.ident });
+      }
+      default: {
+        return Err(`unknown rule name ${name.value.ident}`);
+      }
+    }
+  }
+
+  parseCommand(): Result<TopCmd, string> {
+    const name = this.expect("Keyword");
+    if (name.tag === "Err") {
+      return name;
+    }
+    assert(name.value.tag === "Keyword");
+
+    switch (name.value.name) {
+      case "Theorem": {
+        const ident = this.expect("Ident");
+        if (ident.tag === "Err") {
+          return ident;
+        }
+        assert(ident.value.tag === "Ident");
+
+        const formula = this.parseFormula();
+        if (formula.tag === "Err") {
+          return formula;
+        }
+
+        return Ok({
+          tag: "ThmD",
+          name: ident.value.ident,
+          formula: formula.value,
+        });
+      }
+      case "apply": {
+        const rule = this.parseRule();
+        if (rule.tag === "Err") {
+          return rule;
+        }
+        return Ok({ tag: "Apply", rule: rule.value });
+      }
+      case "use": {
+        const name = this.expect("Ident");
+        if (name.tag === "Err") {
+          return name;
+        }
+        assert(name.value.tag === "Ident");
+        return Ok({ tag: "Use", thm: name.value.ident });
+      }
+      case "qed": {
+        return Ok({ tag: "Qed" });
+      }
+      default: {
+        name.value.name satisfies never;
+        throw new Error("unreachable");
+      }
+    }
+  }
+
+  parseProgram(): Result<TopCmd[], string> {
+    const cmds: TopCmd[] = [];
+    while (!this.eof()) {
+      const cmd = this.parseCommand();
+      if (cmd.tag === "Err") {
+        return cmd;
+      }
+      cmds.push(cmd.value);
+    }
+    return Ok(cmds);
+  }
 }
 
 export function parseTerm(str: string): Result<Term, string> {
@@ -627,4 +843,13 @@ export function parseJudgement(str: string): Result<Judgement, string> {
     return eof;
   }
   return judgement;
+}
+
+export function parseProgram(str: string): Result<TopCmd[], string> {
+  const tokens = tokenize(str);
+  if (tokens.tag === "Err") {
+    return tokens;
+  }
+  const parser = new Parser(tokens.value);
+  return parser.parseProgram();
 }

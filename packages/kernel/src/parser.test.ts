@@ -1,7 +1,13 @@
 import { test, describe, expect } from "vitest";
-import { parseFormula, parseJudgement, parseTerm, tokenize } from "./parser.ts";
+import {
+  parseFormula,
+  parseJudgement,
+  parseProgram,
+  parseTerm,
+  tokenize,
+} from "./parser.ts";
 import { expectErr, expectOk } from "./test-util.ts";
-import { formatJudgement } from "./ast.ts";
+import { formatJudgement, TopCmd } from "./ast.ts";
 
 describe("tokenize", () => {
   test("head spaces", () => {
@@ -16,6 +22,27 @@ describe("tokenize", () => {
       {
         tag: "EOF",
         loc: { start: { line: 0, column: 4 }, end: { line: 0, column: 4 } },
+      },
+    ]);
+  });
+
+  test("skip comment", () => {
+    const tokens = tokenize("a # comment\nb");
+    expectOk(tokens);
+    expect(tokens.value).toEqual([
+      {
+        tag: "Ident",
+        ident: "a",
+        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 1 } },
+      },
+      {
+        tag: "Ident",
+        ident: "b",
+        loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 1 } },
+      },
+      {
+        tag: "EOF",
+        loc: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
       },
     ]);
   });
@@ -94,8 +121,8 @@ describe("tokenize", () => {
       },
     ]);
   });
-  test("all tokens can be tokenized", () => {
-    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢");
+  test("all symbols can be tokenized", () => {
+    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:");
     expectOk(tokens);
     expect(tokens.value).toEqual([
       {
@@ -143,8 +170,12 @@ describe("tokenize", () => {
         loc: { start: { line: 0, column: 10 }, end: { line: 0, column: 11 } },
       },
       {
+        tag: "Colon",
+        loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 12 } },
+      },
+      {
         tag: "EOF",
-        loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 11 } },
+        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 12 } },
       },
     ]);
   });
@@ -173,6 +204,64 @@ describe("tokenize", () => {
       },
     ]);
   });
+
+  test("keywords can be tokenized", () => {
+    const tokens = tokenize("apply Theorem qed apply2 use");
+    expectOk(tokens);
+    expect(tokens.value).toEqual([
+      {
+        tag: "Keyword",
+        name: "apply",
+        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 5 } },
+      },
+      {
+        tag: "Keyword",
+        name: "Theorem",
+        loc: { start: { line: 0, column: 6 }, end: { line: 0, column: 13 } },
+      },
+      {
+        tag: "Keyword",
+        name: "qed",
+        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 17 } },
+      },
+      {
+        tag: "Ident",
+        ident: "apply2",
+        loc: { start: { line: 0, column: 18 }, end: { line: 0, column: 24 } },
+      },
+      {
+        tag: "Keyword",
+        name: "use",
+        loc: { start: { line: 0, column: 25 }, end: { line: 0, column: 28 } },
+      },
+      {
+        tag: "EOF",
+        loc: { start: { line: 0, column: 28 }, end: { line: 0, column: 28 } },
+      },
+    ]);
+  });
+
+  test("integers can be tokenized", () => {
+    const tokens = tokenize("123abc123");
+    expectOk(tokens);
+    expect(tokens.value).toEqual([
+      {
+        tag: "Int",
+        value: 123,
+        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 3 } },
+      },
+      {
+        tag: "Ident",
+        ident: "abc123",
+        loc: { start: { line: 0, column: 3 }, end: { line: 0, column: 9 } },
+      },
+      {
+        tag: "EOF",
+        loc: { start: { line: 0, column: 9 }, end: { line: 0, column: 9 } },
+      },
+    ]);
+  });
+
   test("correct location", () => {
     const tokens = tokenize("aaa\n\n   bbb ccc\nppp");
     expectOk(tokens);
@@ -451,5 +540,106 @@ describe("parser", () => {
     const judgement2 = parseJudgement(formatJudgement(judgement.value));
     expectOk(judgement2);
     expect(judgement2.value).toEqual(judgement.value);
+  });
+
+  describe("top-level program", () => {
+    test("theorem definition", () => {
+      const program = `
+Theorem id P → P
+  apply ImpR
+  apply I
+qed
+
+Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
+  apply ImpR
+  apply CR
+  apply OrR2
+  apply PR 1
+  # 長いので省略
+  # apply OrR1
+  # apply ForallR y
+  # apply ForallL y
+  # apply OrL
+  # apply PR 1
+  # apply WR
+  # apply I
+  # apply WR
+  # apply I
+# qed
+`;
+      const result = parseProgram(program);
+      expectOk(result);
+      expect(result.value).toEqual<TopCmd[]>([
+        {
+          tag: "ThmD",
+          name: "id",
+          formula: {
+            tag: "Imply",
+            left: { tag: "Pred", ident: "P", args: [] },
+            right: { tag: "Pred", ident: "P", args: [] },
+          },
+        },
+        {
+          tag: "Apply",
+          rule: { tag: "ImpR" },
+        },
+        {
+          tag: "Apply",
+          rule: { tag: "I" },
+        },
+        {
+          tag: "Qed",
+        },
+        {
+          tag: "ThmD",
+          name: "thm1",
+          formula: {
+            tag: "Imply",
+            left: {
+              tag: "Forall",
+              ident: "x",
+              body: {
+                tag: "Or",
+                left: {
+                  tag: "Pred",
+                  ident: "P",
+                  args: [{ tag: "Var", ident: "x" }],
+                },
+                right: { tag: "Pred", ident: "Q", args: [] },
+              },
+            },
+            right: {
+              tag: "Or",
+              left: {
+                tag: "Forall",
+                ident: "x",
+                body: {
+                  tag: "Pred",
+                  ident: "P",
+                  args: [{ tag: "Var", ident: "x" }],
+                },
+              },
+              right: { tag: "Pred", ident: "Q", args: [] },
+            },
+          },
+        },
+        {
+          tag: "Apply",
+          rule: { tag: "ImpR" },
+        },
+        {
+          tag: "Apply",
+          rule: { tag: "CR" },
+        },
+        {
+          tag: "Apply",
+          rule: { tag: "OrR2" },
+        },
+        {
+          tag: "Apply",
+          rule: { tag: "PR", index: 1 },
+        },
+      ]);
+    });
   });
 });
