@@ -11,13 +11,7 @@
  */
 
 
-export interface SearchSnapshotsQueryParameter { 
-    query?: string;
-    before?: string;
-    offset?: number;
-    /**
-     * Must be between 1 and 100
-     */
-    length?: number;
+export interface SourceCodeWrapper { 
+    content: string;
 }
 

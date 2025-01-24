@@ -44,6 +44,25 @@ export type Judgement = {
   concls: Formula[];
 };
 
+export type ProofCmd =
+  | { tag: "Apply"; rule: Rule }
+  | { tag: "Use"; thm: string }
+  | { tag: "Qed" };
+
+export type DeclCmd = { tag: "ThmD"; name: string; formula: Formula };
+
+export type UndoCmd = { tag: "Undo" };
+
+export type TopCmd = ProofCmd | DeclCmd | UndoCmd;
+
+export function isDeclCmd(cmd: TopCmd): cmd is DeclCmd {
+  return cmd.tag === "ThmD";
+}
+
+export function isProofCmd(cmd: TopCmd): cmd is ProofCmd {
+  return ["Apply", "Use", "Qed"].includes(cmd.tag);
+}
+
 export function formatTerm(term: Term): string {
   switch (term.tag) {
     case "Var":
@@ -69,15 +88,15 @@ export function formatFormula(formula: Formula): string {
       return "⊥";
     case "And":
       return `(${formatFormula(formula.left)} ∧ ${formatFormula(
-        formula.right,
+        formula.right
       )})`;
     case "Or":
       return `(${formatFormula(formula.left)} ∨ ${formatFormula(
-        formula.right,
+        formula.right
       )})`;
     case "Imply":
       return `(${formatFormula(formula.left)} → ${formatFormula(
-        formula.right,
+        formula.right
       )})`;
     case "Forall":
       return `∀${formula.ident}.(${formatFormula(formula.body)})`;
@@ -99,7 +118,11 @@ export function renameTerm(term: Term, from_to_table: Map<Ident, Ident>): Term {
     case "Abs": {
       const new_table = new Map(from_to_table);
       term.idents.forEach((ident) => new_table.delete(ident));
-      return { tag: "Abs", idents: term.idents, body: renameTerm(term.body, new_table) };
+      return {
+        tag: "Abs",
+        idents: term.idents,
+        body: renameTerm(term.body, new_table),
+      };
     }
     case "App":
       return {
@@ -110,7 +133,10 @@ export function renameTerm(term: Term, from_to_table: Map<Ident, Ident>): Term {
   }
 }
 
-export function renameFormula(formula: Formula, from_to_table: Map<Ident, Ident>): Formula {
+export function renameFormula(
+  formula: Formula,
+  from_to_table: Map<Ident, Ident>
+): Formula {
   switch (formula.tag) {
     case "Pred":
       return {
@@ -182,7 +208,7 @@ export function substTerm(term: Term, v: Ident, target: Term): Term {
           tag: "Abs",
           idents: term.idents.map((ident) => rename_table.get(ident) ?? ident),
           body: substTerm(renameTerm(term.body, rename_table), v, target),
-        }
+        };
       }
 
       return {
@@ -203,7 +229,7 @@ export function substTerm(term: Term, v: Ident, target: Term): Term {
 export function substFormula(
   formula: Formula,
   v: Ident,
-  target: Term,
+  target: Term
 ): Formula {
   switch (formula.tag) {
     case "Pred":
@@ -245,7 +271,11 @@ export function substFormula(
         return {
           tag: "Forall",
           ident: new_ident,
-          body: substFormula(renameFormula(formula, new Map([[formula.ident, new_ident]])), v, target),
+          body: substFormula(
+            renameFormula(formula, new Map([[formula.ident, new_ident]])),
+            v,
+            target
+          ),
         };
       }
 
@@ -267,7 +297,11 @@ export function substFormula(
         return {
           tag: "Exist",
           ident: new_ident,
-          body: substFormula(renameFormula(formula, new Map([[formula.ident, new_ident]])), v, target),
+          body: substFormula(
+            renameFormula(formula, new Map([[formula.ident, new_ident]])),
+            v,
+            target
+          ),
         };
       }
 
@@ -287,24 +321,34 @@ export function allFreeVarsInTerm(term: Term): Set<Ident> {
     case "Abs":
       return allFreeVarsInTerm(term.body).difference(new Set(term.idents));
     case "App":
-      return term.args.reduce((acc, arg) => acc.union(allFreeVarsInTerm(arg)), allFreeVarsInTerm(term.func));
+      return term.args.reduce(
+        (acc, arg) => acc.union(allFreeVarsInTerm(arg)),
+        allFreeVarsInTerm(term.func)
+      );
   }
 }
 
 export function allFreeVarsInFormula(formula: Formula): Set<Ident> {
   switch (formula.tag) {
     case "Pred":
-      return formula.args.reduce((acc, arg) => acc.union(allFreeVarsInTerm(arg)), new Set([formula.ident]));
+      return formula.args.reduce(
+        (acc, arg) => acc.union(allFreeVarsInTerm(arg)),
+        new Set([formula.ident])
+      );
     case "Top":
     case "Bottom":
       return new Set();
     case "And":
     case "Or":
     case "Imply":
-      return allFreeVarsInFormula(formula.left).union(allFreeVarsInFormula(formula.right));
+      return allFreeVarsInFormula(formula.left).union(
+        allFreeVarsInFormula(formula.right)
+      );
     case "Forall":
     case "Exist":
-      return allFreeVarsInFormula(formula.body).difference(new Set([formula.ident]));
+      return allFreeVarsInFormula(formula.body).difference(
+        new Set([formula.ident])
+      );
   }
 }
 
@@ -331,7 +375,9 @@ export function freeInTerm(term: Term, v: Ident): boolean {
 export function freeInFormula(formula: Formula, v: Ident): boolean {
   switch (formula.tag) {
     case "Pred":
-      return v === formula.ident || formula.args.some((arg) => freeInTerm(arg, v));
+      return (
+        v === formula.ident || formula.args.some((arg) => freeInTerm(arg, v))
+      );
     case "Top":
     case "Bottom":
       return false;

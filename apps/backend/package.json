@@ -21,7 +21,8 @@
     "openapi:generate": "openapi-generator-cli generate -i ../../openapi.yaml -g typescript-nestjs -o ./src/generated/openapi",
     "prisma:generate-mock": "prisma generate --schema prisma/mock.prisma",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
@@ -30,6 +31,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.2.1",
     "axios": "^1.7.9",
+    "neverthrow": "^8.1.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },

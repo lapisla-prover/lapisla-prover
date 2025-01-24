@@ -16,10 +16,10 @@
  */
 export interface PrivateFileMeta { 
     owner: string;
-    file_name: string;
+    fileName: string;
     versions: Array<number>;
-    registered_versions: Array<number>;
-    created_at: string;
-    updated_at: string;
+    registeredVersions: Array<number>;
+    createdAt: string;
+    updatedAt: string;
 }
 

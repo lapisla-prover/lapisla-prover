@@ -35,7 +35,7 @@ paths:
         - me
       summary: Create a new file
       parameters:
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/fileName'
       responses:
         '201':
           description: File created successfully
@@ -62,7 +62,7 @@ paths:
         - me
       summary: Fetch a private file
       parameters:
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/fileName'
       responses:
         '200':
           description: File
@@ -81,7 +81,7 @@ paths:
         - me
       summary: Delete a file
       parameters:
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/fileName'
       responses:
         '204':
           description: File deleted successfully
@@ -95,12 +95,12 @@ paths:
         - me
       summary: Upload a snapshot of the file
       parameters:
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/fileName'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SourceCode'
+              $ref: '#/components/schemas/SourceCodeWrapper'
       responses:
         '200':
           description: Snapshot uploaded successfully
@@ -119,7 +119,7 @@ paths:
         - me
       summary: Register a snapshot to the public registry
       parameters:
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/fileName'
         - $ref: '#/components/parameters/version'
       responses:
         '201':
@@ -137,29 +137,23 @@ paths:
       security:
         - BearerAuth: []
       operationId: registerMySnapshot
-  /me/files/{fileName}/{version}/permalink:
-    post:
+  /me/files/{fileName}/{version}:
+    get:
       tags: 
         - me
-      summary: Create a permalink to the snapshot
+      summary: Get a snapshot of the file 
       parameters:
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/fileName'
         - $ref: '#/components/parameters/version'
       responses:
-        '201':
-          description: Permalink created successfully
-          headers:
-            Location:
-              description: URL of the permalink
-              schema:
-                type: string
-                format: uri
+        '200':
+          description: Snapshot
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PermalinkId'
+                $ref: '#/components/schemas/Snapshot'
         '404':
-          description: File or snapshot not found
+          description: Snapshot not found
       security:
         - BearerAuth: []
       operationId: createMyPermalink
@@ -212,7 +206,7 @@ paths:
         - files
       summary: Get metadata of all public files owned by the user
       parameters:
-        - $ref: '#/components/parameters/user_name'
+        - $ref: '#/components/parameters/userName'
       responses:
         '200':
           description: File metadata retrieved successfully
@@ -231,8 +225,8 @@ paths:
         - files
       summary: Fetch a public file
       parameters:
-        - $ref: '#/components/parameters/user_name'
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/userName'
+        - $ref: '#/components/parameters/fileName'
       responses:
         '200':
           description: File
@@ -249,8 +243,8 @@ paths:
         - files
       summary: Fetch a public snapshot
       parameters:
-        - $ref: '#/components/parameters/user_name'
-        - $ref: '#/components/parameters/file_name'
+        - $ref: '#/components/parameters/userName'
+        - $ref: '#/components/parameters/fileName'
         - $ref: '#/components/parameters/version'
       responses:
         '200':
@@ -262,23 +256,6 @@ paths:
         '404':
           description: Snapshot not found
       operationId: getPublicSnapshot
-  /permalinks/{permalinkId}:
-    get:
-      tags: 
-        - permalinks
-      summary: Fetch a snapshot by permalink
-      parameters:
-        - $ref: '#/components/parameters/permalink_id'
-      responses:
-        '200':
-          description: Snapshot
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Snapshot'
-        '404':
-          description: Permalink not found
-      operationId: getPermalink
   /search:
     get:
       tags:
@@ -320,22 +297,22 @@ paths:
         - registry
       summary: Get the project dependencies of a snapshot
       parameters:
-        - $ref: '#/components/parameters/snapshot_id'
+        - $ref: '#/components/parameters/snapshotId'
       responses:
         '200':
           description: Project dependencies retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
+                $ref: '#/components/schemas/ProjectFetchResult'
         '404':
           description: Snapshot not found
       operationId: getProjectDependencies
 
 components:
   parameters:
-    file_name:
-      name: file_name
+    fileName:
+      name: fileName
       in: path
       required: true
       schema:
@@ -346,20 +323,20 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/Version'
-    user_name:
-      name: user_name
+    userName:
+      name: userName
       in: path
       required: true
       schema:
         $ref: '#/components/schemas/User'
-    permalink_id:
-      name: permalink_id
+    permalinkId:
+      name: permalinkId
       in: path
       required: true
       schema:
         $ref: '#/components/schemas/PermalinkId'
-    snapshot_id:
-      name: snapshot_id
+    snapshotId:
+      name: snapshotId
       in: path
       required: true
       schema:
@@ -390,53 +367,53 @@ components:
       properties:
         owner:
           $ref: '#/components/schemas/User'
-        file_name:
+        fileName:
           $ref: '#/components/schemas/FileName'
         versions:
           type: array
           items:
             $ref: '#/components/schemas/Version'
-        registered_versions:
+        registeredVersions:
           type: array
           items:
             $ref: '#/components/schemas/Version'
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
       required:
         - owner
-        - file_name
+        - fileName
         - versions
-        - registered_versions
-        - created_at
-        - updated_at
+        - registeredVersions
+        - createdAt
+        - updatedAt
     PublicFileMeta:
       description: Metadata shown to the public
       type: object
       properties:
         owner:
           $ref: '#/components/schemas/User'
-        file_name:
+        fileName:
           $ref: '#/components/schemas/FileName'
-        registered_versions:
+        registeredVersions:
           type: array
           items:
             $ref: '#/components/schemas/Version'
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
       required:
         - owner
-        - file_name
-        - registered_versions
-        - created_at
-        - updated_at
+        - fileName
+        - registeredVersions
+        - createdAt
+        - updatedAt
     SnapshotMeta:
       type: object
       properties:
@@ -444,21 +421,21 @@ components:
           $ref: '#/components/schemas/SnapshotId'
         owner:
           $ref: '#/components/schemas/User'
-        file_name:
+        fileName:
           $ref: '#/components/schemas/FileName'
         version:
           $ref: '#/components/schemas/Version'
         registered:
           type: boolean
-        created_at:
+        createdAt:
           type: string
           format: date-time
       required:
         - id
         - owner
-        - file_name
+        - fileName
         - version
-        - created_at
+        - createdAt
     # content schemas
     PrivateFile:
       type: object
@@ -493,6 +470,13 @@ components:
           $ref: '#/components/schemas/SourceCode'
       required:
         - meta
+        - content
+    SourceCodeWrapper:
+      type: object
+      properties:
+        content:
+          $ref: '#/components/schemas/SourceCode'
+      required:
         - content
     # search schemas
     SearchResult:
@@ -534,6 +518,19 @@ components:
       required:
         - id
         - dependencies
+    ProjectFetchResult:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [ok, error]
+        ok:
+          $ref: '#/components/schemas/Project'
+        error:
+          type: string
+      required:
+        - result
+
 
   securitySchemes:
     GitHubAuth:
@@ -545,7 +542,7 @@ components:
           scopes:
             read:user: Read user profile data
             user:email: Read user email addresses
-      description: 'OAuth 2.0認可'
+      description: 'OAuth 2.0 authentication'
     BearerAuth:
       type: http
       scheme: bearer

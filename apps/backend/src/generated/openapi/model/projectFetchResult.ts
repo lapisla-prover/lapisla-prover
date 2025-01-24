@@ -9,14 +9,20 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Project } from './project';
 
 
-export interface SnapshotMeta { 
-    id: string;
-    owner: string;
-    fileName: string;
-    version: number;
-    registered?: boolean;
-    createdAt: string;
+export interface ProjectFetchResult { 
+    result: ProjectFetchResult.ResultEnum;
+    ok?: Project;
+    error?: string;
 }
+export namespace ProjectFetchResult {
+    export type ResultEnum = 'ok' | 'error';
+    export const ResultEnum = {
+        Ok: 'ok' as ResultEnum,
+        Error: 'error' as ResultEnum
+    };
+}
+
 

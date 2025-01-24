@@ -16,7 +16,6 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
 import { SearchResult } from '../model/searchResult';
-import { SearchSnapshotsQueryParameter } from '../model/searchSnapshotsQueryParameter';
 import { Configuration } from '../configuration';
 import { COLLECTION_FORMATS } from '../variables';
 
@@ -47,19 +46,31 @@ export class SearchService {
     /**
      * Search for public snapshots
      * 
-     * @param query 
+     * @param q 
+     * @param before 
+     * @param offset 
+     * @param limit limit must be between 1 and 100 (default &#x3D; 5)
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public searchSnapshots(query: SearchSnapshotsQueryParameter, ): Observable<AxiosResponse<SearchResult>>;
-    public searchSnapshots(query: SearchSnapshotsQueryParameter, ): Observable<any> {
-        if (query === null || query === undefined) {
-            throw new Error('Required parameter query was null or undefined when calling searchSnapshots.');
+    public searchSnapshots(q: string, before?: string, offset?: number, limit?: number, ): Observable<AxiosResponse<SearchResult>>;
+    public searchSnapshots(q: string, before?: string, offset?: number, limit?: number, ): Observable<any> {
+        if (q === null || q === undefined) {
+            throw new Error('Required parameter q was null or undefined when calling searchSnapshots.');
         }
 
         let queryParameters = new URLSearchParams();
-        if (query !== undefined && query !== null) {
-            queryParameters.append('query', <any>query);
+        if (q !== undefined && q !== null) {
+            queryParameters.append('q', <any>q);
+        }
+        if (before !== undefined && before !== null) {
+            queryParameters.append('before', (<any>before).toISOString());
+        }
+        if (offset !== undefined && offset !== null) {
+            queryParameters.append('offset', <any>offset);
+        }
+        if (limit !== undefined && limit !== null) {
+            queryParameters.append('limit', <any>limit);
         }
 
         let headers = {...this.defaultHeaders};

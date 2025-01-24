@@ -1,14 +1,17 @@
 import { PrismaService } from '../prisma.service';
 
 import { Injectable, Optional } from '@nestjs/common';
+import { AbstractAuthService } from '../auth.service';
 
 @Injectable()
 export class LoginService {
 
     protected prisma: PrismaService;
+    protected auth: AbstractAuthService;
 
-    constructor(private prismaService: PrismaService) {
+    constructor(private prismaService: PrismaService, private authService: AbstractAuthService) {
         this.prisma = prismaService;
+        this.auth = authService;
     }
 
     public async callbackGitHubOAuth(code: string, state: string, ): Promise<{session_id: string, url: string}> {
