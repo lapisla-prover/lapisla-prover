@@ -39,3 +39,8 @@ model dependencies {
   dependeeId   String
   @@index([dependerId])
 }
+
+model sessions {
+  sessionId    String   @id @default(uuid())
+  value        String
+}
