@@ -79,6 +79,10 @@ export function formatTerm(term: Term): string {
 export function formatFormula(formula: Formula): string {
   switch (formula.tag) {
     case "Pred": {
+      if (formula.args.length === 0) {
+        return formula.ident;
+      }
+
       const args = formula.args.map(formatTerm).join(", ");
       return `${formula.ident}(${args})`;
     }
@@ -109,6 +113,40 @@ export function formatJudgement(judgement: Judgement): string {
   const assms = judgement.assms.map(formatFormula).join(", ");
   const concls = judgement.concls.map(formatFormula).join(", ");
   return `${assms} ⊢ ${concls}`;
+}
+
+export function formatProofState(judgements: Judgement[]): string {
+  if (judgements.length === 0) {
+    return "No goal. Proven!";
+  }
+
+  let result = `${judgements.length} subgoals\n\n`;
+
+  for (let i = 0; i < judgements.length; i++) {
+    if (i > 0) {
+      result += "\n\n";
+    }
+
+    result += `Goal ${i + 1} / ${judgements.length}:\n  `;
+
+    const { assms, concls } = judgements[i];
+
+    const assmsStr = assms.map(formatFormula);
+    const conclsStr = concls.map(formatFormula);
+
+    const maxLen = assmsStr
+      .concat(conclsStr)
+      .map((f) => f.length)
+      .reduce((a, b) => Math.max(a, b), 20);
+
+    result += assmsStr.join(",\n  ");
+
+    result += "\n " + "─".repeat(maxLen + 2) + "\n  ";
+
+    result += conclsStr.join(",\n  ");
+  }
+
+  return result;
 }
 
 export function renameTerm(term: Term, from_to_table: Map<Ident, Ident>): Term {

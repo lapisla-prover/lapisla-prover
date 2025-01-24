@@ -154,4 +154,44 @@ export const configureMonaco = (monaco: Monaco) => {
             return { suggestions };
         },
     });
+
+    monaco.languages.register({ id: "proof-state" });
+
+    monaco.languages.setMonarchTokensProvider("proof-state", {
+        defaultToken: "invalid",
+        keywords: ["Goal"],
+        operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
+        symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
+        tokenizer: {
+            root: [
+                [
+                    /[a-zA-Z_]\w*/,
+                    {
+                        cases: {
+                            "@keywords": "keyword",
+                            "@default": "identifier",
+                        },
+                    },
+                ],
+                { include: "@whitespace" },
+                [
+                    /@symbols/,
+                    {
+                        cases: {
+                            "@operators": "operator",
+                            "@keywords": "keyword",
+                            "@default": "",
+                        },
+                    },
+                ],
+                [/[(){}\[\]]/, "@brackets"],
+                [/[;:]/, "delimiter"],
+                [/\d+/, "number"],
+                [/─{20,}/, "delimiter"],
+            ],
+            whitespace: [
+                [/[ \t\r\n]+/, "white"],
+            ],
+        },
+    });
 };
