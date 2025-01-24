@@ -14,7 +14,8 @@ import {
   ChevronsUp,
   ChevronUp,
   Mic,
-  Search
+  Search,
+  Goal
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
 import { useRef } from "react";
@@ -46,26 +47,38 @@ export default function Edit() {
   const kernel = new Kernel();
 
   return (
-    <div className="flex p-8 gap-8">
+    <div className="flex">
 
       <SideMenu />
 
-      
 
       <div className="w-[80%] p-4 space-y-4">
 
         <div className="flex justify-between items-end">
-          <div className="text-2xl font-bold">abap34/simplest-sort.l</div>
+          <div className="text-2xl font-bold g-4 p-4">abap34/simplest-sort.l</div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
         </div>
+
+        {/* 灰色の線 */}
+        <div className="border-b border-gray-300"></div>
 
         <div className="flex justify-end items-center">
 
 
-          <div className="flex gap-2">
+          <div className="flex">
 
             {/* Up Button */}
-            <Button variant="ghost" size="sm" className="p-1" title="Move Up">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move Up"
+              onClick={
+                () => {
+                  setGoalEditorContent("↑")
+                }
+              }>
+
               <ChevronUp className="h-4 w-4" />
             </Button>
 
@@ -124,10 +137,9 @@ export default function Edit() {
         </div>
 
         {/* Main Editor */}
-        {/* Goal Visualizer */}
         <Editor
           className="h-full w-full"
-          height="100%"
+          height={"calc(100vh - 200px)"}
           theme="vs"
           language="lapisla"
 
@@ -147,7 +159,7 @@ qed
         />
       </div>
 
-      <div className="w-[40%] p-4 space-y-4">
+      <div className="w-[40%] p-8 space-y-4">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -164,7 +176,14 @@ qed
           </button>
         </div>
 
+        <div className="flex items-center space-x-2">
+          <Goal className="h-6 w-6 text-primary" />
+          <div className="text-2xl font-bold">Goal</div>
+        </div>
+        
         <div className="w-full h-64 border border-black">
+        
+
           {/* Goal Visualizer */}
           <Editor
             className="h-full w-full"
