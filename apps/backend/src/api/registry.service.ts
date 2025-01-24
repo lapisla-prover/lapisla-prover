@@ -10,16 +10,15 @@ import { HttpException } from '@nestjs/common/exceptions/http.exception';
 import { ProjectFetchResult } from 'src/generated/openapi';
 import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
 import { Snapshot } from '../generated/openapi/model/snapshot';
+import { Dependency } from '../generated/openapi/model/dependency';
 
 @Injectable()
 export class RegistryService {
 
     protected prisma: PrismaService;
-    protected codeAnalyzer: AbstractCodeAnalyzerService;
 
-    constructor(private prismaService: PrismaService, private codeAnalyzerService: AbstractCodeAnalyzerService) {
+    constructor(private prismaService: PrismaService) {
         this.prisma = prismaService;
-        this.codeAnalyzer = codeAnalyzerService;
     }
 
     public async getProjectDependencies(snapshotId: string, ): Promise<ProjectFetchResult> {
@@ -82,39 +81,32 @@ export class RegistryService {
                 return snapshot;
             })
             .finally(() => {});
-        let directDependees: DependencyMetadata[] = this.codeAnalyzer.listDirectDependencies(snapshot.content).match(
-            ok => {
-                if (ok.kind === 'success') {
-                    return ok.value;
-                }
-                else {
-                    throw new HttpException('Invalid source code', 400);
-                }
-            },
-            err => {
-                throw new HttpException('Failed to analyze code', 500);
-            }  
-        );
-        let dependeeSnapshotsDb = await this.prisma.users.findMany({
+        if (!snapshot.isPublic) {
+            throw new HttpException('Snapshot not found', 404);
+        }
+        const dependenciesDb = await this.prisma.dependencies.findMany({
             where: {
-                name: {
-                    in: directDependees.map(dep => dep.owner)
-                }
-            },
+                dependerId: snapshot.id
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            })
+            .then((dependencies) => {
+                return dependencies;
+            })
+            .finally(() => {});
+        const dependencySnapshots = await this.prisma.users.findMany({
             include: {
                 files: {
-                    where: {
-                        name: {
-                            in: directDependees.map(dep => dep.name)
-                        }
-                    },
                     include: {
                         snapshots: {
                             where: {
-                                version: {
-                                    in: directDependees.map(dep => parseInt(dep.version))
-                                },
-                                isPublic: true
+                                id: {
+                                    in: dependenciesDb.map((dependency) => {
+                                        return dependency.dependeeId;
+                                    })
+                                }
                             }
                         }
                     }
@@ -124,42 +116,44 @@ export class RegistryService {
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
             })
-            .then((users) => {
-                return users;
+            .then((snapshots) => {
+                return snapshots;
             })
             .finally(() => {});
-        let dependeeContents = new Map<{owner: string, name: string, version: string}, Snapshot>();
-        for (let user of dependeeSnapshotsDb) {
-            for (let file of user.files) {
-                for (let snapshot of file.snapshots) {
-                    dependeeContents.set({owner: user.name, name: file.name, version: snapshot.version.toString()}, {
-                        meta: {
-                            owner: user.name,
-                            fileName: file.name,
-                            version: snapshot.version,
-                            createdAt: snapshot.createdAt.toISOString(),
-                            id: getSnapshotId(user.name, file.name, snapshot.version)
-                        },
-                        content: snapshot.content
-                    });
+        let dependencies: Dependency[] = [];
+        for (let userFileSnap of dependencySnapshots) {
+            for (let fileSnap of userFileSnap.files) {
+                for (let snap of fileSnap.snapshots) {
+                    dependencies.push({
+                        id: getSnapshotId(userFileSnap.name, fileSnap.name, snap.version),
+                        snapshot: {
+                            meta: {
+                                id: getSnapshotId(userFileSnap.name, fileSnap.name, snap.version),
+                                owner: userFileSnap.name,
+                                fileName: fileSnap.name,
+                                version: snap.version,
+                                createdAt: snap.createdAt.toISOString(),
+                            },
+                            content: snap.content
+                        }
+                    })
                 }
             }
         }
-        let projectDependencies = directDependees.map(dep => {
-            let snapshot = dependeeContents.get(dep);
-            if (!snapshot) {
-                throw new HttpException('Dependency not found', 404);
-            }
+        console.log(snapshotInfo);
+        console.log(dependencies);
+        console.log(dependenciesDb);
+        if (dependencies.length !== dependenciesDb.length) {
             return {
-                id: getSnapshotId(dep.owner, dep.name, parseInt(dep.version)),
-                snapshot: snapshot
-            };
-        })
+                result: ProjectFetchResult.ResultEnum.Error,
+                error: 'Deleted dependency snapshot'
+            }
+        }
         return {
             result: ProjectFetchResult.ResultEnum.Ok,
             ok: {
                 id: snapshotId,
-                dependencies: projectDependencies
+                dependencies: dependencies
             }
         }
     }
