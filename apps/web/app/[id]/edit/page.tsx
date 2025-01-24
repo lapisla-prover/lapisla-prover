@@ -1,13 +1,8 @@
 "use client";
 
-
-
-import { Register } from "@/components/register";
-import { Share } from "@/components/share";
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
 
@@ -19,8 +14,7 @@ import {
   ChevronsUp,
   ChevronUp,
   Mic,
-  Save,
-  Search,
+  Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
 import { useRef } from "react";
@@ -53,100 +47,103 @@ export default function Edit() {
 
   return (
     <div className="flex p-8 gap-8">
+
+      <SideMenu />
+
+      
+
       <div className="w-[80%] p-4 space-y-4">
+
         <div className="flex justify-between items-end">
-          <div className="text-2xl font-bold">abap34/simplest-sort.lapis</div>
+          <div className="text-2xl font-bold">abap34/simplest-sort.l</div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
         </div>
 
-        <div className="h-0.5 w-full bg-black" />
+        <div className="flex justify-end items-center">
 
-        <div className="flex gap-2">
-          <Button className="flex items-center gap-1 px-4 py-2">
-            Save <Save />
-          </Button>
-          <Share />
-          <Register />
-        </div>
-        <div className="flex gap-2 justify-end">
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronUp />
-          </Button>
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronDown />
-          </Button>
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronsUp />
-          </Button>
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronsDown />
-          </Button>
-        </div>
-          <div className="flex justify-end items-center">
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="p-1" title="Move Up">
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1"
-                title="Move Down"
-                onClick={
-                  () => {
-                    step(
-                      kernel,
-                      getMainEditorContent,
-                      setGoalEditorContent
-                    );
-                  }
+
+          <div className="flex gap-2">
+
+            {/* Up Button */}
+            <Button variant="ghost" size="sm" className="p-1" title="Move Up">
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+
+            {/*  Down Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move Down"
+              onClick={
+                () => {
+                  step(
+                    kernel,
+                    getMainEditorContent,
+                    setGoalEditorContent
+                  );
                 }
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1"
-                title="Move to Top"
-                onClick={() => {
-                  if (goalEditorRef.current) {
-                    goalEditorRef.current.setValue("↑↑");
-                  }
+              }
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+
+            {/* Up all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move to Top"
+              onClick={() => {
+                if (goalEditorRef.current) {
+                  goalEditorRef.current.setValue("↑↑");
                 }
+              }
+              }
+            >
+              <ChevronsUp className="h-4 w-4" />
+            </Button>
+
+
+            {/* Down all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move to Bottom"
+              onClick={() => {
+                if (goalEditorRef.current) {
+                  goalEditorRef.current.setValue("↓↓");
                 }
-              >
-                <ChevronsUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1"
-                title="Move to Bottom"
-                onClick={() => {
-                  if (goalEditorRef.current) {
-                    goalEditorRef.current.setValue("↓↓");
-                  }
-                }
-                }
-              >
-                <ChevronsDown className="h-4 w-4" />
-              </Button>
-            </div>
+              }
+              }
+            >
+              <ChevronsDown className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
 
+        {/* Main Editor */}
+        {/* Goal Visualizer */}
         <Editor
-          className="h-full w-full mt-4 border border-black"
-          height={"calc(100vh - 200px)"}
+          className="h-full w-full"
+          height="100%"
           theme="vs"
           language="lapisla"
+
           options={{
-            unicodeHighlight: {
-              ambiguousCharacters: false
-            }
+            minimap: { enabled: true },
           }}
-          defaultValue="# Write your proof here!"
-          
+          defaultValue={`# Write your proof here!
+Theorem thm1 P → P
+  apply ImpR
+  apply I
+qed
+`}
+          onMount={(editor, monaco) => {
+            mainEditorRef.current = editor;
+          }
+          }
         />
       </div>
 
@@ -168,59 +165,30 @@ export default function Edit() {
         </div>
 
         <div className="w-full h-64 border border-black">
+          {/* Goal Visualizer */}
           <Editor
             className="h-full w-full"
             height="100%"
             theme="vs"
             language="proof-state"
 
-    
             options={{
               readOnly: true,
               minimap: { enabled: false },
               lineNumbers: "off",
             }}
-            defaultValue={`# Write your proof here!
-Theorem thm1 P → P
- apply ImpR
-  apply I
-qed
-`}
+            defaultValue={`Waiting start of proof...`}
             onMount={(editor, monaco) => {
-              mainEditorRef.current = editor;
+              goalEditorRef.current = editor;
             }
             }
           />
         </div>
 
-        <div>
-          <div className="text-2xl font-bold">Suggestion:</div>
-          <div className="text-gray-700">Proof Found!</div>
-        </div>
 
 
-          <div className="w-full h-64 border border-gray-200">
-            <Editor
-              className="h-full w-full"
-              height="100%"
-              theme="vs-light"
-              options={{
-                readOnly: true,
-                minimap: { enabled: false },
-                lineNumbers: "off",
-              }}
-              value="Waiting for proof ..."
-              onMount={(editor, monaco) => {
-                goalEditorRef.current = editor;
-              }
-              }
-            />
-          </div>
 
-        <div className="grid w-full gap-2">
-          <Textarea placeholder="Chat with AI ..." />
-          <Button>Send message</Button>
-        </div>
+
       </div>
     </div>
   );
