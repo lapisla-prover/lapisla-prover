@@ -7,6 +7,12 @@ export type Term =
   | { tag: "Abs"; idents: Ident[]; body: Term }
   | { tag: "App"; func: Term; args: Term[] };
 
+export type Type =
+  | { tag: "Var"; ident: Ident }
+  | { tag: "Con"; ident: Ident; args: Type[] }
+  | { tag: "Arr"; left: Type; right: Type }
+  | { tag: "Prop" };
+
 export type Formula =
   | { tag: "Pred"; ident: Ident; args: Term[] }
   | { tag: "Top" }
@@ -77,6 +83,25 @@ export function formatTerm(term: Term): string {
       const args = term.args.map(formatTerm).join(", ");
       return `${formatTerm(term.func)}(${args})`;
     }
+  }
+}
+
+export function formatType(type: Type): string {
+  switch (type.tag) {
+    case "Var":
+      return type.ident;
+    case "Con": {
+      if (type.args.length === 0) {
+        return type.ident;
+      }
+
+      const args = type.args.map(formatType).join(", ");
+      return `${type.ident}(${args})`;
+    }
+    case "Arr":
+      return `(${formatType(type.left)} → ${formatType(type.right)})`;
+    case "Prop":
+      return "Prop";
   }
 }
 
