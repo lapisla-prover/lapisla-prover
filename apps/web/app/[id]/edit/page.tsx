@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
-
+import { EditorInteracter } from "@/lib/editorInteracter";
 import { drawHighlight } from "@/lib/drawHighlight";
 import { step } from "@/lib/editorEventHandler";
 import { Kernel } from "@repo/kernel/kernel";
@@ -28,25 +28,7 @@ export default function Edit() {
   const monaco = useMonaco();
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-
-  function getMainEditorContent(): string {
-    if (mainEditorRef.current) {
-      return mainEditorRef.current.getValue();
-    }
-    return "";
-  }
-
-  function setGoalEditorContent(content: string): void {
-    if (goalEditorRef.current) {
-      goalEditorRef.current.setValue(content);
-    }
-  }
-
-  function highliter(range: Range) {
-    if (mainEditorRef.current) {
-      drawHighlight(mainEditorRef.current, range);
-    }
-  }
+  const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
 
   if (monaco) {
     configureMonaco(monaco);
@@ -83,7 +65,7 @@ export default function Edit() {
               title="Move Up"
               onClick={
                 () => {
-                  setGoalEditorContent("↑")
+                  interacter.setGoalEditorContent("↑↑");
                 }
               }>
 
@@ -100,9 +82,7 @@ export default function Edit() {
                 () => {
                   step(
                     kernel,
-                    getMainEditorContent,
-                    setGoalEditorContent,
-                    highliter
+                    interacter
                   );
                 }
               }
@@ -117,9 +97,9 @@ export default function Edit() {
               className="p-1"
               title="Move to Top"
               onClick={() => {
-                if (goalEditorRef.current) {
-                  goalEditorRef.current.setValue("↑↑");
-                }
+                kernel.reset(); 
+                interacter.resetGoalEditorContent();
+                interacter.resetHighlight();
               }
               }
             >
