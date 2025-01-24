@@ -4,8 +4,6 @@ import { CmdWithLoc, isAfter, Location } from "@repo/kernel/parser";
 import { EditorInteracter } from "./editorInteracter";
 import { formatProofState } from "./format";
 
-
-
 function findFirstCommand(commands: CmdWithLoc[], loc: Location): CmdWithLoc | undefined {
     for (const command of commands) {
         if (isAfter(command.loc.start, loc)) {
@@ -59,6 +57,18 @@ export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepR
     interacter.highlight(firstCommand.loc);
     return { tag: "Ok", value: { somethingExecuted: true } };
 }
+
+export function undo(kernel: Kernel, interacter: EditorInteracter, steps: number) {
+    for (let i = 0; i < steps; i++) {
+        const result = kernel.undo();
+        if (result.tag === "Err") {
+            console.log(result.error);
+            break;
+        }
+    }
+    interacter.removeHighlight(1);
+}
+
 
 export function executeAll(kernel: Kernel, interacter: EditorInteracter) {
     while (true) {

@@ -3,7 +3,7 @@
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { executeAll, step } from "@/lib/editorEventHandler";
+import { executeAll, step, undo } from "@/lib/editorEventHandler";
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
@@ -70,7 +70,7 @@ export default function Edit() {
               title="Move Up"
               onClick={
                 () => {
-                  interacter.setGoalEditorContent("↑↑");
+                  undo(kernel, interacter, 1);
                 }
               }>
 
