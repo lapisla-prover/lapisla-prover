@@ -51,7 +51,6 @@ export default function Edit() {
 
   const kernel = new Kernel();
 
-
   return (
     <div className="flex p-8 gap-8">
       <div className="w-[80%] p-4 space-y-4">
@@ -85,13 +84,7 @@ export default function Edit() {
         </div>
           <div className="flex justify-end items-center">
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="p-1" title="Move Up" onClick={() => {
-                if (goalEditorRef.current) {
-                  goalEditorRef.current.setValue("↑");
-                }
-              }
-              }>
-
+              <Button variant="ghost" size="sm" className="p-1" title="Move Up">
                 <ChevronUp className="h-4 w-4" />
               </Button>
               <Button
@@ -187,7 +180,6 @@ export default function Edit() {
               minimap: { enabled: false },
               lineNumbers: "off",
             }}
-
             defaultValue={`# Write your proof here!
 Theorem thm1 P → P
  apply ImpR
