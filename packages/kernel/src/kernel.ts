@@ -8,27 +8,32 @@ import { CmdWithLoc, Location, parseProgram } from "./parser";
 
 export class Kernel {
     private tophistory: TopHistory;
-    private lastLoc: Location;
+    private lastLoc: Location[];
     private currentState: KernelState;
     private loop: Generator<Result<KernelState, string>, never, TopCmd>;
 
     constructor() {
-        console.log("Kernel Initialized!");
         this.tophistory = new TopHistory();
         this.loop = topLoop(this.tophistory);
         this.loop.next(); // initialize
-        this.lastLoc = { line: 0, column: 0 };
+        this.lastLoc = [{ line: 0, column: 0 }];    
     }
 
     reset(): void {
         this.tophistory = new TopHistory();
         this.loop = topLoop(this.tophistory);
         this.loop.next(); // initialize
-        this.lastLoc = { line: 0, column: 0 };
+        this.lastLoc = [{ line: 0, column: 0 }];
+    }
+
+    poploc(): void {
+        if (this.lastLoc.length > 1) {
+            this.lastLoc.pop();
+        }
     }
 
     lastLocation(): Location {
-        return this.lastLoc;
+        return this.lastLoc[this.lastLoc.length - 1];
     }
 
     parse(input: string): Result<CmdWithLoc[], string> {
@@ -59,19 +64,19 @@ export class Kernel {
         const res = this.loop.next(command.cmd);
         if (res.value.tag == "Ok") {
             this.currentState = res.value.value;
-            this.lastLoc = command.loc.end;
+            this.lastLoc.push(command.loc.end);
         } else {
             console.log(res.value.error);
         }
         return res.value;
     }
 
-
-    undoUntil(location: Location): Result<string, string> {
-        return Ok("Redo until");
-    }
-
-    undo(): Result<string, string> {
-        return Ok("Undo");
+    undo(): Result<KernelState, string> {
+        const unDoCommand: TopCmd = { tag: "Undo" };
+        const res = this.loop.next(unDoCommand);
+        if (res.value.tag === "Ok") {
+            this.poploc();
+        }
+        return res.value;
     }
 }
