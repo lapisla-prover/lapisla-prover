@@ -20,6 +20,13 @@ export class Kernel {
         this.lastLoc = { line: 0, column: 0 };
     }
 
+    reset(): void {
+        this.tophistory = new TopHistory();
+        this.loop = topLoop(this.tophistory);
+        this.loop.next(); // initialize
+        this.lastLoc = { line: 0, column: 0 };
+    }
+
     lastLocation(): Location {
         return this.lastLoc;
     }
@@ -53,7 +60,6 @@ export class Kernel {
         if (res.value.tag == "Ok") {
             this.currentState = res.value.value;
             this.lastLoc = command.loc.end;
-
         } else {
             console.log(res.value.error);
         }

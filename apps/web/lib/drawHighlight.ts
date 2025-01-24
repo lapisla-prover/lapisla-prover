@@ -5,8 +5,8 @@ import { Location, Range } from "@repo/kernel/parser";
 export function drawHighlight(
     editor: monaco.editor.IStandaloneCodeEditor,
     range: Range
-) {
-    editor.createDecorationsCollection(
+): monaco.editor.IEditorDecorationsCollection {
+    return editor.createDecorationsCollection(
         [
             {
                 range: {

@@ -1,6 +1,7 @@
 import { Kernel } from "@repo/kernel/kernel";
 import { CmdWithLoc, isAfter, Location, Range } from "@repo/kernel/parser";
 import { formatProofState } from "./format";
+import { EditorInteracter } from "./editorInteracter";
 
 
 
@@ -15,8 +16,8 @@ function findFirstCommand(commands: CmdWithLoc[], loc: Location): CmdWithLoc | u
 }
 
 
-export function step(kernel: Kernel, contentGetter: () => string, contentSetter: (content: string) => void, highlighter: (range: Range) => void) {
-    const content = contentGetter();
+export function step(kernel: Kernel, interacter: EditorInteracter) {
+    const content = interacter.getMainEditorContent();
     const commands = kernel.parse(content);
 
     if (commands.tag === "Ok") {
@@ -30,12 +31,12 @@ export function step(kernel: Kernel, contentGetter: () => string, contentSetter:
 
                         console.log(result);
                         if (result.value.proofHistory) {
-                            contentSetter(formatProofState(result.value.proofHistory.top()));
+                            interacter.setGoalEditorContent(formatProofState(result.value.proofHistory.top()));
                         } else {
-                            contentSetter("Proven!")
+                            interacter.setGoalEditorContent("No goal. Proven!");
                         }
 
-                        highlighter(firstCommand.loc);
+                        interacter.highlight(firstCommand.loc);
 
                     } else {
                         // contentSetter("Failed to execute");
@@ -47,7 +48,7 @@ export function step(kernel: Kernel, contentGetter: () => string, contentSetter:
         }
 
     } else {
-        contentSetter("Failed to parse");
+        console.log("Failed to parse");
     }
 }
 
