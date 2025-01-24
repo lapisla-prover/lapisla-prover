@@ -1,14 +1,16 @@
-import { describe, expect, test } from "vitest";
-import { formatJudgement } from "./ast.ts";
+import { test, describe, expect, assert } from "vitest";
 import {
   CmdWithLoc,
   parseFormula,
   parseJudgement,
   parseProgram,
+  Parser,
   parseTerm,
   tokenize,
 } from "./parser.ts";
 import { expectErr, expectOk } from "./test-util.ts";
+import { formatJudgement, TopCmd } from "./ast.ts";
+import { Ok } from "./common.ts";
 
 describe("tokenize", () => {
   test("head spaces", () => {
@@ -123,7 +125,7 @@ describe("tokenize", () => {
     ]);
   });
   test("all symbols can be tokenized", () => {
-    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:");
+    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:=>{}");
     expectOk(tokens);
     expect(tokens.value).toEqual([
       {
@@ -175,8 +177,20 @@ describe("tokenize", () => {
         loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 12 } },
       },
       {
+        tag: "Arrow",
+        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 14 } },
+      },
+      {
+        tag: "LBrace",
+        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
+      },
+      {
+        tag: "RBrace",
+        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 16 } },
+      },
+      {
         tag: "EOF",
-        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 12 } },
+        loc: { start: { line: 0, column: 16 }, end: { line: 0, column: 16 } },
       },
     ]);
   });
@@ -765,5 +779,183 @@ qed
         },
       ]);
     });
+  });
+  test("predicate", () => {
+    const str = "P(x, y) => Q(f(x, g(y), x)) ∧ R";
+    const tokens = tokenize(str);
+    expectOk(tokens);
+    const pred = new Parser(tokens.value).parsePredicate();
+    expectOk(pred);
+    expect(pred.value[0]).toEqual("P");
+    const result = pred.value[1]([
+      { tag: "Var", ident: "a" },
+      {
+        tag: "App",
+        func: { tag: "Var", ident: "b" },
+        args: [{ tag: "Var", ident: "a" }],
+      },
+    ]);
+    expectOk(result);
+    expect(result.value).toEqual({
+      tag: "And",
+      left: {
+        tag: "Pred",
+        ident: "Q",
+        args: [
+          {
+            tag: "App",
+            func: { tag: "Var", ident: "f" },
+            args: [
+              { tag: "Var", ident: "a" },
+              {
+                tag: "App",
+                func: { tag: "Var", ident: "g" },
+                args: [
+                  {
+                    tag: "App",
+                    func: { tag: "Var", ident: "b" },
+                    args: [{ tag: "Var", ident: "a" }],
+                  },
+                ],
+              },
+              { tag: "Var", ident: "a" },
+            ],
+          },
+        ],
+      },
+      right: { tag: "Pred", ident: "R", args: [] },
+    });
+  });
+  test("predicates", () => {
+    const str = "{ P(x, y) => A → B, Q(x) => R }";
+
+    const tokens = tokenize(str);
+    expectOk(tokens);
+
+    const preds = new Parser(tokens.value).parsePredicates();
+
+    expectOk(preds);
+    expect(preds.value).toHaveLength(2);
+
+    const [pred1, pred2] = preds.value;
+
+    expect(pred1[0]).toEqual("P");
+    expect(pred2[0]).toEqual("Q");
+
+    const result1 = pred1[1]([
+      { tag: "Var", ident: "a" },
+      { tag: "Var", ident: "b" },
+    ]);
+
+    expectOk(result1);
+
+    expect(result1.value).toEqual({
+      tag: "Imply",
+      left: { tag: "Pred", ident: "A", args: [] },
+      right: { tag: "Pred", ident: "B", args: [] },
+    });
+
+    const result2 = pred2[1]([{ tag: "Var", ident: "a" }]);
+
+    expectOk(result2);
+
+    expect(result2.value).toEqual({
+      tag: "Pred",
+      ident: "R",
+      args: [],
+    });
+  });
+
+  test("use command", () => {
+    const program = `
+Theorem id P → P
+  apply ImpR
+  apply I
+qed
+
+Theorem thm ∀x.P(x) → ∀x.P(x)
+  use id { P => ∀x. P(x) }
+  apply I
+qed
+`;
+    const result = parseProgram(program);
+    expectOk(result);
+
+    // 関数をequalにするために実際のpredを取り出す
+    // ここではパースできることだけがテストできればよいので
+    const usecmd = result.value[5].cmd;
+    assert(usecmd.tag === "Use");
+    const pred = usecmd.pairs[0][1];
+
+    expect(result.value).toEqual<CmdWithLoc[]>([
+      {
+        cmd: {
+          tag: "Theorem",
+          name: "id",
+          formula: {
+            tag: "Imply",
+            left: { tag: "Pred", ident: "P", args: [] },
+            right: { tag: "Pred", ident: "P", args: [] },
+          },
+        },
+        loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 16 } },
+      },
+      {
+        cmd: { tag: "Apply", rule: { tag: "ImpR" } },
+        loc: { start: { line: 2, column: 2 }, end: { line: 2, column: 12 } },
+      },
+      {
+        cmd: { tag: "Apply", rule: { tag: "I" } },
+        loc: { start: { line: 3, column: 2 }, end: { line: 3, column: 9 } },
+      },
+      {
+        cmd: { tag: "Qed" },
+        loc: { start: { line: 4, column: 0 }, end: { line: 4, column: 3 } },
+      },
+      {
+        cmd: {
+          tag: "Theorem",
+          name: "thm",
+          formula: {
+            tag: "Imply",
+            left: {
+              tag: "Forall",
+              ident: "x",
+              body: {
+                tag: "Pred",
+                ident: "P",
+                args: [{ tag: "Var", ident: "x" }],
+              },
+            },
+            right: {
+              tag: "Forall",
+              ident: "x",
+              body: {
+                tag: "Pred",
+                ident: "P",
+                args: [{ tag: "Var", ident: "x" }],
+              },
+            },
+          },
+        },
+        loc: { start: { line: 6, column: 0 }, end: { line: 6, column: 29 } },
+      },
+      {
+        cmd: {
+          tag: "Use",
+          thm: "id",
+          pairs: [["P", pred]],
+        },
+        loc: { start: { line: 7, column: 2 }, end: { line: 7, column: 26 } },
+      },
+      {
+        cmd: { tag: "Apply", rule: { tag: "I" } },
+        loc: { start: { line: 8, column: 2 }, end: { line: 8, column: 9 } },
+      },
+      {
+        cmd: { tag: "Qed" },
+        loc: { start: { line: 9, column: 0 }, end: { line: 9, column: 3 } },
+      },
+    ]);
   });
 });

@@ -42,6 +42,10 @@ export class ProofHistory {
     }
     return Ok(this.steps.pop()!);
   }
+
+  push(goals: Judgement[]): void {
+    this.steps.push(goals);
+  }
 }
 
 export type TopStep =

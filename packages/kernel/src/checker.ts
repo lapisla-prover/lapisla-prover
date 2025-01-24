@@ -9,10 +9,14 @@ import {
   freeInFormulas,
   isDeclCmd,
   isProofCmd,
-  substFormula
+  substFormula,
+  Predicate,
+  Ident,
+  substPreds,
 } from "./ast.ts";
 import { Err, Ok, Result, deepEqual } from "./common.ts";
 import { ProofHistory, TopHistory } from "./history.ts";
+import { Env } from "./env.ts";
 
 export function judgeOne(
   rule: Rule,
@@ -371,7 +375,8 @@ export function judgeMany(
 }
 
 export function* proofLoop(
-  history: ProofHistory
+  history: ProofHistory,
+  env: Env
 ): Generator<Result<void, string>, Result<void, string>, ProofCmd | UndoCmd> {
   let result: Result<void, string> = Ok();
 
@@ -388,8 +393,40 @@ export function* proofLoop(
         }
         continue loop;
       }
-      case "Use":
-        throw new Error("unimplemented");
+      case "Use": {
+        const { thm, pairs } = com;
+
+        if (!env.thms.has(thm)) {
+          result = Err(`invalid use: unknown theorem ${thm}`);
+          continue loop;
+        }
+
+        const thmFormula = env.thms.get(thm);
+
+        const mapping = new Map<Ident, Predicate>(pairs);
+
+        const formula = substPreds(thmFormula, mapping);
+        if (formula.tag === "Err") {
+          result = Err(formula.error);
+          continue loop;
+        }
+
+        const goals = history.top();
+
+        if (goals.length === 0) {
+          return Err("No goal");
+        }
+
+        const [{ assms, concls }, ...restGoals] = goals;
+
+        const newGoal = { assms: [formula.value, ...assms], concls };
+
+        history.push([newGoal, ...restGoals]);
+
+        result = Ok();
+
+        continue loop;
+      }
       case "Undo": {
         const res = history.pop();
         if (res.tag === "Err") {
@@ -415,7 +452,7 @@ export type KernelMode = "DeclareWait" | "Proving";
 export type KernelState = {
   mode: KernelMode;
   proofHistory?: ProofHistory;
-}
+};
 
 export function* topLoop(
   topHistory: TopHistory
@@ -430,7 +467,6 @@ export function* topLoop(
     // topMode
     topMode: while (true) {
       const topCmd = yield result;
-
 
       if (isProofCmd(topCmd)) {
         result = Err("Invalid command; we are in declare mode");
@@ -471,7 +507,7 @@ export function* topLoop(
       throw new Error("Unreachable");
     }
 
-    const ploop = proofLoop(proofHistory);
+    const ploop = proofLoop(proofHistory, topHistory.top().env);
     ploop.next(); // Initialize
 
     proofMode: while (true) {
