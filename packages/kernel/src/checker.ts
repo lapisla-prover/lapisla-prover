@@ -1,18 +1,19 @@
-import { Result, Ok, Err, deepEqual } from "./common.ts";
 import {
-  Rule,
+  Formula,
   Judgement,
-  substFormula,
+  KernelMode,
+  KernelState,
+  ProofCmd,
+  Rule,
+  TopCmd,
+  UndoCmd,
   freeInFormula,
   freeInFormulas,
-  Formula,
-  ProofCmd,
-  DeclCmd,
-  TopCmd,
-  isProofCmd,
-  UndoCmd,
   isDeclCmd,
+  isProofCmd,
+  substFormula
 } from "./ast.ts";
+import { Err, Ok, Result, deepEqual } from "./common.ts";
 import { ProofHistory, TopHistory } from "./history.ts";
 
 export function judgeOne(
@@ -412,10 +413,16 @@ export function* proofLoop(
   }
 }
 
+export type KernelMode = "DeclareWait" | "Proving";
+export type KernelState = {
+  mode: KernelMode;
+  proofHistory?: ProofHistory;
+}
+
 export function* topLoop(
   topHistory: TopHistory
-): Generator<Result<void, string>, never, TopCmd> {
-  let result: Result<void, string> = Ok();
+): Generator<Result<KernelState, string>, never, TopCmd> {
+  let result: Result<KernelState, string> = Ok({ mode: "DeclareWait" });
 
   // 全体のループ
   while (true) {
@@ -428,8 +435,9 @@ export function* topLoop(
     topMode: while (true) {
       const topCmd = yield result;
 
+
       if (isProofCmd(topCmd)) {
-        result = Err("Invalid command; we are not in proof mode");
+        result = Err("Invalid command; we are in declare mode");
         continue topMode;
       }
 
@@ -437,7 +445,7 @@ export function* topLoop(
         thmName = topCmd.name;
         thmFormula = topCmd.formula;
         proofHistory = new ProofHistory([{ assms: [], concls: [thmFormula] }]);
-        result = Ok();
+        result = Ok({ mode: "Proving", proofHistory });
         break topMode;
       }
 
@@ -454,11 +462,11 @@ export function* topLoop(
           thmName = prevStep.name;
           thmFormula = prevStep.formula;
           proofHistory = prevStep.proofHistory;
-          result = Ok();
+          result = Ok({ mode: "Proving", proofHistory });
           break topMode;
         }
 
-        result = Ok();
+        result = Ok({ mode: "DeclareWait" });
         continue topMode;
       }
 
@@ -485,11 +493,11 @@ export function* topLoop(
         if (res.value.tag === "Ok") {
           topHistory.insertThm(thmName, thmFormula, proofHistory);
         }
-        result = Ok();
+        result = Ok({ mode: "DeclareWait" });
         break proofMode;
-      }
-      // proofLoopはQed|Undoの時以外終わらないので，このasは安全なはず
-      result = res.value;
+      } 
+
+      result = Ok({ mode: "Proving", proofHistory });
     }
   }
 }
