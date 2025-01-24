@@ -328,6 +328,23 @@ export class MeService {
                 return user.id;
             })
             .finally(() => {});
+        // Check if the file already exists
+        await this.prisma.files.findUnique({
+            where: {
+                ownerId_name: {
+                    ownerId: userId,
+                    name: fileName
+                }
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            })
+            .then((file) => {
+                if (file) {
+                    throw new HttpException('File already exists', 409);
+                }
+            });
         const file = await this.prisma.files.create({
             data: {
                 ownerId: userId,
