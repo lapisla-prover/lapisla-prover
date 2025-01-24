@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { AbstractCodeAnalyzerService } from './kernel';
 import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
-import { AbstractAuthService, MockAuthService } from './auth.service';
+import { AbstractAuthService, AuthService } from './auth.service';
 import { JsonOnlyMiddleware } from './jsonOnly.middleware';
 import { MiddlewareConsumer } from '@nestjs/common/interfaces';
 
@@ -33,7 +33,7 @@ import {
     RegistryService,
     SearchService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
-    { provide: AbstractAuthService, useClass: MockAuthService }
+    { provide: AbstractAuthService, useClass: AuthService }
   ],
   controllers: [
     FilesController,

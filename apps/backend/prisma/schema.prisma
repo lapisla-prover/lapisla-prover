@@ -52,4 +52,6 @@ model dependencies {
 model sessions {
   sessionId    String   @id @default(uuid())
   value        String
+
+  @@unique([sessionId])
 }

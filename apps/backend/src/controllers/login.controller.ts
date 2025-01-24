@@ -9,9 +9,7 @@ export class LoginController {
     @Get()
     async login(@Res() res: Response) {
         const {state, url} = await this.loginService.loginWithGitHub();
-        res.cookie('session_id', state, { httpOnly: true, maxAge: 600000 });
         res.redirect(url);
-        return res.send(state);
     }
 
     @Get('callback')
@@ -19,6 +17,5 @@ export class LoginController {
         const {session_id, url} = await this.loginService.callbackGitHubOAuth(code, state);
         res.cookie('session_id', session_id, { httpOnly: true });
         res.redirect(url);
-        return res.send(session_id);
     }
 }
