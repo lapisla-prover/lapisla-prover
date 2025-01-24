@@ -1,3 +1,5 @@
+import { Ok, Result } from "./common";
+
 export type Ident = string;
 
 export type Term =
@@ -44,9 +46,11 @@ export type Judgement = {
   concls: Formula[];
 };
 
+export type Predicate = (args: Term[]) => Result<Formula, string>;
+
 export type ProofCmd =
   | { tag: "Apply"; rule: Rule }
-  | { tag: "Use"; thm: string }
+  | { tag: "Use"; thm: string; pairs: [Ident, Predicate][] }
   | { tag: "Qed" };
 
 export type DeclCmd = { tag: "Theorem"; name: string; formula: Formula };
@@ -348,6 +352,256 @@ export function substFormula(
         ident: formula.ident,
         body: substFormula(formula.body, v, target),
       };
+    }
+  }
+}
+
+export function substAllTerm(term: Term, mapping: Map<Ident, Term>): Term {
+  switch (term.tag) {
+    case "Var":
+      return mapping.get(term.ident) ?? term;
+    case "Abs": {
+      const new_mapping = new Map(mapping);
+
+      for (const ident of term.idents) {
+        new_mapping.delete(ident);
+      }
+
+      if (new_mapping.size === 0) {
+        return term;
+      }
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      let fvarsInTarget = new Set<Ident>();
+      for (const target of new_mapping.values()) {
+        fvarsInTarget = fvarsInTarget.union(allFreeVarsInTerm(target));
+      }
+
+      const rename_table = new Map();
+      for (const ident of term.idents) {
+        if (fvarsInTarget.has(ident)) {
+          rename_table.set(ident, freshen(fvarsInTarget, ident));
+        }
+      }
+
+      if (rename_table.size > 0) {
+        return {
+          tag: "Abs",
+          idents: term.idents.map((ident) => rename_table.get(ident) ?? ident),
+          body: substAllTerm(renameTerm(term.body, rename_table), new_mapping),
+        };
+      }
+
+      return {
+        tag: "Abs",
+        idents: term.idents,
+        body: substAllTerm(term.body, new_mapping),
+      };
+    }
+    case "App": {
+      return {
+        tag: "App",
+        func: substAllTerm(term.func, mapping),
+        args: term.args.map((arg) => substAllTerm(arg, mapping)),
+      };
+    }
+  }
+}
+
+export function substAllFormula(
+  formula: Formula,
+  mapping: Map<Ident, Term>
+): Formula {
+  switch (formula.tag) {
+    case "Pred":
+      return {
+        tag: "Pred",
+        ident: formula.ident,
+        args: formula.args.map((arg) => substAllTerm(arg, mapping)),
+      };
+    case "Top":
+    case "Bottom":
+      return formula;
+    case "And":
+      return {
+        tag: "And",
+        left: substAllFormula(formula.left, mapping),
+        right: substAllFormula(formula.right, mapping),
+      };
+    case "Or":
+      return {
+        tag: "Or",
+        left: substAllFormula(formula.left, mapping),
+        right: substAllFormula(formula.right, mapping),
+      };
+    case "Imply":
+      return {
+        tag: "Imply",
+        left: substAllFormula(formula.left, mapping),
+        right: substAllFormula(formula.right, mapping),
+      };
+    case "Forall": {
+      const new_mapping = new Map(mapping);
+
+      new_mapping.delete(formula.ident);
+
+      if (new_mapping.size === 0) {
+        return formula;
+      }
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      let fvarsInTarget = new Set<Ident>();
+      for (const target of new_mapping.values()) {
+        fvarsInTarget = fvarsInTarget.union(allFreeVarsInTerm(target));
+      }
+      if (fvarsInTarget.has(formula.ident)) {
+        const new_ident = freshen(fvarsInTarget, formula.ident);
+        return {
+          tag: "Forall",
+          ident: new_ident,
+          body: substAllFormula(
+            renameFormula(formula, new Map([[formula.ident, new_ident]])),
+            new_mapping
+          ),
+        };
+      }
+
+      return {
+        tag: "Forall",
+        ident: formula.ident,
+        body: substAllFormula(formula.body, new_mapping),
+      };
+    }
+    case "Exist": {
+      const new_mapping = new Map(mapping);
+
+      new_mapping.delete(formula.ident);
+
+      if (new_mapping.size === 0) {
+        return formula;
+      }
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      let fvarsInTarget = new Set<Ident>();
+      for (const target of new_mapping.values()) {
+        fvarsInTarget = fvarsInTarget.union(allFreeVarsInTerm(target));
+      }
+      if (fvarsInTarget.has(formula.ident)) {
+        const new_ident = freshen(fvarsInTarget, formula.ident);
+        return {
+          tag: "Exist",
+          ident: new_ident,
+          body: substAllFormula(
+            renameFormula(formula, new Map([[formula.ident, new_ident]])),
+            new_mapping
+          ),
+        };
+      }
+
+      return {
+        tag: "Exist",
+        ident: formula.ident,
+        body: substAllFormula(formula.body, new_mapping),
+      };
+    }
+  }
+}
+
+export function substPreds(
+  formula: Formula,
+  mapping: Map<Ident, Predicate>
+): Result<Formula, string> {
+  switch (formula.tag) {
+    case "Pred": {
+      if (!mapping.has(formula.ident)) {
+        return Ok(formula);
+      }
+
+      const pred = mapping.get(formula.ident);
+
+      return pred(formula.args);
+    }
+    case "Top":
+    case "Bottom":
+      return Ok(formula);
+    case "And": {
+      const left = substPreds(formula.left, mapping);
+      if (left.tag === "Err") {
+        return left;
+      }
+
+      const right = substPreds(formula.right, mapping);
+      if (right.tag === "Err") {
+        return right;
+      }
+
+      return Ok({
+        tag: "And",
+        left: left.value,
+        right: right.value,
+      });
+    }
+    case "Or": {
+      const left = substPreds(formula.left, mapping);
+      if (left.tag === "Err") {
+        return left;
+      }
+
+      const right = substPreds(formula.right, mapping);
+      if (right.tag === "Err") {
+        return right;
+      }
+
+      return Ok({
+        tag: "Or",
+        left: left.value,
+        right: right.value,
+      });
+    }
+    case "Imply": {
+      const left = substPreds(formula.left, mapping);
+      if (left.tag === "Err") {
+        return left;
+      }
+
+      const right = substPreds(formula.right, mapping);
+      if (right.tag === "Err") {
+        return right;
+      }
+
+      return Ok({
+        tag: "Imply",
+        left: left.value,
+        right: right.value,
+      });
+    }
+    case "Forall": {
+      const body = substPreds(formula.body, mapping);
+      if (body.tag === "Err") {
+        return body;
+      }
+
+      return Ok({
+        tag: "Forall",
+        ident: formula.ident,
+        body: body.value,
+      });
+    }
+    case "Exist": {
+      const body = substPreds(formula.body, mapping);
+      if (body.tag === "Err") {
+        return body;
+      }
+
+      return Ok({
+        tag: "Exist",
+        ident: formula.ident,
+        body: body.value,
+      });
+    }
+    default: {
+      formula satisfies never;
+      throw new Error("unreachable");
     }
   }
 }

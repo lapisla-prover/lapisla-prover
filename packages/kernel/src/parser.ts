@@ -1,6 +1,14 @@
 import assert from "assert";
-
-import { TopCmd, Formula, Ident, Judgement, Term, Rule } from "./ast.ts";
+import {
+  TopCmd,
+  Formula,
+  Ident,
+  Judgement,
+  Term,
+  Rule,
+  Predicate,
+  substAllFormula,
+} from "./ast.ts";
 import { Err, Ok, Result } from "./common.ts";
 
 export type Location = {
@@ -9,13 +17,18 @@ export type Location = {
 };
 
 export function isBefore(loc1: Location, loc2: Location): boolean {
-  return loc1.line < loc2.line || (loc1.line === loc2.line && loc1.column < loc2.column);
+  return (
+    loc1.line < loc2.line ||
+    (loc1.line === loc2.line && loc1.column < loc2.column)
+  );
 }
 
 export function isAfter(loc1: Location, loc2: Location): boolean {
-  return loc1.line > loc2.line || (loc1.line === loc2.line && loc1.column > loc2.column);
+  return (
+    loc1.line > loc2.line ||
+    (loc1.line === loc2.line && loc1.column > loc2.column)
+  );
 }
-
 
 export type Range = {
   start: Location;
@@ -39,6 +52,8 @@ export type Token =
   | { tag: "Comma"; loc: Range }
   | { tag: "LParen"; loc: Range }
   | { tag: "RParen"; loc: Range }
+  | { tag: "LBrace"; loc: Range }
+  | { tag: "RBrace"; loc: Range }
   | { tag: "Top"; loc: Range }
   | { tag: "Bottom"; loc: Range }
   | { tag: "And"; loc: Range }
@@ -47,6 +62,7 @@ export type Token =
   | { tag: "Forall"; loc: Range }
   | { tag: "Exist"; loc: Range }
   | { tag: "VDash"; loc: Range }
+  | { tag: "Arrow"; loc: Range }
   | { tag: "Colon"; loc: Range }
   | { tag: "Semicolon"; loc: Range }
   | { tag: "Keyword"; name: KeywordsUnion; loc: Range }
@@ -119,6 +135,14 @@ class Tokenizer {
     return c;
   }
 
+  peek(): string {
+    return this.#str[this.#pos];
+  }
+
+  eof(): boolean {
+    return this.#pos >= this.#str.length;
+  }
+
   tokenize(): Result<Token[], string> {
     const tokens: Token[] = [];
 
@@ -159,6 +183,20 @@ class Tokenizer {
         case ")": {
           tokens.push({
             tag: "RParen",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "{": {
+          tokens.push({
+            tag: "LBrace",
+            loc: { start, end: this.#loc },
+          });
+          break;
+        }
+        case "}": {
+          tokens.push({
+            tag: "RBrace",
             loc: { start, end: this.#loc },
           });
           break;
@@ -217,6 +255,16 @@ class Tokenizer {
             tag: "VDash",
             loc: { start, end: this.#loc },
           });
+          break;
+        }
+        case "=": {
+          if (!this.eof() && this.peek() === ">") {
+            this.read();
+            tokens.push({
+              tag: "Arrow",
+              loc: { start, end: this.#loc },
+            });
+          }
           break;
         }
         case ":": {
@@ -288,7 +336,7 @@ export function tokenize(str: string): Result<Token[], string> {
   return tokenizer.tokenize();
 }
 
-class Parser {
+export class Parser {
   #pos = 0;
   #tokens: Token[];
 
@@ -329,14 +377,14 @@ class Parser {
     if (this.eof()) {
       return Err(
         `expected ${tag} but got EOF` +
-        (target ? ` (while parsing ${target})` : "")
+          (target ? ` (while parsing ${target})` : "")
       );
     }
     const token = this.next();
     if (token.tag.toLowerCase() !== tag.toLowerCase()) {
       return Err(
         `expected ${tag} but got unexpected token ${dumpToken(token)} at ${formatLocation(token.loc.start)}` +
-        (target ? ` (while parsing ${target})` : "")
+          (target ? ` (while parsing ${target})` : "")
       );
     }
     return Ok(token);
@@ -749,6 +797,112 @@ class Parser {
     }
   }
 
+  parsePredicate(): Result<[Ident, Predicate], string> {
+    const name = this.expect("Ident");
+    if (name.tag === "Err") {
+      return name;
+    }
+    assert(name.value.tag === "Ident");
+
+    const args: Ident[] = [];
+
+    if (this.match("LParen")) {
+      this.next();
+
+      if (!this.match("RParen")) {
+        const ident = this.expect("Ident");
+        if (ident.tag === "Err") {
+          return ident;
+        }
+        assert(ident.value.tag === "Ident");
+
+        args.push(ident.value.ident);
+
+        while (this.match("Comma")) {
+          this.next();
+
+          const ident = this.expect("Ident");
+          if (ident.tag === "Err") {
+            return ident;
+          }
+          assert(ident.value.tag === "Ident");
+
+          args.push(ident.value.ident);
+        }
+      }
+
+      const rparen = this.expect("RParen");
+      if (rparen.tag === "Err") {
+        return rparen;
+      }
+    }
+
+    const arrow = this.expect("Arrow");
+    if (arrow.tag === "Err") {
+      return arrow;
+    }
+
+    const formula = this.parseFormula();
+    if (formula.tag === "Err") {
+      return formula;
+    }
+
+    const pred: Predicate = (argTerms: Term[]): Result<Formula, string> => {
+      if (argTerms.length !== args.length) {
+        return Err(
+          `expected ${args.length} arguments but got ${argTerms.length}`
+        );
+      }
+
+      const subst = new Map<Ident, Term>();
+
+      for (let i = 0; i < args.length; i++) {
+        subst.set(args[i], argTerms[i]);
+      }
+
+      return Ok(substAllFormula(formula.value, subst));
+    };
+
+    return Ok([name.value.ident, pred]);
+  }
+
+  parsePredicates(): Result<[Ident, Predicate][], string> {
+    const pairs: [Ident, Predicate][] = [];
+
+    const lbrace = this.expect("LBrace");
+    if (lbrace.tag === "Err") {
+      return lbrace;
+    }
+
+    if (this.match("RBrace")) {
+      this.next();
+      return Ok(pairs);
+    }
+
+    const pred = this.parsePredicate();
+    if (pred.tag === "Err") {
+      return pred;
+    }
+    pairs.push(pred.value);
+
+    while (this.match("Comma")) {
+      this.next();
+
+      const pred = this.parsePredicate();
+      if (pred.tag === "Err") {
+        return pred;
+      }
+      pairs.push(pred.value);
+    }
+
+    const rbrace = this.expect("RBrace");
+    if (rbrace.tag === "Err") {
+      return rbrace;
+    }
+
+    return Ok(pairs);
+  }
+
   parseCommand(): Result<CmdWithLoc, string> {
     const name = this.expect("Keyword");
     if (name.tag === "Err") {
@@ -774,7 +928,11 @@ class Parser {
         const end = this.peekPrev().loc.end;
 
         return Ok({
-          cmd: { tag: "Theorem", name: ident.value.ident, formula: formula.value },
+          cmd: {
+            tag: "Theorem",
+            name: ident.value.ident,
+            formula: formula.value,
+          },
           loc: { start, end },
         });
       }
@@ -798,10 +956,21 @@ class Parser {
         }
         assert(name.value.tag === "Ident");
 
+        let predicates: [Ident, Predicate][] = [];
+
+        if (this.match("LBrace")) {
+          const preds = this.parsePredicates();
+          if (preds.tag === "Err") {
+            return preds;
+          }
+
+          predicates = preds.value;
+        }
+
         const end = this.peekPrev().loc.end;
 
         return Ok({
-          cmd: { tag: "Use", thm: name.value.ident },
+          cmd: { tag: "Use", thm: name.value.ident, pairs: predicates },
           loc: { start, end },
         });
       }

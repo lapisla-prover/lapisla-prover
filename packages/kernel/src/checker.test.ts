@@ -3,6 +3,8 @@ import { Formula, Judgement, ProofCmd, Rule, Term, TopCmd } from "./ast";
 import { judgeMany, judgeOne, proofLoop, topLoop } from "./checker";
 import { ProofHistory, TopHistory } from "./history";
 import { expectErr, expectOk } from "./test-util";
+import { Ok, Result } from "./common";
+import { initialEnv } from "./env";
 
 test("∀x.((P(x) ∨ Q())) ⊢ (∀x.(P(x)) ∨ Q()) can be proven", () => {
   const sampleAssms: Formula[] = [
@@ -574,7 +576,7 @@ describe("rules", () => {
     ];
     const history = new ProofHistory([initialJudgement]);
 
-    const loop = proofLoop(history);
+    const loop = proofLoop(history, initialEnv());
     loop.next(); // 初回のnextは最初のyieldまで進めるため
     for (const cmd of cmds) {
       const res = loop.next(cmd);
@@ -591,7 +593,7 @@ describe("rules", () => {
     };
     const initialJudgement: Judgement = { assms: [], concls: [sampleFormula] };
     const history = new ProofHistory([initialJudgement]);
-    const ploop = proofLoop(history);
+    const ploop = proofLoop(history, initialEnv());
     ploop.next(); // 初回のnextは最初のyieldまで進めるため
     ploop.next({ tag: "Apply", rule: { tag: "ImpR" } });
     ploop.next({ tag: "Undo" });
@@ -633,7 +635,11 @@ describe("rules", () => {
     loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
     loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
     // proof mode中なので、Theoremを送ってもErrが返る
-    const res = loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
+    const res = loop.next({
+      tag: "Theorem",
+      name: "id",
+      formula: sampleFormula,
+    });
     expectErr(res.value);
   });
 
@@ -653,7 +659,11 @@ describe("rules", () => {
     // Qed後にUndoを送ると、proof modeに戻る
     loop.next({ tag: "Undo" });
     // proof mode中なので、Theoremを送ってもErrが返る
-    const res = loop.next({ tag: "Theorem", name: "id", formula: sampleFormula });
+    const res = loop.next({
+      tag: "Theorem",
+      name: "id",
+      formula: sampleFormula,
+    });
     expectErr(res.value);
   });
 
@@ -672,5 +682,66 @@ describe("rules", () => {
     // top mode中なので，Applyを送ってもErrが返る
     const res = loop.next({ tag: "Apply", rule: { tag: "ImpR" } });
     expectErr(res.value);
+  });
+
+  test("use theorem in proof mode", () => {
+    const idFormula: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "a", args: [] },
+      right: { tag: "Pred", ident: "a", args: [] },
+    };
+
+    const thmFormula: Formula = {
+      tag: "Imply",
+      left: {
+        tag: "Forall",
+        ident: "x",
+        body: { tag: "Pred", ident: "P", args: [{ tag: "Var", ident: "x" }] },
+      },
+      right: {
+        tag: "Forall",
+        ident: "x",
+        body: { tag: "Pred", ident: "P", args: [{ tag: "Var", ident: "x" }] },
+      },
+    };
+
+    const loop = topLoop(new TopHistory());
+
+    loop.next();
+
+    const cmds: TopCmd[] = [
+      { tag: "Theorem", name: "id", formula: idFormula },
+      { tag: "Apply", rule: { tag: "ImpR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Qed" },
+
+      { tag: "Theorem", name: "thm", formula: thmFormula },
+      {
+        tag: "Use",
+        thm: "id",
+        pairs: [
+          [
+            "a",
+            (args) =>
+              Ok({
+                tag: "Forall",
+                ident: "x",
+                body: {
+                  tag: "Pred",
+                  ident: "P",
+                  args: [{ tag: "Var", ident: "x" }],
+                },
+              }),
+          ],
+        ],
+      },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Qed" },
+    ];
+
+    for (const cmd of cmds) {
+      const res = loop.next(cmd);
+      expectOk(res.value);
+    }
   });
 });
