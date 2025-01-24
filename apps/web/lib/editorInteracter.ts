@@ -38,6 +38,17 @@ export class EditorInteracter {
     }
   }
 
+  removeHighlight(steps: number) {
+    if (this.mainEditorRef.current) {
+      for (let i = 0; i < steps; i++) {
+        const highlight = this.highlightHistory.pop();
+        if (highlight) {
+          highlight.clear();
+        }
+      }
+    }
+  }
+
   resetHighlight() {
     if (this.mainEditorRef.current) {
       this.highlightHistory.forEach((highlight) => {
