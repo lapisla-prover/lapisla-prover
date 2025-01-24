@@ -1,7 +1,8 @@
+import { Result } from "@repo/kernel/common";
 import { Kernel } from "@repo/kernel/kernel";
-import { CmdWithLoc, isAfter, Location, Range } from "@repo/kernel/parser";
-import { formatProofState } from "./format";
+import { CmdWithLoc, isAfter, Location } from "@repo/kernel/parser";
 import { EditorInteracter } from "./editorInteracter";
+import { formatProofState } from "./format";
 
 
 
@@ -15,40 +16,60 @@ function findFirstCommand(commands: CmdWithLoc[], loc: Location): CmdWithLoc | u
     return undefined;
 }
 
+export type StepResult = {
+    somethingExecuted: boolean;
+};
 
-export function step(kernel: Kernel, interacter: EditorInteracter) {
+
+export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepResult, string> {
     const content = interacter.getMainEditorContent();
-    const commands = kernel.parse(content);
+    const commandsResult = kernel.parse(content);
 
-    if (commands.tag === "Ok") {
-        if (commands.value.length > 0) {
-            if (commands.value[0]) {
-                const firstCommand = findFirstCommand(commands.value, kernel.lastLocation());
-                if (firstCommand) {
-                    const result = kernel.execute(firstCommand);
-
-                    if (result.tag === "Ok") {
-
-                        console.log(result);
-                        if (result.value.proofHistory) {
-                            interacter.setGoalEditorContent(formatProofState(result.value.proofHistory.top()));
-                        } else {
-                            interacter.setGoalEditorContent("No goal. Proven!");
-                        }
-
-                        interacter.highlight(firstCommand.loc);
-
-                    } else {
-                        // contentSetter("Failed to execute");
-                    }
-                } else {
-                    console.log("No command execute new.");
-                }
-            }
-        }
-
-    } else {
+    if (commandsResult.tag !== "Ok") {
         console.log("Failed to parse");
+        return { tag: "Err", error: "Failed to parse" };
     }
+
+    const commands = commandsResult.value;
+
+    if (commands.length === 0 || !commands[0]) {
+        console.log("No command execute new.");
+        return { tag: "Ok", value: { somethingExecuted: false } };
+    }
+
+    const firstCommand = findFirstCommand(commands, kernel.lastLocation());
+    if (!firstCommand) {
+        console.log("No command execute new.");
+        return { tag: "Ok", value: { somethingExecuted: false } };
+    }
+
+    const result = kernel.execute(firstCommand);
+
+    if (result.tag !== "Ok") {
+        return { tag: "Err", error: "Failed to execute command" };
+    }
+
+    const proofHistory = result.value.proofHistory;
+    if (proofHistory) {
+        interacter.setGoalEditorContent(formatProofState(proofHistory.top()));
+    } else {
+        interacter.setGoalEditorContent("No goal. Proven!");
+    }
+
+    interacter.highlight(firstCommand.loc);
+    return { tag: "Ok", value: { somethingExecuted: true } };
 }
 
+export function executeAll(kernel: Kernel, interacter: EditorInteracter) {
+    while (true) {
+        const result = step(kernel, interacter);
+        if (result.tag === "Err") {
+            console.log(result.error);
+            break;
+        }
+
+        if (!result.value.somethingExecuted) {
+            break;
+        }
+    }
+}

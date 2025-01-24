@@ -3,13 +3,11 @@
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { executeAll, step } from "@/lib/editorEventHandler";
+import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
-import { EditorInteracter } from "@/lib/editorInteracter";
-import { drawHighlight } from "@/lib/drawHighlight";
-import { step } from "@/lib/editorEventHandler";
 import { Kernel } from "@repo/kernel/kernel";
-import { Range } from "@repo/kernel/parser";
 import {
   ChevronDown,
   ChevronsDown,
@@ -26,15 +24,22 @@ export const runtime = "edge";
 
 export default function Edit() {
   const monaco = useMonaco();
-  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
 
   if (monaco) {
     configureMonaco(monaco);
   }
 
   const kernel = new Kernel();
+
+  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
+  const resetAll = () => {
+    kernel.reset();
+    interacter.resetGoalEditorContent();
+    interacter.resetHighlight();
+  }
+
 
   return (
     <div className="flex">
@@ -97,9 +102,7 @@ export default function Edit() {
               className="p-1"
               title="Move to Top"
               onClick={() => {
-                kernel.reset(); 
-                interacter.resetGoalEditorContent();
-                interacter.resetHighlight();
+                resetAll();
               }
               }
             >
@@ -114,9 +117,8 @@ export default function Edit() {
               className="p-1"
               title="Move to Bottom"
               onClick={() => {
-                if (goalEditorRef.current) {
-                  goalEditorRef.current.setValue("↓↓");
-                }
+                resetAll();
+                executeAll(kernel, interacter);
               }
               }
             >

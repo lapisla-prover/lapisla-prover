@@ -1,6 +1,5 @@
 import { Range } from '@repo/kernel/parser';
 import * as monaco from 'monaco-editor';
-import { useRef } from 'react';
 import { drawHighlight } from './drawHighlight';
 
 export class EditorInteracter {
