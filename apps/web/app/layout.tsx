@@ -17,6 +17,8 @@ export const metadata: Metadata = {
     "Lapisla is a user-friendly theorem prover and ecosystem designed for everyone. Greetings! 👋",
 };
 
+export const runtime = "edge";
+
 export default function RootLayout({
   children,
 }: Readonly<{
