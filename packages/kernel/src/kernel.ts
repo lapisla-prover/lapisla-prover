@@ -4,7 +4,7 @@ import { Judgement, TopCmd } from "./ast";
 import { KernelState, topLoop } from "./checker";
 import { Ok, Result } from "./common";
 import { TopHistory } from "./history";
-import { CmdWithLoc, Location, parseProgram } from "./parser";
+import { CmdWithLoc, isAfter, Location, parseProgram } from "./parser";
 
 export class Kernel {
     private tophistory: TopHistory;
@@ -76,6 +76,7 @@ export class Kernel {
         const res = this.loop.next(unDoCommand);
         if (res.value.tag === "Ok") {
             this.poploc();
+            this.currentState = res.value.value;
         }
         return res.value;
     }
