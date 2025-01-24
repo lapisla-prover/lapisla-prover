@@ -81,7 +81,7 @@ export class TopHistory {
   // Pop current step
   pop(): Result<TopStep, string> {
     if (this.steps.length <= 1) {
-      throw new Error("No history to pop.");
+      return Err("No history to pop.");
     }
     return Ok(this.steps.pop()!);
   }

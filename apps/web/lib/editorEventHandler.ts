@@ -62,8 +62,11 @@ export function undo(kernel: Kernel, interacter: EditorInteracter, steps: number
     for (let i = 0; i < steps; i++) {
         const result = kernel.undo();
         if (result.tag === "Err") {
-            console.log(result.error);
+            console.log("No command to undo. Skip....");
+            interacter.setGoalEditorContent("Waiting for command...");
             break;
+        } else {
+            interacter.setGoalEditorContent(formatProofState(kernel.getCurrentGoals()));
         }
     }
     interacter.removeHighlight(1);
