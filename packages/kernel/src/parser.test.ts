@@ -1,4 +1,5 @@
-import { test, describe, expect } from "vitest";
+import { describe, expect, test } from "vitest";
+import { formatJudgement } from "./ast.ts";
 import {
   CmdWithLoc,
   parseFormula,
@@ -8,7 +9,6 @@ import {
   tokenize,
 } from "./parser.ts";
 import { expectErr, expectOk } from "./test-util.ts";
-import { formatJudgement, TopCmd } from "./ast.ts";
 
 describe("tokenize", () => {
   test("head spaces", () => {
@@ -580,7 +580,7 @@ Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
       expect(result.value).toEqual<CmdWithLoc[]>([
         {
           cmd: {
-            tag: "ThmD",
+            tag: "Theorem",
             name: "id",
             formula: {
               tag: "Imply",
@@ -604,7 +604,7 @@ Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
         },
         {
           cmd: {
-            tag: "ThmD",
+            tag: "Theorem",
             name: "thm",
             formula: {
               tag: "Imply",
@@ -660,7 +660,7 @@ Theorem thm1 ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q
         },
         {
           cmd: {
-            tag: "ThmD",
+            tag: "Theorem",
             name: "thm1",
             formula: {
               tag: "Imply",
@@ -741,7 +741,7 @@ qed
       expect(result.value).toEqual<CmdWithLoc[]>([
         {
           cmd: {
-            tag: "ThmD",
+            tag: "Theorem",
             name: "id",
             formula: {
               tag: "Imply",

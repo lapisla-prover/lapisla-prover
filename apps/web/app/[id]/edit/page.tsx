@@ -1,77 +1,169 @@
 "use client";
 
-import { Register } from "@/components/register";
-import { Share } from "@/components/share";
+import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { executeAll, step, undo, undoLocation, undoUntil } from "@/lib/editorEventHandler";
+import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
+import { Kernel } from "@repo/kernel/kernel";
+import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
   ChevronsDown,
   ChevronsUp,
   ChevronUp,
+  Goal,
   Mic,
-  Save,
-  Search,
+  Search
 } from "lucide-react";
+import * as monaco from 'monaco-editor';
+import { useRef, useState } from "react";
+
+export const runtime = "edge";
 
 export default function Edit() {
   const monaco = useMonaco();
+
   if (monaco) {
     configureMonaco(monaco);
   }
 
+  const kernel = new Kernel();
+
+  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [latestProgram, setLatestProgram] = useState<string>("");
+
+  const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
+  const resetAll = () => {
+    kernel.reset();
+    interacter.resetGoalEditorContent();
+    interacter.resetHighlight();
+  }
+
 
   return (
-    <div className="flex p-8 gap-8">
+    <div className="flex">
+
+      <SideMenu />
+
+
       <div className="w-[80%] p-4 space-y-4">
+
         <div className="flex justify-between items-end">
-          <div className="text-2xl font-bold">abap34/simplest-sort.lapis</div>
+          <div className="text-2xl font-bold g-4 p-4">abap34/simplest-sort.l</div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
         </div>
 
-        <div className="h-0.5 w-full bg-black" />
+        {/* 灰色の線 */}
+        <div className="border-b border-gray-300"></div>
 
-        <div className="flex gap-2">
-          <Button className="flex items-center gap-1 px-4 py-2">
-            Save <Save />
-          </Button>
-          <Share />
-          <Register />
-        </div>
-        <div className="flex gap-2 justify-end">
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronUp />
-          </Button>
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronDown />
-          </Button>
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronsUp />
-          </Button>
-          <Button className="flex items-center gap-1 p-2">
-            <ChevronsDown />
-          </Button>
+        <div className="flex justify-end items-center">
+
+
+          <div className="flex">
+
+            {/* Up Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move Up"
+              onClick={
+                () => {
+                  undo(kernel, interacter, 1);
+                }
+              }>
+
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+
+            {/*  Down Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move Down"
+              onClick={
+                () => {
+                  step(
+                    kernel,
+                    interacter
+                  );
+                }
+              }
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+
+            {/* Up all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move to Top"
+              onClick={() => {
+                resetAll();
+              }
+              }
+            >
+              <ChevronsUp className="h-4 w-4" />
+            </Button>
+
+
+            {/* Down all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move to Bottom"
+              onClick={() => {
+                resetAll();
+                executeAll(kernel, interacter);
+              }
+              }
+            >
+              <ChevronsDown className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
+        {/* Main Editor */}
         <Editor
-          className="h-full w-full mt-4 border border-black"
+          className="h-full w-full"
           height={"calc(100vh - 200px)"}
           theme="vs"
           language="lapisla"
+
           options={{
-            unicodeHighlight: {
-              ambiguousCharacters: false
-            }
+            minimap: { enabled: true },
           }}
-          defaultValue="# Write your proof here!"
-          
+          defaultValue={``}
+          onChange={(value: string | undefined, event) => {
+            if (value) {
+              const undoloc = undoLocation(latestProgram, value);
+              if (undoloc) {
+                if (isBefore(undoloc, kernel.lastLocation())) {
+                  undoUntil(kernel, interacter, undoloc);
+                } 
+              } 
+              setLatestProgram(value);
+            }
+          }
+
+          }
+          onMount={(editor, monaco) => {
+            mainEditorRef.current = editor;
+          }
+
+
+          }
         />
       </div>
 
-      <div className="w-[40%] p-4 space-y-4">
+      <div className="w-[40%] p-8 space-y-4">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -88,58 +180,50 @@ export default function Edit() {
           </button>
         </div>
 
+        <div className="flex items-center space-x-2">
+          <Goal className="h-6 w-6 text-primary" />
+          <div className="text-2xl font-bold">Goal</div>
+        </div>
+
         <div className="w-full h-64 border border-black">
+
+
+          {/* Goal Visualizer */}
           <Editor
             className="h-full w-full"
             height="100%"
             theme="vs"
             language="proof-state"
+
             options={{
               readOnly: true,
               minimap: { enabled: false },
               lineNumbers: "off",
             }}
-            value={`2 subgoals
-
-Goal 1 / 2:
-  P ∧ Q → R
- ──────────────────────
-  A(x),
-  Q
-
-Goal 2 / 2:
-  B,
-  P
- ──────────────────────
-  Q`}
+            defaultValue={`Waiting start of proof...`}
+            onMount={(editor, monaco) => {
+              goalEditorRef.current = editor;
+            }
+            }
           />
         </div>
 
-        <div>
-          <div className="text-2xl font-bold">Suggestion:</div>
-          <div className="text-gray-700">Proof Found!</div>
-        </div>
 
-        <div className="w-full h-32 border border-black">
-          <Editor
-            className="h-full w-full"
-            height="100%"
-            theme="vs"
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              lineNumbers: "off",
-            }}
-            value="Proof: 1 + 1 = 2"
-          />
-        </div>
 
-        <div className="grid w-full gap-2">
-          <Textarea placeholder="Chat with AI ..." />
-          <Button>Send message</Button>
-        </div>
+
+
       </div>
+      <style>
+        {`
+          .green-highlight {
+            background-color: rgba(144, 238, 144, 0.5);
+          }
+        `}
+      </style>
+
     </div>
+
+
   );
 }
 

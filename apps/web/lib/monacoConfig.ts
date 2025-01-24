@@ -5,7 +5,7 @@ export const configureMonaco = (monaco: Monaco) => {
 
     monaco.languages.setMonarchTokensProvider("lapisla", {
         defaultToken: "invalid",
-        keywords: ["ThmD", "qed", "apply"],
+        keywords: ["Theorem", "qed", "apply"],
         operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
         symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
         tokenizer: {
@@ -126,9 +126,9 @@ export const configureMonaco = (monaco: Monaco) => {
                     range: range
                 },
                 {
-                    label: 'ThmD',
+                    label: 'Theorem',
                     kind: monaco.languages.CompletionItemKind.Keyword,
-                    insertText: 'ThmD $1 $2\n$3\nqed',
+                    insertText: 'Theorem $1 $2\n$3\nqed',
                     insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                     documentation: 'Theorem declaration',
                     range: range
