@@ -43,6 +43,7 @@ export function undoLocation(prev: string, next: string): Location | undefined {
     return undefined;
 }
 
+
 export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepResult, string> {
     const content = interacter.getMainEditorContent();
     const commandsResult = kernel.parse(content);
@@ -129,6 +130,4 @@ export function undoUntil(kernel: Kernel, interacter: EditorInteracter, loc: Loc
     while (isAfter(kernel.lastLocation(), loc)) {
         undoStep(kernel, interacter);
     }
-
-    undoStep(kernel, interacter);
 }

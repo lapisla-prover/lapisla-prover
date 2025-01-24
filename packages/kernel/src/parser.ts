@@ -13,7 +13,7 @@ export function isBefore(loc1: Location, loc2: Location): boolean {
 }
 
 export function isAfter(loc1: Location, loc2: Location): boolean {
-  return loc1.line > loc2.line || (loc1.line === loc2.line && loc1.column > loc2.column);
+  return loc1.line > loc2.line || (loc1.line === loc2.line && loc1.column >= loc2.column);
 }
 
 
