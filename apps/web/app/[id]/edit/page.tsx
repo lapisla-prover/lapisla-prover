@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
+
+import { step } from "@/lib/editorEventHandler";
+import { Kernel } from "@repo/kernel/kernel";
 import {
   ChevronDown,
   ChevronsDown,
@@ -28,9 +31,24 @@ export default function Edit() {
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
+  function getMainEditorContent(): string {
+    if (mainEditorRef.current) {
+      return mainEditorRef.current.getValue();
+    }
+    return "";
+  }
+
+  function setGoalEditorContent(content: string): void {
+    if (goalEditorRef.current) {
+      goalEditorRef.current.setValue(content);
+    }
+  }
+
   if (monaco) {
     configureMonaco(monaco);
   }
+
+  const kernel = new Kernel();
 
 
   return (
@@ -66,13 +84,7 @@ export default function Edit() {
         </div>
           <div className="flex justify-end items-center">
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="p-1" title="Move Up" onClick={() => {
-                if (goalEditorRef.current) {
-                  goalEditorRef.current.setValue("↑");
-                }
-              }
-              }>
-
+              <Button variant="ghost" size="sm" className="p-1" title="Move Up">
                 <ChevronUp className="h-4 w-4" />
               </Button>
               <Button
@@ -80,11 +92,14 @@ export default function Edit() {
                 size="sm"
                 className="p-1"
                 title="Move Down"
-                onClick={() => {
-                  if (goalEditorRef.current) {
-                    goalEditorRef.current.setValue("↓");
+                onClick={
+                  () => {
+                    step(
+                      kernel,
+                      getMainEditorContent,
+                      setGoalEditorContent
+                    );
                   }
-                }
                 }
               >
                 <ChevronDown className="h-4 w-4" />
@@ -166,20 +181,12 @@ export default function Edit() {
               lineNumbers: "off",
             }}
 
-            value={`2 subgoals
-
-Goal 1 / 2:
-  P ∧ Q → R
- ──────────────────────
-  A(x),
-  Q
-
-Goal 2 / 2:
-  B,
-  P
- ──────────────────────
-  Q`}
-            defaultValue="# Write your proof here!"
+            defaultValue={`# Write your proof here!
+Theorem thm1 P → P
+ apply ImpR
+  apply I
+qed
+`}
             onMount={(editor, monaco) => {
               mainEditorRef.current = editor;
             }
@@ -203,7 +210,7 @@ Goal 2 / 2:
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              value="Proof: 1 + 1 = 2"
+              value="Waiting for proof ..."
               onMount={(editor, monaco) => {
                 goalEditorRef.current = editor;
               }
