@@ -1,8 +1,6 @@
 import {
   Formula,
   Judgement,
-  KernelMode,
-  KernelState,
   ProofCmd,
   Rule,
   TopCmd,
@@ -424,14 +422,12 @@ export function* topLoop(
 ): Generator<Result<KernelState, string>, never, TopCmd> {
   let result: Result<KernelState, string> = Ok({ mode: "DeclareWait" });
 
-  // 全体のループ
   while (true) {
-    // topModeからproofModeに移行する際に必要な情報
-    let thmName: string; // 示そうとしている定理の名前
-    let thmFormula: Formula; // 示そうとしている定理の式
-    let proofHistory: ProofHistory; // 証明の履歴
+    let thmName: string;
+    let thmFormula: Formula;
+    let proofHistory: ProofHistory;
 
-    // トップレベルのコマンドを受け取る
+    // topMode
     topMode: while (true) {
       const topCmd = yield result;
 
@@ -457,7 +453,8 @@ export function* topLoop(
         }
 
         const prevStep = maybePrevStep.value;
-        // 前のstepがTheoremの場合はproofModeに移行する
+
+        // If the previous step is a theorem declaration, make the kernel go back to proof mode
         if (prevStep.tag === "Theorem") {
           thmName = prevStep.name;
           thmFormula = prevStep.formula;
@@ -475,9 +472,8 @@ export function* topLoop(
     }
 
     const ploop = proofLoop(proofHistory);
-    ploop.next(); // 最初の `yield` まで進める
+    ploop.next(); // Initialize
 
-    // proofモードのループ
     proofMode: while (true) {
       const topCmd = yield result;
 
@@ -487,17 +483,20 @@ export function* topLoop(
       }
 
       const res = ploop.next(topCmd);
-      // Qedにより証明が終了した場合(res.valueがOk)，またはUndoで証明の履歴が空になった場合(res.valueがErr)
-      // FIXME: もう少しいいやり方がある気がする
+
       if (res.done) {
         if (res.value.tag === "Ok") {
           topHistory.insertThm(thmName, thmFormula, proofHistory);
         }
         result = Ok({ mode: "DeclareWait" });
         break proofMode;
-      } 
+      }
 
-      result = Ok({ mode: "Proving", proofHistory });
+      if (res.value.tag === "Ok") {
+        result = Ok({ mode: "Proving", proofHistory });
+      } else {
+        result = Err(res.value.error);
+      }
     }
   }
 }
