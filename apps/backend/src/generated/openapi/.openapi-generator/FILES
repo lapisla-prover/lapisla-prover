@@ -5,7 +5,6 @@ api/api.ts
 api/files.service.ts
 api/login.service.ts
 api/me.service.ts
-api/permalinks.service.ts
 api/registry.service.ts
 api/search.service.ts
 configuration.ts
@@ -22,4 +21,5 @@ model/publicFileMeta.ts
 model/searchResult.ts
 model/snapshot.ts
 model/snapshotMeta.ts
+model/sourceCodeWrapper.ts
 variables.ts

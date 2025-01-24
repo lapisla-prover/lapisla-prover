@@ -4,12 +4,12 @@ import { Injectable, Optional } from '@nestjs/common';
 import { AbstractAuthService } from '../auth.service';
 
 @Injectable()
-export class LoginService<TokenType> {
+export class LoginService {
 
     protected prisma: PrismaService;
-    protected auth: AbstractAuthService<TokenType>;
+    protected auth: AbstractAuthService;
 
-    constructor(private prismaService: PrismaService, private authService: AbstractAuthService<TokenType>) {
+    constructor(private prismaService: PrismaService, private authService: AbstractAuthService) {
         this.prisma = prismaService;
         this.auth = authService;
     }

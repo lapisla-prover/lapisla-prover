@@ -135,9 +135,9 @@ export class RegistryService {
                     dependeeContents.set({owner: user.name, name: file.name, version: snapshot.version.toString()}, {
                         meta: {
                             owner: user.name,
-                            file_name: file.name,
+                            fileName: file.name,
                             version: snapshot.version,
-                            created_at: snapshot.createdAt.toISOString(),
+                            createdAt: snapshot.createdAt.toISOString(),
                             id: getSnapshotId(user.name, file.name, snapshot.version)
                         },
                         content: snapshot.content

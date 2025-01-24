@@ -3,12 +3,13 @@ import { HttpModule, HttpService } from '@nestjs/axios';
 import { AbstractCodeAnalyzerService } from './kernel';
 import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
 import { AbstractAuthService, MockAuthService } from './auth.service';
+import { JsonOnlyMiddleware } from './jsonOnly.middleware';
+import { MiddlewareConsumer } from '@nestjs/common/interfaces';
 
 import {
   FilesService,
   LoginService,
   MeService,
-  PermalinksService,
   RegistryService,
   SearchService
 } from './api/api';
@@ -17,7 +18,6 @@ import {
   FilesController,
   LoginController,
   MeController,
-  PermalinksController,
   RegistryController,
   SearchController
 } from './controllers/controllers';
@@ -30,7 +30,6 @@ import {
     FilesService,
     LoginService,
     MeService,
-    PermalinksService,
     RegistryService,
     SearchService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
@@ -40,10 +39,15 @@ import {
     FilesController,
     LoginController,
     MeController,
-    PermalinksController,
     RegistryController,
     SearchController
   ],
 
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JsonOnlyMiddleware)
+      .forRoutes('*');
+  }
+}
