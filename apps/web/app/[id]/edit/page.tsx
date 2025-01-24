@@ -6,16 +6,18 @@ import { Input } from "@/components/ui/input";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
 
+import { drawHighlight } from "@/lib/drawHighlight";
 import { step } from "@/lib/editorEventHandler";
 import { Kernel } from "@repo/kernel/kernel";
+import { Range } from "@repo/kernel/parser";
 import {
   ChevronDown,
   ChevronsDown,
   ChevronsUp,
   ChevronUp,
+  Goal,
   Mic,
-  Search,
-  Goal
+  Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
 import { useRef } from "react";
@@ -37,6 +39,12 @@ export default function Edit() {
   function setGoalEditorContent(content: string): void {
     if (goalEditorRef.current) {
       goalEditorRef.current.setValue(content);
+    }
+  }
+
+  function highliter(range: Range) {
+    if (mainEditorRef.current) {
+      drawHighlight(mainEditorRef.current, range);
     }
   }
 
@@ -93,7 +101,8 @@ export default function Edit() {
                   step(
                     kernel,
                     getMainEditorContent,
-                    setGoalEditorContent
+                    setGoalEditorContent,
+                    highliter
                   );
                 }
               }
@@ -180,9 +189,9 @@ qed
           <Goal className="h-6 w-6 text-primary" />
           <div className="text-2xl font-bold">Goal</div>
         </div>
-        
+
         <div className="w-full h-64 border border-black">
-        
+
 
           {/* Goal Visualizer */}
           <Editor
@@ -209,7 +218,17 @@ qed
 
 
       </div>
+      <style>
+        {`
+          .green-highlight {
+            background-color: rgba(144, 238, 144, 0.5);
+          }
+        `}
+      </style>
+
     </div>
+
+
   );
 }
 

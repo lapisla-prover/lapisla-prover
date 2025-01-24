@@ -27,19 +27,21 @@ export function step(kernel: Kernel, contentGetter: () => string, contentSetter:
                     const result = kernel.execute(firstCommand);
 
                     if (result.tag === "Ok") {
+
+                        console.log(result);
                         if (result.value.proofHistory) {
-                            contentSetter(
-                                `Current command: ${firstCommand.cmd.tag}, Goals: ${formatProofState(result.value.proofHistory.top())}`
-                            )
+                            contentSetter(formatProofState(result.value.proofHistory.top()));
                         } else {
-                            contentSetter("No goals to display");
+                            contentSetter("Proven!")
                         }
+
+                        highlighter(firstCommand.loc);
 
                     } else {
                         // contentSetter("Failed to execute");
                     }
                 } else {
-                    contentSetter("Tail of commands");
+                    console.log("No command execute new.");
                 }
             }
         }
