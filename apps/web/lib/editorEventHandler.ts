@@ -19,6 +19,30 @@ export type StepResult = {
 };
 
 
+export function undoLocation(prev: string, next: string): Location | undefined {
+    if (next.startsWith(prev)) {
+        return undefined;
+    }
+
+    let line = 0;
+    let column = 0;
+
+    for (let i = 0; i < prev.length; i++) {
+        if (prev[i] === "\n") {
+            line++;
+            column = 0;
+        } else {
+            column++;
+        }
+
+        if (i >= next.length || prev[i] !== next[i]) {
+            return { line, column };
+        }
+    }
+
+    return undefined;
+}
+
 export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepResult, string> {
     const content = interacter.getMainEditorContent();
     const commandsResult = kernel.parse(content);
@@ -85,4 +109,26 @@ export function executeAll(kernel: Kernel, interacter: EditorInteracter) {
             break;
         }
     }
+}
+
+export function undoStep(kernel: Kernel, interacter: EditorInteracter) {
+    const res = kernel.undo();
+
+    if (res.tag === "Err") {
+        console.log(res.error);
+    } else {
+        interacter.setGoalEditorContent(formatProofState(kernel.getCurrentGoals()));
+    }
+
+    interacter.removeHighlight(1);
+}
+
+
+
+export function undoUntil(kernel: Kernel, interacter: EditorInteracter, loc: Location): void {
+    while (isAfter(kernel.lastLocation(), loc)) {
+        undoStep(kernel, interacter);
+    }
+
+    undoStep(kernel, interacter);
 }

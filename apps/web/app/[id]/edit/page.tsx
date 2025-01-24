@@ -3,11 +3,12 @@
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { executeAll, step, undo } from "@/lib/editorEventHandler";
+import { executeAll, step, undo, undoLocation, undoUntil } from "@/lib/editorEventHandler";
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { Kernel } from "@repo/kernel/kernel";
+import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
   ChevronsDown,
@@ -18,7 +19,7 @@ import {
   Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export const runtime = "edge";
 
@@ -33,6 +34,8 @@ export default function Edit() {
 
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [latestProgram, setLatestProgram] = useState<string>("");
+
   const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
   const resetAll = () => {
     kernel.reset();
@@ -137,15 +140,25 @@ export default function Edit() {
           options={{
             minimap: { enabled: true },
           }}
-          defaultValue={`# Write your proof here!
-Theorem thm1 P → P
-  apply ImpR
-  apply I
-qed
-`}
+          defaultValue={``}
+          onChange={(value: string | undefined, event) => {
+            if (value) {
+              const undoloc = undoLocation(latestProgram, value);
+              if (undoloc) {
+                if (isBefore(undoloc, kernel.lastLocation())) {
+                  undoUntil(kernel, interacter, undoloc);
+                } 
+              } 
+              setLatestProgram(value);
+            }
+          }
+
+          }
           onMount={(editor, monaco) => {
             mainEditorRef.current = editor;
           }
+
+
           }
         />
       </div>
