@@ -1,11 +1,20 @@
 import assert from "assert";
-import { TopCmd, Formula, Ident, Judgement, Term, Rule } from "./ast.ts";
+import { Formula, Ident, Judgement, Rule, Term, TopCmd } from "./ast.ts";
 import { Err, Ok, Result } from "./common.ts";
 
 export type Location = {
   line: number;
   column: number;
 };
+
+export function isBefore(loc1: Location, loc2: Location): boolean {
+  return loc1.line < loc2.line || (loc1.line === loc2.line && loc1.column < loc2.column);
+}
+
+export function isAfter(loc1: Location, loc2: Location): boolean {
+  return loc1.line > loc2.line || (loc1.line === loc2.line && loc1.column > loc2.column);
+}
+
 
 export type Range = {
   start: Location;
@@ -319,14 +328,14 @@ class Parser {
     if (this.eof()) {
       return Err(
         `expected ${tag} but got EOF` +
-          (target ? ` (while parsing ${target})` : "")
+        (target ? ` (while parsing ${target})` : "")
       );
     }
     const token = this.next();
     if (token.tag.toLowerCase() !== tag.toLowerCase()) {
       return Err(
         `expected ${tag} but got unexpected token ${dumpToken(token)} at ${formatLocation(token.loc.start)}` +
-          (target ? ` (while parsing ${target})` : "")
+        (target ? ` (while parsing ${target})` : "")
       );
     }
     return Ok(token);
@@ -764,7 +773,7 @@ class Parser {
         const end = this.peekPrev().loc.end;
 
         return Ok({
-          cmd: { tag: "ThmD", name: ident.value.ident, formula: formula.value },
+          cmd: { tag: "Theorem", name: ident.value.ident, formula: formula.value },
           loc: { start, end },
         });
       }
