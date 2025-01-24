@@ -8,6 +8,7 @@ import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { Kernel } from "@repo/kernel/kernel";
+import { useKernel } from "@/lib/userKernel";
 import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
@@ -19,7 +20,7 @@ import {
   Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 
 export const runtime = "edge";
 
@@ -30,7 +31,7 @@ export default function Edit() {
     configureMonaco(monaco);
   }
 
-  const kernel = new Kernel();
+  const kernel = useKernel();
 
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -152,7 +153,6 @@ export default function Edit() {
               setLatestProgram(value);
             }
           }
-
           }
           onMount={(editor, monaco) => {
             mainEditorRef.current = editor;
