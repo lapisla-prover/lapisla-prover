@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Delete, Patch, Param, Query, Body, Headers } from '@nestjs/common';
 import { MeService } from '../api/me.service';
 import { AbstractAuthService } from '../auth.service';
-import { SourceCodeWrapper } from 'src/generated/openapi';
+import { SourceCodeWrapper } from 'src/generated/openapi'
 
 
 @Controller('me')
