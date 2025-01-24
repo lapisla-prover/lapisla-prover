@@ -1,8 +1,6 @@
 "use client";
 import { Editor } from "@monaco-editor/react";
 
-export const runtime = "edge";
-
 export default function View() {
   // { fileName, content} = useHoge();
   return (
