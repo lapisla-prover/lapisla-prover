@@ -17,6 +17,11 @@ function occurIn(v: Ident, type: Type): boolean {
   }
 }
 
+function assign(tvar: { tag: "Var"; ident: Ident }, type: Type) {
+  delete tvar.ident;
+  Object.assign(tvar, type);
+}
+
 function unify(type1: Type, type2: Type): Result<void, string> {
   if (type1.tag === "Prop" && type2.tag === "Prop") {
     return Ok();
@@ -54,14 +59,14 @@ function unify(type1: Type, type2: Type): Result<void, string> {
     if (occurIn(type1.ident, type2)) {
       return Err(`Recursive type`);
     }
-    Object.assign(type1, type2);
+    assign(type1, type2);
     return Ok();
   }
   if (type2.tag === "Var") {
     if (occurIn(type2.ident, type1)) {
       return Err(`Recursive type`);
     }
-    Object.assign(type2, type1);
+    assign(type2, type1);
     return Ok();
   }
 
@@ -79,12 +84,12 @@ function matchArr(funcTy: Type, argTy: Type): Result<Type, string> {
 
   if (funcTy.tag === "Var") {
     const [left, right] = [newTVar(), newTVar()];
-    Object.assign(funcTy, { tag: "Arr", left, right });
+    assign(funcTy, { tag: "Arr", left, right });
     const res = unify(left, argTy);
     if (res.tag === "Err") {
       return res;
     }
-    Ok(right);
+    return Ok(right);
   }
 
   return Err(`Expected function type`);
@@ -110,37 +115,45 @@ function freshenTVars(type: Type): Type {
 }
 
 export function inferTerm(
-  env: Record<Ident, Type>,
+  sig: Map<Ident, Type>,
+  ctx: Map<Ident, Type>,
   term: Term
 ): Result<Type, string> {
   switch (term.tag) {
     case "Var": {
-      const ty = env[term.ident];
-      if (!ty) {
-        return Err(`Unbound variable ${term.ident}`);
+      if (sig.has(term.ident)) {
+        const ty = freshenTVars(sig.get(term.ident));
+        return Ok(ty);
       }
+      if (ctx.has(term.ident)) {
+        const ty = ctx.get(term.ident);
+        return Ok(ty);
+      }
+      const ty = newTVar();
+      ctx.set(term.ident, ty);
       return Ok(ty);
     }
     case "Abs": {
+      const newCtx = new Map(ctx);
       const paramTys = term.idents.map((ident) => [ident, newTVar()] as const);
-      const newEnv = { ...env, ...Object.fromEntries(paramTys) };
-      const retTy = inferTerm(newEnv, term.body);
+      paramTys.forEach(([ident, ty]) => newCtx.set(ident, ty));
+      const retTy = inferTerm(sig, newCtx, term.body);
       if (retTy.tag === "Err") {
         return retTy;
       }
-      const type = paramTys.reduceRight<Type>(
-        (acc, [_, paramTy]) => ({ tag: "Arr", left: paramTy, right: acc }),
+      const ty = paramTys.reduceRight<Type>(
+        (acc, [_, paramTys]) => ({ tag: "Arr", left: paramTys, right: acc }),
         retTy.value
       );
-      return Ok(type);
+      return Ok(ty);
     }
     case "App": {
-      const funcTy = inferTerm(env, term.func);
+      const funcTy = inferTerm(sig, ctx, term.func);
       if (funcTy.tag === "Err") {
         return funcTy;
       }
       const argTys = traverseResult(
-        term.args.map((arg) => inferTerm(env, arg))
+        term.args.map((arg) => inferTerm(sig, ctx, arg))
       );
       if (argTys.tag === "Err") {
         return argTys;
@@ -157,7 +170,7 @@ export function inferTerm(
 // check if the given formula has type Prop
 export function checkFormula(
   sig: Map<string, Type>,
-  env: Record<Ident, Type>,
+  ctx: Map<Ident, Type>,
   formula: Formula
 ): Result<void, string> {
   switch (formula.tag) {
@@ -167,12 +180,12 @@ export function checkFormula(
         pTy = freshenTVars(sig.get(formula.ident));
       } else {
         pTy = newTVar();
-        sig.set(formula.ident, pTy);
+        ctx.set(formula.ident, pTy);
       }
 
       const retTy = reduceResult(
         (acc, arg) => {
-          const argTy = inferTerm(env, arg);
+          const argTy = inferTerm(sig, ctx, arg);
           if (argTy.tag === "Err") {
             return argTy;
           }
@@ -185,8 +198,9 @@ export function checkFormula(
       if (retTy.tag === "Err") {
         return retTy;
       }
-      if (retTy.value.tag !== "Prop") {
-        return Err(`Type mismatch`);
+      const res = unify(retTy.value, { tag: "Prop" });
+      if (res.tag === "Err") {
+        return res;
       }
       return Ok();
     }
@@ -196,11 +210,11 @@ export function checkFormula(
     case "And":
     case "Or":
     case "Imply": {
-      const leftRes = checkFormula(sig, env, formula.left);
+      const leftRes = checkFormula(sig, ctx, formula.left);
       if (leftRes.tag === "Err") {
         return leftRes;
       }
-      const rightRes = checkFormula(sig, env, formula.right);
+      const rightRes = checkFormula(sig, ctx, formula.right);
       if (rightRes.tag === "Err") {
         return rightRes;
       }
@@ -208,8 +222,9 @@ export function checkFormula(
     }
     case "Forall":
     case "Exist": {
-      const newEnv = { ...env, [formula.ident]: newTVar() };
-      return checkFormula(sig, newEnv, formula.body);
+      const newCtx = new Map(ctx);
+      newCtx.set(formula.ident, newTVar());
+      return checkFormula(sig, newCtx, formula.body);
     }
   }
 }
