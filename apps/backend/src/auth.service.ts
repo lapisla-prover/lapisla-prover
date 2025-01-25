@@ -58,8 +58,10 @@ export class AuthService extends AbstractAuthService {
     }
 
     async getState(state_id: string): Promise<string> {
-        console.log("getState");
-        console.log(state_id);
+        if (!state_id) {
+            return "";
+        }
+
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
         await this.prisma.states.deleteMany({
