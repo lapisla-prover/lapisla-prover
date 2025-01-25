@@ -212,6 +212,8 @@ export function checkFormula(
       let pTy: Type;
       if (sig.has(formula.ident)) {
         pTy = freshenTVars(sig.get(formula.ident));
+      } else if (ctx.has(formula.ident)) {
+        pTy = ctx.get(formula.ident);
       } else {
         pTy = newTVar();
         ctx.set(formula.ident, pTy);
@@ -260,5 +262,29 @@ export function checkFormula(
       newCtx.set(formula.ident, newTVar());
       return checkFormula(sig, newCtx, formula.body);
     }
+  }
+}
+
+export function normalizeType(type: Type): Type {
+  switch (type.tag) {
+    case "Prop":
+      return { tag: "Prop" };
+    case "Con":
+      return {
+        tag: "Con",
+        ident: type.ident,
+        args: type.args.map(normalizeType),
+      };
+    case "Arr":
+      return {
+        tag: "Arr",
+        left: normalizeType(type.left),
+        right: normalizeType(type.right),
+      };
+    case "Var":
+      if (type.content === undefined) {
+        return type;
+      }
+      return normalizeType(type.content);
   }
 }

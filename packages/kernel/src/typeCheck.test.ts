@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { Formula, Ident, Type } from "./ast";
-import { checkFormula } from "./typeCheck";
+import { checkFormula, normalizeType } from "./typeCheck";
 import { expectOk } from "./test-util";
+import { parseFormula } from "./parser";
 
 test("Check P(a) ==> Q(x, y, z)", () => {
   const formula: Formula = {
@@ -67,4 +68,37 @@ test("foo", () => {
   expectOk(res);
   // TODO: テストする
   console.dir(ctx, { depth: null });
+});
+
+test("nat induction", () => {
+  const formula = parseFormula("P(zero) → ∀n. (P(n) → P(succ(n))) → P(n)");
+  expectOk(formula);
+  const sig: Map<Ident, Type> = new Map([
+    ["zero", { tag: "Con", ident: "nat", args: [] }],
+    [
+      "succ",
+      {
+        tag: "Arr",
+        left: { tag: "Con", ident: "nat", args: [] },
+        right: { tag: "Con", ident: "nat", args: [] },
+      },
+    ],
+  ]);
+  const ctx = new Map();
+  const res = checkFormula(sig, ctx, formula.value);
+  expectOk(res);
+
+  expect(ctx.size).toBe(2);
+
+  expect.soft(normalizeType(ctx.get("P"))).toEqual<Type>({
+    tag: "Arr",
+    left: { tag: "Con", ident: "nat", args: [] },
+    right: { tag: "Prop" },
+  });
+
+  expect.soft(normalizeType(ctx.get("n"))).toEqual<Type>({
+    tag: "Con",
+    ident: "nat",
+    args: [],
+  });
 });
