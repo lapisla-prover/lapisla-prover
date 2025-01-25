@@ -2,6 +2,7 @@
 
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -81,7 +82,7 @@ export default function Edit() {
 
       <div className="w-[80%] p-4 space-y-4">
         <div className="flex justify-between items-end">
-          <div className="text-3xl font-bold g-4 p-4 font-monaco">
+          <div className="text-3xl text-gray-700 font-bold g-4 p-4 font-monaco">
             abap34/simplest-sort.l
           </div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
@@ -193,54 +194,58 @@ export default function Edit() {
           </button>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Goal className="h-6 w-6 text-primary" />
-          <div className="text-2xl font-bold">Goal</div>
-        </div>
+        <Card className="p-4">
+          <div className="flex items-center space-x-2">
+            <Goal className="h-6 w-6 text-primary" />
+            <div className="text-2xl font-bold">Goal</div>
+          </div>
 
-        <div className="w-full h-64 border border-black">
-          {/* Goal Visualizer */}
-          <Editor
-            className="h-full w-full"
-            height="100%"
-            theme="vs"
-            language="proof-state"
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              lineNumbers: "off",
-            }}
-            defaultValue={`Waiting start of proof...`}
-            onMount={(editor, monaco) => {
-              goalEditorRef.current = editor;
-            }}
-          />
-        </div>
+          <div className="w-full h-64">
+            {/* Goal Visualizer */}
+            <Editor
+              className="h-full w-full"
+              height="100%"
+              theme="vs"
+              language="proof-state"
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                lineNumbers: "off",
+              }}
+              defaultValue={`Waiting start of proof...`}
+              onMount={(editor, monaco) => {
+                goalEditorRef.current = editor;
+              }}
+            />
+          </div>
+        </Card>
 
-        {/* Environment Table */}
-        <div className="flex items-center space-x-2">
-          <Mountain className="h-6 w-6 text-primary" />
-          <div className="text-2xl font-bold">Environment</div>
-        </div>
+        <Card className="p-4">
+          {/* Environment Table */}
+          <div className="flex items-center space-x-2">
+            <Mountain className="h-6 w-6 text-primary" />
+            <div className="text-2xl font-bold">Environment</div>
+          </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableCell>Identifier</TableCell>
-              <TableCell>Formula</TableCell>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from(globalenv.thms.entries()).map(([key, value]) => {
-              return (
-                <TableRow key={key}>
-                  <TableCell>{key}</TableCell>
-                  <TableCell>{formatFormula(value)}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableCell>Identifier</TableCell>
+                <TableCell>Formula</TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from(globalenv.thms.entries()).map(([key, value]) => {
+                return (
+                  <TableRow key={key}>
+                    <TableCell>{key}</TableCell>
+                    <TableCell>{formatFormula(value)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
       <style>
         {`
