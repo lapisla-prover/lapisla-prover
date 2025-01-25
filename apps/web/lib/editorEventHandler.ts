@@ -45,6 +45,10 @@ export function undoLocation(prev: string, next: string): Location | undefined {
 
 
 export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepResult, string> {
+    if (!interacter) {
+        return { tag: "Err", error: "No editor interacter." };
+    }
+
     const content = interacter.getMainEditorContent();
     const commandsResult: Result<CmdWithLoc[], PartialProgram> = kernel.parse(content);
 
@@ -91,7 +95,7 @@ export function undo(kernel: Kernel, interacter: EditorInteracter, steps: number
         const result = kernel.undo();
         if (result.tag === "Err") {
             console.log("No command to undo. Skip....");
-            interacter.setGoalEditorContent("Waiting for command...");
+            interacter.setGoalEditorContent("");
             break;
         } else {
             interacter.setGoalEditorContent(formatProofState(kernel.getCurrentGoals()));
