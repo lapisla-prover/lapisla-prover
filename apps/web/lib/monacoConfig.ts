@@ -157,6 +157,14 @@ export const configureMonaco = (monaco: Monaco) => {
                     documentation: 'Use hypothesis',
                     range: range
                 },
+                {
+                    label: 'mapsto',
+                    kind: monaco.languages.CompletionItemKind.Operator,
+                    insertText: '↦',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'mappping operator',
+                    range: range
+                },
             ];
 
             return { suggestions };

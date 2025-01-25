@@ -24,7 +24,10 @@ export function isBefore(loc1: Location, loc2: Location): boolean {
 }
 
 export function isAfter(loc1: Location, loc2: Location): boolean {
-  return loc1.line > loc2.line || (loc1.line === loc2.line && loc1.column >= loc2.column);
+  return (
+    loc1.line > loc2.line ||
+    (loc1.line === loc2.line && loc1.column >= loc2.column)
+  );
 }
 
 export type Range = {
@@ -59,7 +62,7 @@ export type Token =
   | { tag: "Forall"; loc: Range }
   | { tag: "Exist"; loc: Range }
   | { tag: "VDash"; loc: Range }
-  | { tag: "Arrow"; loc: Range }
+  | { tag: "Mapsto"; loc: Range }
   | { tag: "Colon"; loc: Range }
   | { tag: "Semicolon"; loc: Range }
   | { tag: "Keyword"; name: KeywordsUnion; loc: Range }
@@ -254,14 +257,11 @@ class Tokenizer {
           });
           break;
         }
-        case "=": {
-          if (!this.eof() && this.peek() === ">") {
-            this.read();
-            tokens.push({
-              tag: "Arrow",
-              loc: { start, end: this.#loc },
-            });
-          }
+        case "↦": {
+          tokens.push({
+            tag: "Mapsto",
+            loc: { start, end: this.#loc },
+          });
           break;
         }
         case ":": {
@@ -834,9 +834,9 @@ export class Parser {
       }
     }
 
-    const arrow = this.expect("Arrow");
-    if (arrow.tag === "Err") {
-      return arrow;
+    const mapsto = this.expect("Mapsto");
+    if (mapsto.tag === "Err") {
+      return mapsto;
     }
 
     const formula = this.parseFormula();

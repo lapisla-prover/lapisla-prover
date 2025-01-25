@@ -125,7 +125,7 @@ describe("tokenize", () => {
     ]);
   });
   test("all symbols can be tokenized", () => {
-    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:=>{}");
+    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:↦{}");
     expectOk(tokens);
     expect(tokens.value).toEqual([
       {
@@ -177,20 +177,20 @@ describe("tokenize", () => {
         loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 12 } },
       },
       {
-        tag: "Arrow",
-        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 14 } },
+        tag: "Mapsto",
+        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 13 } },
       },
       {
         tag: "LBrace",
-        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
+        loc: { start: { line: 0, column: 13 }, end: { line: 0, column: 14 } },
       },
       {
         tag: "RBrace",
-        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 16 } },
+        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
       },
       {
         tag: "EOF",
-        loc: { start: { line: 0, column: 16 }, end: { line: 0, column: 16 } },
+        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 15 } },
       },
     ]);
   });
@@ -781,7 +781,7 @@ qed
     });
   });
   test("predicate", () => {
-    const str = "P(x, y) => Q(f(x, g(y), x)) ∧ R";
+    const str = "P(x, y) ↦ Q(f(x, g(y), x)) ∧ R";
     const tokens = tokenize(str);
     expectOk(tokens);
     const pred = new Parser(tokens.value).parsePredicate();
@@ -827,7 +827,7 @@ qed
     });
   });
   test("predicates", () => {
-    const str = "{ P(x, y) => A → B, Q(x) => R }";
+    const str = "{ P(x, y) ↦ A → B, Q(x) ↦ R }";
 
     const tokens = tokenize(str);
     expectOk(tokens);
@@ -874,7 +874,7 @@ Theorem id P → P
 qed
 
 Theorem thm ∀x.P(x) → ∀x.P(x)
-  use id { P => ∀x. P(x) }
+  use id { P ↦ ∀x. P(x) }
   apply I
 qed
 `;
@@ -946,7 +946,7 @@ qed
           thm: "id",
           pairs: [["P", pred]],
         },
-        loc: { start: { line: 7, column: 2 }, end: { line: 7, column: 26 } },
+        loc: { start: { line: 7, column: 2 }, end: { line: 7, column: 25 } },
       },
       {
         cmd: { tag: "Apply", rule: { tag: "I" } },
