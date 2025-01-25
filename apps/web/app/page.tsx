@@ -40,7 +40,14 @@ export default function Home() {
           <Book className="m-2 h-8 w-8" />
         </a>
       </div>
-      <Button className="m-2">Login with GitHub</Button>
+      <Button className="m-2">
+        Login with GitHub
+        <img
+          src="/mark-github.svg"
+          alt="github-icon"
+          className="m-2 ml-0 h-6 w-6"
+        />
+      </Button>
     </div>
   );
 }
