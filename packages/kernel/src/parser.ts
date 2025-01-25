@@ -40,6 +40,16 @@ export type CmdWithLoc = {
   loc: Range;
 };
 
+export type ParseError = {
+  message: string;
+  loc: Range;
+};
+
+export type PartialProgram = {
+  error: ParseError;
+  cmds: CmdWithLoc[];
+};
+
 const keywords = ["Theorem", "apply", "use", "qed"] as const;
 
 type KeywordsUnion = (typeof keywords)[number];
@@ -66,6 +76,7 @@ export type Token =
   | { tag: "Colon"; loc: Range }
   | { tag: "Semicolon"; loc: Range }
   | { tag: "Keyword"; name: KeywordsUnion; loc: Range }
+  | { tag: "ERROR"; message: string; loc: Range }
   | { tag: "EOF"; loc: Range };
 
 export function dumpToken(token: Token): string {
@@ -143,7 +154,7 @@ class Tokenizer {
     return this.#pos >= this.#str.length;
   }
 
-  tokenize(): Result<Token[], string> {
+  tokenize(): Token[] {
     const tokens: Token[] = [];
 
     this.skipSpaces();
@@ -314,7 +325,12 @@ class Tokenizer {
               value: parseInt(num),
             });
           } else {
-            return Err(`unexpected character ${c} at ${formatLocation(start)}`);
+            tokens.push({
+              tag: "ERROR",
+              message: `unexpected character '${c}'`,
+              loc: { start, end: this.#loc },
+            });
+            return tokens;
           }
         }
       }
@@ -324,11 +340,11 @@ class Tokenizer {
 
     tokens.push({ tag: "EOF", loc: { start: this.#loc, end: this.#loc } });
 
-    return Ok(tokens);
+    return tokens;
   }
 }
 
-export function tokenize(str: string): Result<Token[], string> {
+export function tokenize(str: string): Token[] {
   const tokenizer = new Tokenizer(str);
   return tokenizer.tokenize();
 }
@@ -361,28 +377,33 @@ export class Parser {
     return token;
   }
 
-  expectEOF(): Result<void, string> {
+  expectEOF(): Result<void, ParseError> {
     if (this.eof()) {
       return Ok(undefined);
     }
-    return Err(
-      `expected EOF but got unexpected token ${dumpToken(this.peek())} at ${formatLocation(this.peek().loc.start)}`
-    );
+    return Err({
+      message: `expected EOF but got unexpected token ${dumpToken(this.peek())}`,
+      loc: this.peek().loc,
+    });
   }
 
-  expect(tag: string, target: string = ""): Result<Token, string> {
+  expect(tag: string, target: string = ""): Result<Token, ParseError> {
     if (this.eof()) {
-      return Err(
-        `expected ${tag} but got EOF` +
-          (target ? ` (while parsing ${target})` : "")
-      );
+      return Err({
+        message:
+          `expected ${tag} but got EOF` +
+          (target ? ` (while parsing ${target})` : ""),
+        loc: this.peek().loc,
+      });
     }
     const token = this.next();
     if (token.tag.toLowerCase() !== tag.toLowerCase()) {
-      return Err(
-        `expected ${tag} but got unexpected token ${dumpToken(token)} at ${formatLocation(token.loc.start)}` +
-          (target ? ` (while parsing ${target})` : "")
-      );
+      return Err({
+        message:
+          `expected ${tag} but got unexpected token ${dumpToken(token)}` +
+          (target ? ` (while parsing ${target})` : ""),
+        loc: token.loc,
+      });
     }
     return Ok(token);
   }
@@ -394,7 +415,7 @@ export class Parser {
     return this.peek().tag.toLowerCase() === tag.toLowerCase();
   }
 
-  parseTerm(): Result<Term, string> {
+  parseTerm(): Result<Term, ParseError> {
     const next = this.next();
     let result: Term;
     switch (next.tag) {
@@ -446,9 +467,10 @@ export class Parser {
         break;
       }
       default: {
-        return Err(
-          `expected term but got unexpected token ${dumpToken(next)} at ${formatLocation(next.loc.start)}`
-        );
+        return Err({
+          message: `expected term but got unexpected token ${dumpToken(next)}`,
+          loc: next.loc,
+        });
       }
     }
 
@@ -488,7 +510,7 @@ export class Parser {
     return Ok(result);
   }
 
-  parseAFormula(): Result<Formula, string> {
+  parseAFormula(): Result<Formula, ParseError> {
     const next = this.next();
     switch (next.tag) {
       case "Ident": {
@@ -584,13 +606,14 @@ export class Parser {
         return Ok({ tag: "Exist", ident: ident.value.ident, body: body.value });
       }
       default:
-        return Err(
-          `expected formula but got unexpected token ${dumpToken(next)} at ${formatLocation(next.loc.start)}`
-        );
+        return Err({
+          message: `expected formula but got unexpected token ${dumpToken(next)}`,
+          loc: next.loc,
+        });
     }
   }
 
-  parseAndFormula(): Result<Formula, string> {
+  parseAndFormula(): Result<Formula, ParseError> {
     const formula = this.parseAFormula();
     if (formula.tag === "Err") {
       return formula;
@@ -612,7 +635,7 @@ export class Parser {
     return Ok(result);
   }
 
-  parseOrFormula(): Result<Formula, string> {
+  parseOrFormula(): Result<Formula, ParseError> {
     const formula = this.parseAndFormula();
     if (formula.tag === "Err") {
       return formula;
@@ -634,7 +657,7 @@ export class Parser {
     return Ok(result);
   }
 
-  parseImplyFormula(): Result<Formula, string> {
+  parseImplyFormula(): Result<Formula, ParseError> {
     const formula = this.parseOrFormula();
     if (formula.tag === "Err") {
       return formula;
@@ -654,11 +677,11 @@ export class Parser {
     return formula;
   }
 
-  parseFormula(): Result<Formula, string> {
+  parseFormula(): Result<Formula, ParseError> {
     return this.parseImplyFormula();
   }
 
-  parseJudgement(): Result<Judgement, string> {
+  parseJudgement(): Result<Judgement, ParseError> {
     const assms: Formula[] = [];
     const concls: Formula[] = [];
 
@@ -710,7 +733,7 @@ export class Parser {
     return Ok({ assms, concls });
   }
 
-  parseRule(): Result<Rule, string> {
+  parseRule(): Result<Rule, ParseError> {
     const name = this.expect("Ident");
     if (name.tag === "Err") {
       return name;
@@ -789,12 +812,15 @@ export class Parser {
         return Ok({ tag: name.value.ident });
       }
       default: {
-        return Err(`unknown rule name ${name.value.ident}`);
+        return Err({
+          message: `unknown rule ${name.value.ident}`,
+          loc: name.value.loc,
+        });
       }
     }
   }
 
-  parsePredicate(): Result<[Ident, Predicate], string> {
+  parsePredicate(): Result<[Ident, Predicate], ParseError> {
     const name = this.expect("Ident");
     if (name.tag === "Err") {
       return name;
@@ -863,7 +889,7 @@ export class Parser {
     return Ok([name.value.ident, pred]);
   }
 
-  parsePredicates(): Result<[Ident, Predicate][], string> {
+  parsePredicates(): Result<[Ident, Predicate][], ParseError> {
     const pairs: [Ident, Predicate][] = [];
 
     const lbrace = this.expect("LBrace");
@@ -900,7 +926,7 @@ export class Parser {
     return Ok(pairs);
   }
 
-  parseCommand(): Result<CmdWithLoc, string> {
+  parseCommand(): Result<CmdWithLoc, ParseError> {
     const name = this.expect("Keyword");
     if (name.tag === "Err") {
       return name;
@@ -983,12 +1009,15 @@ export class Parser {
     }
   }
 
-  parseProgram(): Result<CmdWithLoc[], string> {
+  parseProgram(): Result<CmdWithLoc[], PartialProgram> {
     const cmds: CmdWithLoc[] = [];
     while (!this.eof()) {
       const cmd = this.parseCommand();
       if (cmd.tag === "Err") {
-        return cmd;
+        return Err({
+          error: cmd.error,
+          cmds,
+        });
       }
       cmds.push(cmd.value);
     }
@@ -996,12 +1025,9 @@ export class Parser {
   }
 }
 
-export function parseTerm(str: string): Result<Term, string> {
+export function parseTerm(str: string): Result<Term, ParseError> {
   const tokens = tokenize(str);
-  if (tokens.tag === "Err") {
-    return tokens;
-  }
-  const parser = new Parser(tokens.value);
+  const parser = new Parser(tokens);
   const term = parser.parseTerm();
   if (term.tag === "Err") {
     return term;
@@ -1013,12 +1039,9 @@ export function parseTerm(str: string): Result<Term, string> {
   return term;
 }
 
-export function parseFormula(str: string): Result<Formula, string> {
+export function parseFormula(str: string): Result<Formula, ParseError> {
   const tokens = tokenize(str);
-  if (tokens.tag === "Err") {
-    return tokens;
-  }
-  const parser = new Parser(tokens.value);
+  const parser = new Parser(tokens);
   const formula = parser.parseFormula();
   if (formula.tag === "Err") {
     return formula;
@@ -1030,12 +1053,9 @@ export function parseFormula(str: string): Result<Formula, string> {
   return formula;
 }
 
-export function parseJudgement(str: string): Result<Judgement, string> {
+export function parseJudgement(str: string): Result<Judgement, ParseError> {
   const tokens = tokenize(str);
-  if (tokens.tag === "Err") {
-    return tokens;
-  }
-  const parser = new Parser(tokens.value);
+  const parser = new Parser(tokens);
   const judgement = parser.parseJudgement();
   if (judgement.tag === "Err") {
     return judgement;
@@ -1047,11 +1067,10 @@ export function parseJudgement(str: string): Result<Judgement, string> {
   return judgement;
 }
 
-export function parseProgram(str: string): Result<CmdWithLoc[], string> {
+export function parseProgram(
+  str: string
+): Result<CmdWithLoc[], PartialProgram> {
   const tokens = tokenize(str);
-  if (tokens.tag === "Err") {
-    return tokens;
-  }
-  const parser = new Parser(tokens.value);
+  const parser = new Parser(tokens);
   return parser.parseProgram();
 }
