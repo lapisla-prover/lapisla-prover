@@ -94,6 +94,10 @@ export class AuthService extends AbstractAuthService {
     }
 
     async authenticate(token: string): Promise<Result<string, string>> {
+        if (!token) {
+            return new Err("Invalid token");
+        }
+        
         const session = await this.prisma.sessions.findUnique({
             where: {
                 sessionId: token
