@@ -29,10 +29,9 @@ export default function Edit() {
     const fetchFiles = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/files/${user}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/files/${user}`
         );
         const data = await response.json();
-        console.log(data);
         setFiles(data);
       } catch (error) {
         console.error(error);
@@ -64,29 +63,30 @@ export default function Edit() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {files.map((file) => (
-            <TableRow
-              key={file.fileName}
-              className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-200 truncate max-w-[300px]"
-            >
-              <TableCell className="px-4 py-2 text-blue-800 font-semibold">
-                {file.fileName}
-              </TableCell>
-              <TableCell className="px-4 py-2 text-gray-800 whitespace-nowrap">
-                {formatRelativeTime(file.updatedAt)}
-              </TableCell>
-              <TableCell className="px-4 py-2 text-gray-800 text-center whitespace-nowrap">
-                <div className="flex gap-2 justify-end items-center">
-                  <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white">
-                    Edit <EditIcon />
-                  </Button>
-                  <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white bg-red-500 hover:bg-red-600 rounded">
-                    Delete <Trash />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {files.length > 0 &&
+            files.map((file) => (
+              <TableRow
+                key={file.fileName}
+                className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-200 truncate max-w-[300px]"
+              >
+                <TableCell className="px-4 py-2 text-blue-800 font-semibold">
+                  {file.fileName}
+                </TableCell>
+                <TableCell className="px-4 py-2 text-gray-800 whitespace-nowrap">
+                  {formatRelativeTime(file.updatedAt)}
+                </TableCell>
+                <TableCell className="px-4 py-2 text-gray-800 text-center whitespace-nowrap">
+                  <div className="flex gap-2 justify-end items-center">
+                    <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white">
+                      Edit <EditIcon />
+                    </Button>
+                    <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white bg-red-500 hover:bg-red-600 rounded">
+                      Delete <Trash />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
       <Button className="flex items-center gap-1 px-4 py-2 m-2">
