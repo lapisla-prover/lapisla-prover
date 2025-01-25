@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Delete, Patch, Param, Query, Body, Headers, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Param, Query, Body, Headers, Req, HttpException } from '@nestjs/common';
 import { MeService } from '../api/me.service';
 import { AbstractAuthService } from '../auth.service';
 import { SourceCodeWrapper } from 'src/generated/openapi'
 import { Request } from 'express';
-
+import { Registration } from 'src/generated/openapi';
 
 @Controller('me')
 export class MeController {
@@ -32,6 +32,19 @@ export class MeController {
     @Patch('files/:fileName')
     async patchFile(@Param('fileName') fileName: string, @Body() body: SourceCodeWrapper & {}, @Req() req: Request) {
         return await this.meService.uploadMySnapshot(fileName, body, req.cookies['session_id']);
+    }
+
+    @Patch('files/:fileName/:version')
+    async updateTagsAndDescription(@Param('fileName') fileName: string, @Param('version') version: string, @Body() body: Registration & {}, @Req() req: Request) {
+        if (typeof body.description !== 'string') {
+            throw new HttpException('description must be a string', 400);
+        }
+        for (const tag of body.tags) {
+            if (typeof tag !== 'string') {
+                throw new HttpException('tags must be an array of strings', 400);
+            }
+        }
+        return await this.meService.updateTagsAndDescription(fileName, version, body, req.cookies['session_id']);
     }
 
     @Post('files/:fileName/:version/register')
