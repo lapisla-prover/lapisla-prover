@@ -75,4 +75,9 @@ export class MeController {
     async getSnapshot(@Param('fileName') fileName: string, @Param('version') version: string, @Req() req: Request) {
         return await this.meService.getMySnapshot(fileName, version, req.cookies['session_id']);
     }
+
+    @Get('user')
+    async getUser(@Req() req: Request) {
+        return await this.meService.getMyUser(req.cookies['session_id']);
+    }
 }

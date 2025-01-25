@@ -94,6 +94,7 @@ export default function Edit() {
         monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.DownArrow,
         () => {
           step(kernel, interacter);
+          updateEnv();
         }
       );
 
@@ -101,6 +102,7 @@ export default function Edit() {
         monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.UpArrow,
         () => {
           undo(kernel, interacter, 1);
+          updateEnv();
         }
       );
     }
@@ -133,6 +135,7 @@ export default function Edit() {
               title="Move Up"
               onClick={() => {
                 undo(kernel, interacter, 1);
+                updateEnv();
               }}
             >
               <ChevronUp className="h-4 w-4" />
@@ -160,6 +163,7 @@ export default function Edit() {
               title="Move to Top"
               onClick={() => {
                 resetAll();
+                updateEnv();
               }}
             >
               <ChevronsUp className="h-4 w-4" />
@@ -198,6 +202,7 @@ export default function Edit() {
               const model = mainEditorRef.current.getModel();
               if (model) {
                 monacoInstance.editor.setModelMarkers(model, "error", []);
+                interacter.setMessagesEditorContent("");
               }
             }
 
@@ -291,7 +296,7 @@ export default function Edit() {
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              defaultValue={`Waiting start of proof...`}
+              defaultValue={``}
               onMount={(editor, monaco) => {
                 goalEditorRef.current = editor;
               }}
@@ -315,7 +320,7 @@ export default function Edit() {
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              defaultValue={`Waiting start of proof...`}
+              defaultValue={``}
               onMount={(editor, monaco) => {
                 messageEditorRef.current = editor;
               }}

@@ -28,4 +28,5 @@ model/snapshot.ts
 model/snapshotMeta.ts
 model/sourceCodeWrapper.ts
 model/timelineEntry.ts
+model/userInfo.ts
 variables.ts

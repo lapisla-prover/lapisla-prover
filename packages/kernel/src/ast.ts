@@ -62,7 +62,11 @@ export type ProofCmd =
   | { tag: "Use"; thm: string; pairs: [Ident, Predicate][] }
   | { tag: "Qed" };
 
-export type DeclCmd = { tag: "Theorem"; name: string; formula: Formula };
+export type DeclCmd =
+  | { tag: "Import"; name: string }
+  | { tag: "Theorem"; name: string; formula: Formula }
+  | { tag: "Axiom"; name: string; formula: Formula }
+  | { tag: "Constant"; name: string; ty: Type };
 
 export type UndoCmd = { tag: "Undo" };
 

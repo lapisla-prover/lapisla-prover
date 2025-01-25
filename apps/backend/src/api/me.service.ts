@@ -13,6 +13,7 @@ import { parse } from 'path';
 import { ValidationFailed } from '../kernel/index';
 import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
 import { Registration } from '../generated/openapi/model/registration';
+import { UserInfo } from '../generated/openapi/model/userInfo';
 
 @Injectable()
 export class MeService {
@@ -193,6 +194,10 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
+        // saving exactly the same snapshot is not allowed
+        if (snapshots.length > 0 && snapshots[snapshots.length - 1].content === body.content) {
+            throw new HttpException('No changes', 400);
+        }
         const thisSnapshot = await this.prisma.snapshots.create({
             data: {
                 fileId: file.id,
@@ -348,20 +353,20 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
-        const snapshots = await this.prisma.snapshots.findMany({
-            where: {
-                fileId: file.id
+        await this.prisma.snapshots.create({
+            data: {
+                fileId: file.id,
+                version: 0,
+                content: '# Welcome to Lapisla! Write your proof here.\n',
+                isPublic: false,
+                snapshotId: getSnapshotId(userName, fileName, 0)
             }
         })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
         return {
             owner: userName,
             fileName: fileName,
-            versions: snapshots.map(snapshot => snapshot.version),
-            registeredVersions: snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
+            versions: [0],
+            registeredVersions: [],
             createdAt: file.createdAt.toISOString(),
             updatedAt: file.createdAt.toISOString()
         };
@@ -683,6 +688,20 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             });
         return null;
+    }
+
+    async getMyUser(auth: string): Promise<UserInfo> {
+        return (
+            await this.auth.authenticate(auth)
+        )
+            .match(
+                user => {
+                    return {
+                        username: user
+                    }
+                },
+                () => { throw new HttpException('Unauthorized', 401); }
+            );
     }
 
     private isValidTag(tag: string): boolean {
