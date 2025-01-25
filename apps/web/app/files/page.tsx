@@ -32,7 +32,6 @@ export default function Edit() {
           `${process.env.NEXT_PUBLIC_API_URL}/files/${user}`
         );
         const data = await response.json();
-        console.log(data);
         setFiles(data);
       } catch (error) {
         console.error(error);
