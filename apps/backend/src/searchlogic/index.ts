@@ -23,5 +23,5 @@ export abstract class AbstractSearchLogicService<ReturnType> {
         offset: number,
         limit: number,
         searchCandidate: SearchCandidate<ReturnType>
-    ): Promise<ReturnType>;
+    ): Promise<ReturnType[]>;
 }
