@@ -121,6 +121,11 @@ paths:
       parameters:
         - $ref: '#/components/parameters/fileName'
         - $ref: '#/components/parameters/version'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
       responses:
         '201':
           description: Snapshot registered successfully
@@ -130,6 +135,14 @@ paths:
               schema:
                 type: string
                 format: uri
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+                    description: Whether the snapshot is registered
         '400':
           description: Invalid input
         '404':
@@ -157,6 +170,27 @@ paths:
       security:
         - BearerAuth: []
       operationId: createMyPermalink
+    patch:
+      tags:
+        - me
+      summary: Update the content of a snapshot
+      parameters:
+        - $ref: '#/components/parameters/fileName'
+        - $ref: '#/components/parameters/version'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+      responses:
+        '200':
+          description: Snapshot updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotMeta'
+        '404':
+          description: Snapshot not found
   
   /login:
     get:
@@ -308,6 +342,48 @@ paths:
         '404':
           description: Snapshot not found
       operationId: getProjectDependencies
+  /timeline:
+    get:
+      tags:
+        - timeline
+      summary: Get the timeline of the user
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: limit must be between 1 and 100 (default = 20)
+      responses:
+        '200':
+          description: Timeline retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimelineEntry'
+        '400':
+          description: Invalid input
+      operationId: getTimeline
+  /tags:
+    get:
+      tags:
+        - tags
+      summary: Get all tags
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+      operationId: getTags
 
 components:
   parameters:
@@ -358,6 +434,9 @@ components:
       type: string
       pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
     FileName:
+      type: string
+      pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
+    Tag:
       type: string
       pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
     # metadata schemas
@@ -436,6 +515,43 @@ components:
         - fileName
         - version
         - createdAt
+    TimelineEntry:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/SnapshotId'
+        owner:
+          $ref: '#/components/schemas/User'
+        fileName:
+          $ref: '#/components/schemas/FileName'
+        version:
+          $ref: '#/components/schemas/Version'
+        registeredAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+      required:
+        - id
+        - owner
+        - fileName
+        - version
+        - registeredAt
+        - tags
+    Registration:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        description:
+          type: string
+      required:
+        - tags
+        - description
     # content schemas
     PrivateFile:
       type: object

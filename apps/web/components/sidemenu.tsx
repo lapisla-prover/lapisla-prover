@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export function SideMenu() {
   const router = useRouter();
   return (
-    <div className="fixed left-0 top-0 h-full bg-gray-100 w-16 flex flex-col items-center py-4 space-y-4">
+    <div className="left-0 top-0 h-screen bg-gray-100 w-24 flex flex-col items-center py-4 space-y-4">
       <Button
         variant="ghost"
         size="icon"

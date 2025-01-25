@@ -5,7 +5,7 @@ export const configureMonaco = (monaco: Monaco) => {
 
     monaco.languages.setMonarchTokensProvider("lapisla", {
         defaultToken: "invalid",
-        keywords: ["ThmD", "qed", "apply"],
+        keywords: ["Theorem", "qed", "apply", "use"],
         operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
         symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
         tokenizer: {
@@ -42,7 +42,7 @@ export const configureMonaco = (monaco: Monaco) => {
     });
 
     monaco.languages.registerCompletionItemProvider("lapisla", {
-        provideCompletionItems: (model, position) => {
+        provideCompletionItems: (model, position, context, token) => {
             const word = model.getWordUntilPosition(position);
             const range = {
                 startLineNumber: position.lineNumber,
@@ -126,9 +126,9 @@ export const configureMonaco = (monaco: Monaco) => {
                     range: range
                 },
                 {
-                    label: 'ThmD',
+                    label: 'Theorem',
                     kind: monaco.languages.CompletionItemKind.Keyword,
-                    insertText: 'ThmD $1 $2\n$3\nqed',
+                    insertText: 'Theorem $1 $2\n$3\nqed',
                     insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                     documentation: 'Theorem declaration',
                     range: range
@@ -149,9 +149,65 @@ export const configureMonaco = (monaco: Monaco) => {
                     documentation: 'Apply rule',
                     range: range
                 },
+                {
+                    label: 'use',
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: 'use',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Use hypothesis',
+                    range: range
+                },
+                {
+                    label: 'mapsto',
+                    kind: monaco.languages.CompletionItemKind.Operator,
+                    insertText: '↦',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'mappping operator',
+                    range: range
+                },
             ];
 
             return { suggestions };
+        },
+    });
+
+    monaco.languages.register({ id: "proof-state" });
+
+    monaco.languages.setMonarchTokensProvider("proof-state", {
+        defaultToken: "invalid",
+        keywords: ["Goal"],
+        operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
+        symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
+        tokenizer: {
+            root: [
+                [
+                    /[a-zA-Z_]\w*/,
+                    {
+                        cases: {
+                            "@keywords": "keyword",
+                            "@default": "identifier",
+                        },
+                    },
+                ],
+                { include: "@whitespace" },
+                [
+                    /@symbols/,
+                    {
+                        cases: {
+                            "@operators": "operator",
+                            "@keywords": "keyword",
+                            "@default": "",
+                        },
+                    },
+                ],
+                [/[(){}\[\]]/, "@brackets"],
+                [/[;:]/, "delimiter"],
+                [/\d+/, "number"],
+                [/─{20,}/, "delimiter"],
+            ],
+            whitespace: [
+                [/[ \t\r\n]+/, "white"],
+            ],
         },
     });
 };

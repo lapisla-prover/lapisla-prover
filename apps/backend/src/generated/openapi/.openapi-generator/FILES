@@ -7,6 +7,8 @@ api/login.service.ts
 api/me.service.ts
 api/registry.service.ts
 api/search.service.ts
+api/tags.service.ts
+api/timeline.service.ts
 configuration.ts
 git_push.sh
 index.ts
@@ -18,8 +20,11 @@ model/project.ts
 model/projectFetchResult.ts
 model/publicFile.ts
 model/publicFileMeta.ts
+model/registerMySnapshot201Response.ts
+model/registration.ts
 model/searchResult.ts
 model/snapshot.ts
 model/snapshotMeta.ts
 model/sourceCodeWrapper.ts
+model/timelineEntry.ts
 variables.ts

@@ -29,6 +29,7 @@ model files {
 model snapshots {
   id        String   @id @default(uuid())
   fileId    String
+  snapshotId String
   version   Int
   isPublic  Boolean
   createdAt DateTime @default(now())
@@ -38,6 +39,7 @@ model snapshots {
 
   @@unique([fileId, version])
   @@index([fileId])
+  @@index([snapshotId])
 }
 
 model dependencies {

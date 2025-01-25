@@ -10,16 +10,15 @@ import { HttpException } from '@nestjs/common/exceptions/http.exception';
 import { ProjectFetchResult } from 'src/generated/openapi';
 import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
 import { Snapshot } from '../generated/openapi/model/snapshot';
+import { Dependency } from '../generated/openapi/model/dependency';
 
 @Injectable()
 export class RegistryService {
 
     protected prisma: PrismaService;
-    protected codeAnalyzer: AbstractCodeAnalyzerService;
 
-    constructor(private prismaService: PrismaService, private codeAnalyzerService: AbstractCodeAnalyzerService) {
+    constructor(private prismaService: PrismaService) {
         this.prisma = prismaService;
-        this.codeAnalyzer = codeAnalyzerService;
     }
 
     public async getProjectDependencies(snapshotId: string, ): Promise<ProjectFetchResult> {
@@ -69,7 +68,11 @@ export class RegistryService {
                 fileId_version: {
                     fileId: file.id,
                     version: snapshotInfo.version
-                }
+                },
+                isPublic: true
+            },
+            include: {
+                dependees: true
             }
         })
             .catch((err) => {
@@ -82,85 +85,56 @@ export class RegistryService {
                 return snapshot;
             })
             .finally(() => {});
-        let directDependees: DependencyMetadata[] = this.codeAnalyzer.listDirectDependencies(snapshot.content).match(
-            ok => {
-                if (ok.kind === 'success') {
-                    return ok.value;
-                }
-                else {
-                    throw new HttpException('Invalid source code', 400);
-                }
-            },
-            err => {
-                throw new HttpException('Failed to analyze code', 500);
-            }  
-        );
-        let dependeeSnapshotsDb = await this.prisma.users.findMany({
+        const dependenciesSnaps = await this.prisma.snapshots.findMany({
             where: {
-                name: {
-                    in: directDependees.map(dep => dep.owner)
-                }
-            },
-            include: {
-                files: {
-                    where: {
-                        name: {
-                            in: directDependees.map(dep => dep.name)
-                        }
-                    },
-                    include: {
-                        snapshots: {
-                            where: {
-                                version: {
-                                    in: directDependees.map(dep => parseInt(dep.version))
-                                },
-                                isPublic: true
-                            }
-                        }
-                    }
-                }
+                id: {
+                    in: snapshot.dependees.map((dep) => dep.dependeeId),
+                },
+                isPublic: true
             },
         })
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
             })
-            .then((users) => {
-                return users;
+            .then((dependencies) => {
+                return dependencies;
             })
             .finally(() => {});
-        let dependeeContents = new Map<{owner: string, name: string, version: string}, Snapshot>();
-        for (let user of dependeeSnapshotsDb) {
-            for (let file of user.files) {
-                for (let snapshot of file.snapshots) {
-                    dependeeContents.set({owner: user.name, name: file.name, version: snapshot.version.toString()}, {
-                        meta: {
-                            owner: user.name,
-                            fileName: file.name,
-                            version: snapshot.version,
-                            createdAt: snapshot.createdAt.toISOString(),
-                            id: getSnapshotId(user.name, file.name, snapshot.version)
-                        },
-                        content: snapshot.content
-                    });
-                }
+        if (dependenciesSnaps.length !== snapshot.dependees.length) {
+            return {
+                result: ProjectFetchResult.ResultEnum.Error,
+                error: 'Deleted dependencies',
             }
         }
-        let projectDependencies = directDependees.map(dep => {
-            let snapshot = dependeeContents.get(dep);
-            if (!snapshot) {
-                throw new HttpException('Dependency not found', 404);
-            }
+        const dependencies: Dependency[] = dependenciesSnaps.map((depSnap) => {
+            const snapInfo = getSnapshotInfoFromId(depSnap.snapshotId).match(
+                (info) => info,
+                () => {
+                    throw new Error('Invalid snapshot id');
+                }
+            );
             return {
-                id: getSnapshotId(dep.owner, dep.name, parseInt(dep.version)),
-                snapshot: snapshot
-            };
+                snapshot: {
+                    meta: {
+                        id: depSnap.snapshotId,
+                        owner: snapInfo.owner,
+                        fileName: snapInfo.fileName,
+                        version: snapInfo.version,
+                        registered: depSnap.isPublic,
+                        createdAt: depSnap.createdAt.toISOString(),
+                    },
+                    content: depSnap.content,
+                },
+                id: snapshot.snapshotId,
+            }
         })
+        const project: Project = {
+            id: snapshot.snapshotId,
+            dependencies: dependencies,
+        }
         return {
             result: ProjectFetchResult.ResultEnum.Ok,
-            ok: {
-                id: snapshotId,
-                dependencies: projectDependencies
-            }
+            ok: project,
         }
     }
 }

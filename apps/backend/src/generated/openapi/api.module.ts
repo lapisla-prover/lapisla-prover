@@ -7,6 +7,8 @@ import { LoginService } from './api/login.service';
 import { MeService } from './api/me.service';
 import { RegistryService } from './api/registry.service';
 import { SearchService } from './api/search.service';
+import { TagsService } from './api/tags.service';
+import { TimelineService } from './api/timeline.service';
 
 @Global()
 @Module({
@@ -16,14 +18,18 @@ import { SearchService } from './api/search.service';
     LoginService,
     MeService,
     RegistryService,
-    SearchService
+    SearchService,
+    TagsService,
+    TimelineService
   ],
   providers: [
     FilesService,
     LoginService,
     MeService,
     RegistryService,
-    SearchService
+    SearchService,
+    TagsService,
+    TimelineService
   ]
 })
 export class ApiModule {

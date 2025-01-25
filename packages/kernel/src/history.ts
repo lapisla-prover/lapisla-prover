@@ -42,16 +42,20 @@ export class ProofHistory {
     }
     return Ok(this.steps.pop()!);
   }
+
+  push(goals: Judgement[]): void {
+    this.steps.push(goals);
+  }
 }
 
 export type TopStep =
   | {
-      tag: "ThmD";
-      name: string;
-      formula: Formula;
-      proofHistory: ProofHistory;
-      env: TopEnv;
-    }
+    tag: "Theorem";
+    name: string;
+    formula: Formula;
+    proofHistory: ProofHistory;
+    env: TopEnv;
+  }
   | { tag: "Other"; env: TopEnv };
 
 export class TopHistory {
@@ -64,7 +68,7 @@ export class TopHistory {
     }
     const new_env = insertThm(this.top().env, name, formula);
     this.steps.push({
-      tag: "ThmD",
+      tag: "Theorem",
       name,
       formula,
       proofHistory: history,
@@ -81,8 +85,19 @@ export class TopHistory {
   // Pop current step
   pop(): Result<TopStep, string> {
     if (this.steps.length <= 1) {
-      throw new Error("No history to pop.");
+      return Err("No history to pop.");
     }
     return Ok(this.steps.pop()!);
   }
+
+  allTheorem(): TopStep[] {
+    const result: TopStep[] = [];
+    for (const step of this.steps) {
+        if (step.tag === "Theorem") {
+            result.push(step);
+        }
+    }
+
+    return result;
+}
 }

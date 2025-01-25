@@ -1,148 +1,266 @@
 "use client";
 
+import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import Editor from "@monaco-editor/react";
-import { useMonaco } from "@monaco-editor/react";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { executeAll, step, undo, undoLocation, undoUntil } from "@/lib/editorEventHandler";
+import { EditorInteracter } from "@/lib/editorInteracter";
+import { configureMonaco } from "@/lib/monacoConfig";
+import { useKernel } from "@/lib/userKernel";
+import Editor, { useMonaco } from "@monaco-editor/react";
+import { formatFormula } from "@repo/kernel/ast";
+import { Env } from "@repo/kernel/env";
+import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
   ChevronsDown,
   ChevronsUp,
   ChevronUp,
-  Mic,
-  Search,
+  Goal,
+  Mic, Mountain, Search
 } from "lucide-react";
-import { SideMenu } from "@/components/sidemenu";
-import { configureMonaco } from "@/lib/monacoConfig";
+import * as monaco from 'monaco-editor';
+import { useEffect, useRef, useState } from "react";
 
 export const runtime = "edge";
 
 export default function Edit() {
-  const monaco = useMonaco();
-  if (monaco) {
-    configureMonaco(monaco);
+  const monacoInstance = useMonaco();
+
+  useEffect(() => {
+    if (monacoInstance) {
+      configureMonaco(monacoInstance);
+    }
+  }, [monacoInstance]);
+
+  const kernel = useKernel();
+  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [latestProgram, setLatestProgram] = useState<string>("");
+  const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
+  const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
+
+  useEffect(() => {
+    if (mainEditorRef.current && goalEditorRef.current) {
+      setInteracter(new EditorInteracter(mainEditorRef, goalEditorRef));
+    }
+  }, [mainEditorRef.current, goalEditorRef.current]);
+
+  const resetAll = () => {
+    kernel.reset();
+    interacter.resetGoalEditorContent();
+    interacter.resetHighlight();
+  };
+
+  const updateEnv = () => {
+    setGlobalEnv(kernel.currentglobalEnv());
   }
+
   return (
-    <div className="flex h-screen">
+    <div className="flex">
+
       <SideMenu />
-      <div className="flex-1 flex ml-16">
-        <div className="w-[60%] p-4 space-y-4">
-          <div className="flex justify-between items-end">
-            <div className="text-2xl font-bold ml-4">
-              abap34/simplest-sort.lapis
-            </div>
-            <div className="text-gray-500">Last saved 2 minutes ago</div>
+
+
+      <div className="w-[80%] p-4 space-y-4">
+
+        <div className="flex justify-between items-end">
+          <div className="text-2xl font-bold g-4 p-4">abap34/simplest-sort.l</div>
+          <div className="text-gray-500">Last saved 2 minutes ago</div>
+        </div>
+
+        {/* 灰色の線 */}
+        <div className="border-b border-gray-300"></div>
+
+        <div className="flex justify-end items-center">
+
+
+          <div className="flex">
+
+            {/* Up Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move Up"
+              onClick={
+                () => {
+                  undo(kernel, interacter, 1);
+                }
+              }>
+
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+
+            {/*  Down Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move Down"
+              onClick={
+                () => {
+                  step(
+                    kernel,
+                    interacter
+                  );
+                  updateEnv();
+                }
+              }
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+
+            {/* Up all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move to Top"
+              onClick={() => {
+                resetAll();
+              }
+              }
+            >
+              <ChevronsUp className="h-4 w-4" />
+            </Button>
+
+
+            {/* Down all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1"
+              title="Move to Bottom"
+              onClick={() => {
+                resetAll();
+                executeAll(kernel, interacter);
+                updateEnv();
+              }
+              }
+            >
+              <ChevronsDown className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
 
-          <div className="h-0.5 w-full bg-gray-200" />
+        {/* Main Editor */}
+        <Editor
+          className="h-full w-full"
+          height={"calc(100vh - 200px)"}
+          theme="vs"
+          language="lapisla"
 
-          <div className="flex justify-end items-center">
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="p-1" title="Move Up">
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1"
-                title="Move Down"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1"
-                title="Move to Top"
-              >
-                <ChevronsUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1"
-                title="Move to Bottom"
-              >
-                <ChevronsDown className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          options={{
+            minimap: { enabled: true },
+          }}
+          defaultValue={``}
+          onChange={(value: string | undefined, event) => {
+            if (value) {
+              const undoloc = undoLocation(latestProgram, value);
+              if (undoloc) {
+                if (isBefore(undoloc, kernel.lastLocation())) {
+                  undoUntil(kernel, interacter, undoloc);
+                }
+              }
+              setLatestProgram(value);
+            }
+          }
+          }
+          onMount={(editor, monaco) => {
+            mainEditorRef.current = editor;
+          }
 
+
+          }
+        />
+      </div>
+
+      <div className="w-[40%] p-8 space-y-4">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search Registry"
+            className="pl-9 pr-9 rounded-full border border-muted bg-background"
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="Voice search"
+          >
+            <Mic className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Goal className="h-6 w-6 text-primary" />
+          <div className="text-2xl font-bold">Goal</div>
+        </div>
+
+        <div className="w-full h-64 border border-black">
+
+
+          {/* Goal Visualizer */}
           <Editor
-            className="h-full w-full mt-4 border border-gray-200"
-            height="calc(100vh - 200px)"
-            theme="vs-light"
-            language="lapisla"
+            className="h-full w-full"
+            height="100%"
+            theme="vs"
+            language="proof-state"
+
             options={{
-              unicodeHighlight: {
-                ambiguousCharacters: false,
-              },
+              readOnly: true,
               minimap: { enabled: false },
+              lineNumbers: "off",
             }}
-            defaultValue="# Write your proof here!"
+            defaultValue={`Waiting start of proof...`}
+            onMount={(editor, monaco) => {
+              goalEditorRef.current = editor;
+            }
+            }
           />
         </div>
 
-        <div className="w-[40%] p-4 space-y-4 overflow-y-auto border-gray-200">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search Registry"
-              className="pl-9 pr-9 rounded-full border border-gray-200 bg-background"
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Voice search"
-            >
-              <Mic className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="w-full h-64 border border-gray-200">
-            <Editor
-              className="h-full w-full"
-              height="100%"
-              theme="vs-light"
-              options={{
-                readOnly: true,
-                minimap: { enabled: false },
-                lineNumbers: "off",
-              }}
-              value="Proof: 1 + 1 = 2"
-            />
-          </div>
-
-          <div>
-            <div className="text-2xl font-bold">Suggestion:</div>
-            <div className="text-gray-700">Proof Found!</div>
-          </div>
-
-          <div className="w-full h-32 border border-gray-200">
-            <Editor
-              className="h-full w-full"
-              height="100%"
-              theme="vs-light"
-              options={{
-                readOnly: true,
-                minimap: { enabled: false },
-                lineNumbers: "off",
-              }}
-              value="Proof: 1 + 1 = 2"
-            />
-          </div>
-
-          <div className="grid w-full gap-2">
-            <Textarea
-              placeholder="Chat with AI ..."
-              className="border-gray-200"
-            />
-            <Button>Send message</Button>
-          </div>
+        {/* Environment Table */}
+        <div className="flex items-center space-x-2">
+          <Mountain className="h-6 w-6 text-primary" />
+          <div className="text-2xl font-bold">Environment</div>
         </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>Identifier</TableCell>
+              <TableCell>Formula</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from(globalenv.thms.entries()).map(([key, value]) => {
+              return (
+                <TableRow key={key}>
+                  <TableCell>{key}</TableCell>
+                  <TableCell>{formatFormula(value)}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+
+
+
       </div>
+      <style>
+        {`
+          .green-highlight {
+            background-color: rgba(144, 238, 144, 0.5);
+          }
+        `}
+      </style>
+
     </div>
+
+
   );
 }
+

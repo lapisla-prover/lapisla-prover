@@ -1,19 +1,22 @@
-import { Result, Ok, Err, deepEqual } from "./common.ts";
 import {
-  Rule,
+  Formula,
   Judgement,
-  substFormula,
+  ProofCmd,
+  Rule,
+  TopCmd,
+  UndoCmd,
   freeInFormula,
   freeInFormulas,
-  Formula,
-  ProofCmd,
-  DeclCmd,
-  TopCmd,
-  isProofCmd,
-  UndoCmd,
   isDeclCmd,
+  isProofCmd,
+  substFormula,
+  Predicate,
+  Ident,
+  substPreds,
 } from "./ast.ts";
+import { Err, Ok, Result, deepEqual } from "./common.ts";
 import { ProofHistory, TopHistory } from "./history.ts";
+import { Env } from "./env.ts";
 
 export function judgeOne(
   rule: Rule,
@@ -372,7 +375,8 @@ export function judgeMany(
 }
 
 export function* proofLoop(
-  history: ProofHistory
+  history: ProofHistory,
+  env: Env
 ): Generator<Result<void, string>, Result<void, string>, ProofCmd | UndoCmd> {
   let result: Result<void, string> = Ok();
 
@@ -389,8 +393,40 @@ export function* proofLoop(
         }
         continue loop;
       }
-      case "Use":
-        throw new Error("unimplemented");
+      case "Use": {
+        const { thm, pairs } = com;
+
+        if (!env.thms.has(thm)) {
+          result = Err(`invalid use: unknown theorem ${thm}`);
+          continue loop;
+        }
+
+        const thmFormula = env.thms.get(thm);
+
+        const mapping = new Map<Ident, Predicate>(pairs);
+
+        const formula = substPreds(thmFormula, mapping);
+        if (formula.tag === "Err") {
+          result = Err(formula.error);
+          continue loop;
+        }
+
+        const goals = history.top();
+
+        if (goals.length === 0) {
+          return Err("No goal");
+        }
+
+        const [{ assms, concls }, ...restGoals] = goals;
+
+        const newGoal = { assms: [formula.value, ...assms], concls };
+
+        history.push([newGoal, ...restGoals]);
+
+        result = Ok();
+
+        continue loop;
+      }
       case "Undo": {
         const res = history.pop();
         if (res.tag === "Err") {
@@ -412,32 +448,36 @@ export function* proofLoop(
   }
 }
 
+export type KernelMode = "DeclareWait" | "Proving";
+export type KernelState = {
+  mode: KernelMode;
+  proofHistory?: ProofHistory;
+};
+
 export function* topLoop(
   topHistory: TopHistory
-): Generator<Result<void, string>, never, TopCmd> {
-  let result: Result<void, string> = Ok();
+): Generator<Result<KernelState, string>, never, TopCmd> {
+  let result: Result<KernelState, string> = Ok({ mode: "DeclareWait" });
 
-  // 全体のループ
   while (true) {
-    // topModeからproofModeに移行する際に必要な情報
-    let thmName: string; // 示そうとしている定理の名前
-    let thmFormula: Formula; // 示そうとしている定理の式
-    let proofHistory: ProofHistory; // 証明の履歴
+    let thmName: string;
+    let thmFormula: Formula;
+    let proofHistory: ProofHistory;
 
-    // トップレベルのコマンドを受け取る
+    // topMode
     topMode: while (true) {
       const topCmd = yield result;
 
       if (isProofCmd(topCmd)) {
-        result = Err("Invalid command; we are not in proof mode");
+        result = Err("Invalid command; we are in declare mode");
         continue topMode;
       }
 
-      if (topCmd.tag === "ThmD") {
+      if (topCmd.tag === "Theorem") {
         thmName = topCmd.name;
         thmFormula = topCmd.formula;
         proofHistory = new ProofHistory([{ assms: [], concls: [thmFormula] }]);
-        result = Ok();
+        result = Ok({ mode: "Proving", proofHistory });
         break topMode;
       }
 
@@ -449,16 +489,17 @@ export function* topLoop(
         }
 
         const prevStep = maybePrevStep.value;
-        // 前のstepがThmDの場合はproofModeに移行する
-        if (prevStep.tag === "ThmD") {
+
+        // If the previous step is a theorem declaration, make the kernel go back to proof mode
+        if (prevStep.tag === "Theorem") {
           thmName = prevStep.name;
           thmFormula = prevStep.formula;
           proofHistory = prevStep.proofHistory;
-          result = Ok();
+          result = Ok({ mode: "Proving", proofHistory });
           break topMode;
         }
 
-        result = Ok();
+        result = Ok({ mode: "DeclareWait" });
         continue topMode;
       }
 
@@ -466,10 +507,9 @@ export function* topLoop(
       throw new Error("Unreachable");
     }
 
-    const ploop = proofLoop(proofHistory);
-    ploop.next(); // 最初の `yield` まで進める
+    const ploop = proofLoop(proofHistory, topHistory.top().env);
+    ploop.next(); // Initialize
 
-    // proofモードのループ
     proofMode: while (true) {
       const topCmd = yield result;
 
@@ -479,17 +519,20 @@ export function* topLoop(
       }
 
       const res = ploop.next(topCmd);
-      // Qedにより証明が終了した場合(res.valueがOk)，またはUndoで証明の履歴が空になった場合(res.valueがErr)
-      // FIXME: もう少しいいやり方がある気がする
+
       if (res.done) {
         if (res.value.tag === "Ok") {
           topHistory.insertThm(thmName, thmFormula, proofHistory);
         }
-        result = Ok();
+        result = Ok({ mode: "DeclareWait" });
         break proofMode;
       }
-      // proofLoopはQed|Undoの時以外終わらないので，このasは安全なはず
-      result = res.value;
+
+      if (res.value.tag === "Ok") {
+        result = Ok({ mode: "Proving", proofHistory });
+      } else {
+        result = Err(res.value.error);
+      }
     }
   }
 }

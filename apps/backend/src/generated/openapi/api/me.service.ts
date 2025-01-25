@@ -16,6 +16,8 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
 import { PrivateFileMeta } from '../model/privateFileMeta';
+import { RegisterMySnapshot201Response } from '../model/registerMySnapshot201Response';
+import { Registration } from '../model/registration';
 import { Snapshot } from '../model/snapshot';
 import { SnapshotMeta } from '../model/snapshotMeta';
 import { SourceCodeWrapper } from '../model/sourceCodeWrapper';
@@ -297,15 +299,72 @@ export class MeService {
         );
     }
     /**
+     * Update the content of a snapshot
+     * 
+     * @param fileName 
+     * @param version 
+     * @param registration 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public meFilesFileNameVersionPatch(fileName: string, version: number, registration?: Registration, ): Observable<AxiosResponse<SnapshotMeta>>;
+    public meFilesFileNameVersionPatch(fileName: string, version: number, registration?: Registration, ): Observable<any> {
+        if (fileName === null || fileName === undefined) {
+            throw new Error('Required parameter fileName was null or undefined when calling meFilesFileNameVersionPatch.');
+        }
+
+        if (version === null || version === undefined) {
+            throw new Error('Required parameter version was null or undefined when calling meFilesFileNameVersionPatch.');
+        }
+
+        let headers = {...this.defaultHeaders};
+
+        let accessTokenObservable: Observable<any> = of(null);
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers['Accept'] = httpHeaderAcceptSelected;
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected != undefined) {
+            headers['Content-Type'] = httpContentTypeSelected;
+        }
+        return accessTokenObservable.pipe(
+            switchMap((accessToken) => {
+                if (accessToken) {
+                    headers['Authorization'] = `Bearer ${accessToken}`;
+                }
+
+                return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}`,
+                    registration,
+                    {
+                        withCredentials: this.configuration.withCredentials,
+                        headers: headers
+                    }
+                );
+            })
+        );
+    }
+    /**
      * Register a snapshot to the public registry
      * 
      * @param fileName 
      * @param version 
+     * @param registration 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public registerMySnapshot(fileName: string, version: number, ): Observable<AxiosResponse<any>>;
-    public registerMySnapshot(fileName: string, version: number, ): Observable<any> {
+    public registerMySnapshot(fileName: string, version: number, registration?: Registration, ): Observable<AxiosResponse<RegisterMySnapshot201Response>>;
+    public registerMySnapshot(fileName: string, version: number, registration?: Registration, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
             throw new Error('Required parameter fileName was null or undefined when calling registerMySnapshot.');
         }
@@ -326,6 +385,7 @@ export class MeService {
         }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
+            'application/json'
         ];
         const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         if (httpHeaderAcceptSelected != undefined) {
@@ -334,15 +394,20 @@ export class MeService {
 
         // to determine the Content-Type header
         const consumes: string[] = [
+            'application/json'
         ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected != undefined) {
+            headers['Content-Type'] = httpContentTypeSelected;
+        }
         return accessTokenObservable.pipe(
             switchMap((accessToken) => {
                 if (accessToken) {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<any>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
-                    null,
+                return this.httpClient.post<RegisterMySnapshot201Response>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
+                    registration,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
