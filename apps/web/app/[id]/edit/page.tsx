@@ -3,11 +3,14 @@
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { executeAll, step, undo, undoLocation, undoUntil } from "@/lib/editorEventHandler";
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
 import Editor, { useMonaco } from "@monaco-editor/react";
+import { formatFormula } from "@repo/kernel/ast";
+import { Env } from "@repo/kernel/env";
 import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
@@ -15,8 +18,7 @@ import {
   ChevronsUp,
   ChevronUp,
   Goal,
-  Mic,
-  Search
+  Mic, Mountain, Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
 import { useEffect, useRef, useState } from "react";
@@ -37,6 +39,7 @@ export default function Edit() {
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [latestProgram, setLatestProgram] = useState<string>("");
+  const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
 
   const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
   const resetAll = () => {
@@ -44,6 +47,10 @@ export default function Edit() {
     interacter.resetGoalEditorContent();
     interacter.resetHighlight();
   };
+
+  const updateEnv = () => {
+    setGlobalEnv(kernel.currentglobalEnv());
+  }
 
   return (
     <div className="flex">
@@ -93,6 +100,7 @@ export default function Edit() {
                     kernel,
                     interacter
                   );
+                  updateEnv();
                 }
               }
             >
@@ -123,6 +131,7 @@ export default function Edit() {
               onClick={() => {
                 resetAll();
                 executeAll(kernel, interacter);
+                updateEnv();
               }
               }
             >
@@ -208,7 +217,30 @@ export default function Edit() {
           />
         </div>
 
+        {/* Environment Table */}
+        <div className="flex items-center space-x-2">
+          <Mountain className="h-6 w-6 text-primary" />
+          <div className="text-2xl font-bold">Environment</div>
+        </div>
 
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>Identifier</TableCell>
+              <TableCell>Formula</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from(globalenv.thms.entries()).map(([key, value]) => {
+              return (
+                <TableRow key={key}>
+                  <TableCell>{key}</TableCell>
+                  <TableCell>{formatFormula(value)}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
 
 
 
