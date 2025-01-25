@@ -102,6 +102,7 @@ export default function Edit() {
         monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.UpArrow,
         () => {
           undo(kernel, interacter, 1);
+          updateEnv();
         }
       );
     }
@@ -134,6 +135,7 @@ export default function Edit() {
               title="Move Up"
               onClick={() => {
                 undo(kernel, interacter, 1);
+                updateEnv();
               }}
             >
               <ChevronUp className="h-4 w-4" />
@@ -161,6 +163,7 @@ export default function Edit() {
               title="Move to Top"
               onClick={() => {
                 resetAll();
+                updateEnv();
               }}
             >
               <ChevronsUp className="h-4 w-4" />
