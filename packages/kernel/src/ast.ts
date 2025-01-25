@@ -1,4 +1,4 @@
-import { Ok, Result } from "./common";
+import { Err, Ok, Result } from "./common";
 
 export type Ident = string;
 
@@ -6,6 +6,12 @@ export type Term =
   | { tag: "Var"; ident: Ident }
   | { tag: "Abs"; idents: Ident[]; body: Term }
   | { tag: "App"; func: Term; args: Term[] };
+
+export type Type =
+  | { tag: "Var"; ident: Ident; content?: Type }
+  | { tag: "Con"; ident: Ident; args: Type[] }
+  | { tag: "Arr"; left: Type; right: Type }
+  | { tag: "Prop" };
 
 export type Formula =
   | { tag: "Pred"; ident: Ident; args: Term[] }
@@ -46,7 +52,10 @@ export type Judgement = {
   concls: Formula[];
 };
 
-export type Predicate = (args: Term[]) => Result<Formula, string>;
+export type Predicate = {
+  args: Ident[];
+  body: Formula;
+};
 
 export type ProofCmd =
   | { tag: "Apply"; rule: Rule }
@@ -77,6 +86,25 @@ export function formatTerm(term: Term): string {
       const args = term.args.map(formatTerm).join(", ");
       return `${formatTerm(term.func)}(${args})`;
     }
+  }
+}
+
+export function formatType(type: Type): string {
+  switch (type.tag) {
+    case "Var":
+      return type.content === undefined ? type.ident : formatType(type.content);
+    case "Con": {
+      if (type.args.length === 0) {
+        return type.ident;
+      }
+
+      const args = type.args.map(formatType).join(", ");
+      return `${type.ident}(${args})`;
+    }
+    case "Arr":
+      return `(${formatType(type.left)} → ${formatType(type.right)})`;
+    case "Prop":
+      return "Prop";
   }
 }
 
@@ -519,7 +547,17 @@ export function substPreds(
 
       const pred = mapping.get(formula.ident);
 
-      return pred(formula.args);
+      if (pred.args.length !== formula.args.length) {
+        return Err("arity mismatch");
+      }
+
+      const predMapping = new Map();
+
+      for (let i = 0; i < formula.args.length; i++) {
+        predMapping.set(pred.args[i], formula.args[i]);
+      }
+
+      return Ok(substAllFormula(pred.body, predMapping));
     }
     case "Top":
     case "Bottom":

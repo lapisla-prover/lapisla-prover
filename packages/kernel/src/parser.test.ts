@@ -807,43 +807,36 @@ qed
     const pred = new Parser(tokens).parsePredicate();
     expectOk(pred);
     expect(pred.value[0]).toEqual("P");
-    const result = pred.value[1]([
-      { tag: "Var", ident: "a" },
-      {
-        tag: "App",
-        func: { tag: "Var", ident: "b" },
-        args: [{ tag: "Var", ident: "a" }],
+    expect(pred.value[1]).toEqual({
+      args: ["x", "y"],
+      body: {
+        tag: "And",
+        left: {
+          tag: "Pred",
+          ident: "Q",
+          args: [
+            {
+              tag: "App",
+              func: { tag: "Var", ident: "f" },
+              args: [
+                { tag: "Var", ident: "x" },
+                {
+                  tag: "App",
+                  func: { tag: "Var", ident: "g" },
+                  args: [
+                    {
+                      tag: "Var",
+                      ident: "y",
+                    },
+                  ],
+                },
+                { tag: "Var", ident: "x" },
+              ],
+            },
+          ],
+        },
+        right: { tag: "Pred", ident: "R", args: [] },
       },
-    ]);
-    expectOk(result);
-    expect(result.value).toEqual({
-      tag: "And",
-      left: {
-        tag: "Pred",
-        ident: "Q",
-        args: [
-          {
-            tag: "App",
-            func: { tag: "Var", ident: "f" },
-            args: [
-              { tag: "Var", ident: "a" },
-              {
-                tag: "App",
-                func: { tag: "Var", ident: "g" },
-                args: [
-                  {
-                    tag: "App",
-                    func: { tag: "Var", ident: "b" },
-                    args: [{ tag: "Var", ident: "a" }],
-                  },
-                ],
-              },
-              { tag: "Var", ident: "a" },
-            ],
-          },
-        ],
-      },
-      right: { tag: "Pred", ident: "R", args: [] },
     });
   });
   test("predicates", () => {
@@ -861,27 +854,18 @@ qed
     expect(pred1[0]).toEqual("P");
     expect(pred2[0]).toEqual("Q");
 
-    const result1 = pred1[1]([
-      { tag: "Var", ident: "a" },
-      { tag: "Var", ident: "b" },
-    ]);
-
-    expectOk(result1);
-
-    expect(result1.value).toEqual({
-      tag: "Imply",
-      left: { tag: "Pred", ident: "A", args: [] },
-      right: { tag: "Pred", ident: "B", args: [] },
+    expect(pred1[1]).toEqual({
+      args: ["x", "y"],
+      body: {
+        tag: "Imply",
+        left: { tag: "Pred", ident: "A", args: [] },
+        right: { tag: "Pred", ident: "B", args: [] },
+      },
     });
 
-    const result2 = pred2[1]([{ tag: "Var", ident: "a" }]);
-
-    expectOk(result2);
-
-    expect(result2.value).toEqual({
-      tag: "Pred",
-      ident: "R",
-      args: [],
+    expect(pred2[1]).toEqual({
+      args: ["x"],
+      body: { tag: "Pred", ident: "R", args: [] },
     });
   });
 

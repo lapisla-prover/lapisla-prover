@@ -870,22 +870,10 @@ export class Parser {
       return formula;
     }
 
-    const pred: Predicate = (argTerms: Term[]): Result<Formula, string> => {
-      if (argTerms.length !== args.length) {
-        return Err(
-          `expected ${args.length} arguments but got ${argTerms.length}`
-        );
-      }
-
-      const subst = new Map<Ident, Term>();
-
-      for (let i = 0; i < args.length; i++) {
-        subst.set(args[i], argTerms[i]);
-      }
-
-      return Ok(substAllFormula(formula.value, subst));
+    const pred: Predicate = {
+      args,
+      body: formula.value,
     };
-
     return Ok([name.value.ident, pred]);
   }
 
