@@ -8,12 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ShareIcon, Clipboard } from "lucide-react";
-import { useState } from "react";
 
-export const Share = () => {
-  const [permanentLink, setPermanentLink] = useState<string>(
-    "https://lapisla.net/view?id=hogehogehugahuga"
-  );
+interface SaveProps {
+  snapshotId: string;
+}
+
+export const Share = (props: SaveProps) => {
+  const permanentLink = `https://lapisla.net/view?id=${props.snapshotId}`;
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -36,9 +37,20 @@ export const Share = () => {
                 Copy
                 <Clipboard className="ml-2 h-4 w-4" />
               </Button>
-              <Button className="w-full" onClick={() => {}}>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  window.open(
+                    `https://x.com/intent/post?url=${permanentLink}`,
+                    "_blank"
+                  );
+                }}
+              >
                 Post
-                <img src="/X.svg" className="ml-2 h-4 w-4" />
+                <img
+                  src="/X.svg"
+                  className="ml-2 h-4 w-4 pointer-events-none"
+                />
               </Button>
             </div>
           </DialogDescription>
