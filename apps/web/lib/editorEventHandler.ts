@@ -69,8 +69,11 @@ export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepR
     const result = kernel.execute(firstCommand);
 
     if (result.tag !== "Ok") {
-        return { tag: "Err", error: "Failed to execute command" };
-    }
+        interacter.setMessagesEditorContent(
+            `Execution Error:\n${result.error} \n at row ${firstCommand.loc.start.line + 1}.`
+        );
+        return { tag: "Err", error: result.error };
+    } 
 
     const proofHistory = result.value.proofHistory;
     if (proofHistory) {
