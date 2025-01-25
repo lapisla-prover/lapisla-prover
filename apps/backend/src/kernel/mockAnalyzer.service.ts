@@ -13,6 +13,6 @@ export class MockAnalyzerService extends AbstractCodeAnalyzerService {
         return new Ok({kind: 'success', value: []});
     }
     validate(sourceCode: string, dependencies: Dependency[]): ValidationResult {
-        return { success: true };
+        return { success: true, kind: 'validation_success' };
     }
 }
