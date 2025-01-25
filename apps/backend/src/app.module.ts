@@ -12,7 +12,8 @@ import {
   LoginService,
   MeService,
   RegistryService,
-  SearchService
+  SearchService,
+  TimelineService
 } from './api/api';
 import { PrismaService } from './prisma.service';
 import {
@@ -20,7 +21,8 @@ import {
   LoginController,
   MeController,
   RegistryController,
-  SearchController
+  SearchController,
+  TimelineController
 } from './controllers/controllers';
 
 @Module({
@@ -33,6 +35,7 @@ import {
     MeService,
     RegistryService,
     SearchService,
+    TimelineService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
     { provide: AbstractAuthService, useClass: AuthService },
     { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
@@ -42,7 +45,8 @@ import {
     LoginController,
     MeController,
     RegistryController,
-    SearchController
+    SearchController,
+    TimelineController
   ],
 
 })
