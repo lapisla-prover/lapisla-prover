@@ -94,6 +94,7 @@ export default function Edit() {
         monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.DownArrow,
         () => {
           step(kernel, interacter);
+          updateEnv();
         }
       );
 
@@ -291,7 +292,7 @@ export default function Edit() {
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              defaultValue={`Waiting start of proof...`}
+              defaultValue={``}
               onMount={(editor, monaco) => {
                 goalEditorRef.current = editor;
               }}
@@ -315,7 +316,7 @@ export default function Edit() {
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              defaultValue={`Waiting start of proof...`}
+              defaultValue={``}
               onMount={(editor, monaco) => {
                 messageEditorRef.current = editor;
               }}
