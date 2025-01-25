@@ -566,6 +566,23 @@ export function* topLoop(
         continue topMode;
       }
 
+      if (topCmd.tag === "Import") {
+        result = Err(
+          "Invalid command; do not send checker an import command directly! please import theorems via wrapper."
+        );
+        continue topMode;
+      }
+
+      if (topCmd.tag === "Constant") {
+        result = Err("constant is unimplemented");
+        continue topMode;
+      }
+
+      if (topCmd.tag === "Axiom") {
+        result = Err("axiom is unimplemented");
+        continue topMode;
+      }
+
       topCmd satisfies never;
       throw new Error("Unreachable");
     }

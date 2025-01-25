@@ -5,7 +5,7 @@ export const configureMonaco = (monaco: Monaco) => {
 
     monaco.languages.setMonarchTokensProvider("lapisla", {
         defaultToken: "invalid",
-        keywords: ["Theorem", "qed", "apply", "use"],
+        keywords: ["Theorem", "qed", "apply", "use", "import", "axiom", "constant", "prop"],
         operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
         symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
         tokenizer: {
@@ -163,6 +163,38 @@ export const configureMonaco = (monaco: Monaco) => {
                     insertText: '↦',
                     insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                     documentation: 'mappping operator',
+                    range: range
+                },
+                {
+                    label: 'import',
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: 'import',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Import theorems',
+                    range: range
+                },
+                {
+                    label: 'constant',
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: 'constant',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Declare constant',
+                    range: range
+                },
+                {
+                    label: 'axiom',
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: 'axiom',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Declare axiom',
+                    range: range
+                },
+                {
+                    label: 'prop',
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: 'prop',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Type of propositions',
                     range: range
                 },
             ];

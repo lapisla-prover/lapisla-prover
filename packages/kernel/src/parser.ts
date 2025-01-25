@@ -7,7 +7,7 @@ import {
   Term,
   Rule,
   Predicate,
-  substAllFormula,
+  Type,
 } from "./ast.ts";
 import { Err, Ok, Result } from "./common.ts";
 
@@ -50,13 +50,23 @@ export type PartialProgram = {
   cmds: CmdWithLoc[];
 };
 
-const keywords = ["Theorem", "apply", "use", "qed"] as const;
+const keywords = [
+  "Theorem",
+  "apply",
+  "use",
+  "qed",
+  "import",
+  "axiom",
+  "constant",
+  "prop",
+] as const;
 
 type KeywordsUnion = (typeof keywords)[number];
 
 export type Token =
   | { tag: "Ident"; ident: Ident; loc: Range }
   | { tag: "Int"; value: number; loc: Range }
+  | { tag: "String"; value: string; loc: Range }
   | { tag: "Lambda"; loc: Range }
   | { tag: "Dot"; loc: Range }
   | { tag: "Comma"; loc: Range }
@@ -76,6 +86,7 @@ export type Token =
   | { tag: "Colon"; loc: Range }
   | { tag: "Semicolon"; loc: Range }
   | { tag: "Keyword"; name: KeywordsUnion; loc: Range }
+  | { tag: "TVar"; ident: Ident; loc: Range }
   | { tag: "ERROR"; message: string; loc: Range }
   | { tag: "EOF"; loc: Range };
 
@@ -289,6 +300,69 @@ class Tokenizer {
           });
           break;
         }
+        case "'": {
+          this.skipSpaces();
+
+          if (this.eof()) {
+            tokens.push({
+              tag: "ERROR",
+              message: `expected type variable but reached EOF`,
+              loc: { start, end: this.#loc },
+            });
+            return tokens;
+          }
+
+          const c = this.read();
+
+          if (!/[a-zA-Z_]/.test(c)) {
+            tokens.push({
+              tag: "ERROR",
+              message: `expected type variable but got unexpected character '${c}'`,
+              loc: { start, end: this.#loc },
+            });
+            return tokens;
+          }
+
+          let ident = c;
+
+          while (!this.eof() && /[a-zA-Z0-9_]/.test(this.#str[this.#pos])) {
+            ident += this.read();
+          }
+
+          tokens.push({
+            tag: "TVar",
+            ident,
+            loc: { start, end: this.#loc },
+          });
+
+          break;
+        }
+        case '"': {
+          let value = "";
+
+          while (!this.eof() && this.peek() !== '"') {
+            value += this.read();
+          }
+
+          if (this.eof()) {
+            tokens.push({
+              tag: "ERROR",
+              message: `expected closing quote but reached EOF`,
+              loc: { start, end: this.#loc },
+            });
+            return tokens;
+          }
+
+          this.read();
+
+          tokens.push({
+            tag: "String",
+            value,
+            loc: { start, end: this.#loc },
+          });
+
+          break;
+        }
         default: {
           if (/[a-zA-Z_]/.test(c)) {
             let ident = c;
@@ -406,6 +480,23 @@ export class Parser {
       });
     }
     return Ok(token);
+  }
+
+  expectKeyword(name: KeywordsUnion): Result<Token, ParseError> {
+    const token = this.expect("Keyword");
+    if (token.tag === "Err") {
+      return token;
+    }
+    assert(token.value.tag === "Keyword");
+
+    if (token.value.name !== name) {
+      return Err({
+        message: `expected keyword ${name} but got keyword ${token.value.name}`,
+        loc: token.value.loc,
+      });
+    }
+
+    return Ok(token.value);
   }
 
   match(tag: string): boolean {
@@ -914,6 +1005,101 @@ export class Parser {
     return Ok(pairs);
   }
 
+  parseAType(ctx: Map<Ident, Type>): Result<Type, ParseError> {
+    const next = this.next();
+    switch (next.tag) {
+      case "Ident": {
+        if (this.match("LParen")) {
+          this.next();
+
+          if (this.match("RParen")) {
+            this.next();
+            return Ok({ tag: "Con", ident: next.ident, args: [] });
+          }
+
+          const ty = this.parseType(ctx);
+          if (ty.tag === "Err") {
+            return ty;
+          }
+          const args = [ty.value];
+
+          while (this.match("Comma")) {
+            this.next();
+            const ty = this.parseType(ctx);
+            if (ty.tag === "Err") {
+              return ty;
+            }
+            args.push(ty.value);
+          }
+
+          const rparen = this.expect("RParen", "type constructor");
+          if (rparen.tag === "Err") {
+            return rparen;
+          }
+
+          return Ok({ tag: "Con", ident: next.ident, args });
+        } else {
+          return Ok({ tag: "Con", ident: next.ident, args: [] });
+        }
+      }
+      case "LParen": {
+        const type = this.parseType(ctx);
+        if (type.tag === "Err") {
+          return type;
+        }
+        const rparen = this.expect("RParen");
+        if (rparen.tag === "Err") {
+          return rparen;
+        }
+        return type;
+      }
+      case "TVar": {
+        if (!ctx.has(next.ident)) {
+          ctx.set(next.ident, { tag: "Var", ident: next.ident });
+        }
+
+        return Ok(ctx.get(next.ident));
+      }
+      case "Keyword": {
+        switch (next.name) {
+          case "prop":
+            return Ok({ tag: "Prop" });
+          default:
+            return Err({
+              message: `expected type but got unexpected keyword ${next.name}`,
+              loc: next.loc,
+            });
+        }
+      }
+      default: {
+        return Err({
+          message: `expected type but got unexpected token ${dumpToken(next)}`,
+          loc: next.loc,
+        });
+      }
+    }
+  }
+
+  parseType(ctx: Map<Ident, Type>): Result<Type, ParseError> {
+    const ty = this.parseAType(ctx);
+    if (ty.tag === "Err") {
+      return ty;
+    }
+
+    if (this.match("Imply")) {
+      this.next();
+
+      const right = this.parseType(ctx);
+      if (right.tag === "Err") {
+        return right;
+      }
+
+      return Ok({ tag: "Arr", left: ty.value, right: right.value });
+    }
+
+    return Ok(ty.value);
+  }
+
   parseCommand(): Result<CmdWithLoc, ParseError> {
     const name = this.expect("Keyword");
     if (name.tag === "Err") {
@@ -990,9 +1176,75 @@ export class Parser {
 
         return Ok({ cmd: { tag: "Qed" }, loc: { start, end } });
       }
+      case "axiom": {
+        const name = this.expect("Ident");
+        if (name.tag === "Err") {
+          return name;
+        }
+        assert(name.value.tag === "Ident");
+
+        const colon = this.expect("Colon");
+        if (colon.tag === "Err") {
+          return colon;
+        }
+
+        const formula = this.parseFormula();
+        if (formula.tag === "Err") {
+          return formula;
+        }
+
+        const end = this.peekPrev().loc.end;
+
+        return Ok({
+          cmd: { tag: "Axiom", name: name.value.ident, formula: formula.value },
+          loc: { start, end },
+        });
+      }
+      case "constant": {
+        const name = this.expect("Ident");
+        if (name.tag === "Err") {
+          return name;
+        }
+        assert(name.value.tag === "Ident");
+
+        const colon = this.expect("Colon");
+        if (colon.tag === "Err") {
+          return colon;
+        }
+
+        const ty = this.parseType(new Map());
+        if (ty.tag === "Err") {
+          return ty;
+        }
+
+        const end = this.peekPrev().loc.end;
+
+        return Ok({
+          cmd: { tag: "Constant", name: name.value.ident, ty: ty.value },
+          loc: { start, end },
+        });
+      }
+      case "import": {
+        const name = this.expect("String");
+        if (name.tag === "Err") {
+          return name;
+        }
+        assert(name.value.tag === "String");
+
+        const end = this.peekPrev().loc.end;
+
+        return Ok({
+          cmd: { tag: "Import", name: name.value.value },
+          loc: { start, end },
+        });
+      }
       default: {
-        name.value.name satisfies never;
-        throw new Error("unreachable");
+        const end = this.peekPrev().loc.end;
+
+        return Err({
+          message: `unknown command ${name.value.name}`,
+          loc: { start, end },
+        });
       }
     }
   }
@@ -1039,6 +1291,20 @@ export function parseFormula(str: string): Result<Formula, ParseError> {
     return eof;
   }
   return formula;
+}
+
+export function parseType(str: string): Result<Type, ParseError> {
+  const tokens = tokenize(str);
+  const parser = new Parser(tokens);
+  const ty = parser.parseType(new Map());
+  if (ty.tag === "Err") {
+    return ty;
+  }
+  const eof = parser.expectEOF();
+  if (eof.tag === "Err") {
+    return eof;
+  }
+  return ty;
 }
 
 export function parseJudgement(str: string): Result<Judgement, ParseError> {
