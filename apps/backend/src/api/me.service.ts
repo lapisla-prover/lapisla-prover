@@ -685,6 +685,16 @@ export class MeService {
         return null;
     }
 
+    async getMyUser(auth: string): Promise<string> {
+        return (
+            await this.auth.authenticate(auth)
+        )
+            .match(
+                user => user,
+                () => { throw new HttpException('Unauthorized', 401); }
+            );
+    }
+
     private isValidTag(tag: string): boolean {
         const regex = /^[a-zA-Z0-9-]+$/;
         return regex.test(tag);
