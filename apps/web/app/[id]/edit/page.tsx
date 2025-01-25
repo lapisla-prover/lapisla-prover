@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAccount } from "@/context/accountContext";
 import {
   executeAll,
   step,
@@ -37,12 +38,22 @@ import {
   Search,
 } from "lucide-react";
 import * as monaco from "monaco-editor";
-import { useEffect, useRef, useState } from "react";
+import { FC, use, useEffect, useRef, useState } from "react";
 
 export const runtime = "edge";
 
-export default function Edit() {
+interface EditProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+const Edit: FC<EditProps> = ({ params }) => {
   const monacoInstance = useMonaco();
+  const { id } = use(params);
+  const { account } = useAccount();
+  const [versions, setVersions] = useState<number[]>([]);
+  const [currentSnapshotId, setCurrentSnapshotId] = useState<string>("");
 
   useEffect(() => {
     if (monacoInstance) {
@@ -86,8 +97,6 @@ export default function Edit() {
     setGlobalEnv(kernel.currentglobalEnv());
   };
 
-
-
   useEffect(() => {
     if (kernel && interacter) {
       mainEditorRef.current.addCommand(
@@ -106,18 +115,60 @@ export default function Edit() {
         }
       );
     }
-  },
-    [kernel, interacter]
-  );
+  }, [kernel, interacter]);
+
+  useEffect(() => {
+    const fetchFile = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}`,
+          {
+            credentials: "include",
+          }
+        );
+        const data = await response.json();
+        setVersions([...data.versions]);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchFile();
+  }, []);
+
+  useEffect(() => {
+    if (versions.length > 0) {
+      const fetchLatestProgram = async () => {
+        try {
+          const response2 = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}/${versions[versions.length - 1].toString()}`,
+            {
+              credentials: "include",
+            }
+          );
+          const data2 = await response2.json();
+          setLatestProgram(data2.content);
+          setCurrentSnapshotId(data2.meta.id);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchLatestProgram();
+    }
+  }, [versions, id]);
 
   return (
     <div className="flex">
-      <SideMenu />
+      <SideMenu
+        fileName={id}
+        content={latestProgram}
+        snapshotId={currentSnapshotId}
+        setSnapshotId={setCurrentSnapshotId}
+      />
 
       <div className="w-[80%] p-4 space-y-4">
         <div className="flex justify-between items-end">
           <div className="text-3xl text-gray-700 font-bold g-4 p-4 font-monaco">
-            abap34/simplest-sort.l
+            {account.username}/{id}
           </div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
         </div>
@@ -231,24 +282,19 @@ export default function Edit() {
                   interacter.setMessagesEditorContent(msg);
 
                   const model = mainEditorRef.current.getModel();
-                  
-                  if (model) {
-                    monacoInstance.editor.setModelMarkers(
-                      model,
-                      "error",
-                      [
-                        {
-                          startLineNumber: errorloc.start.line + 1,
-                          startColumn: errorloc.start.column + 1,
-                          endLineNumber: errorloc.end.line + 1,
-                          endColumn: errorloc.end.column + 1,
-                          message: result.error.error.message,
-                          severity: monacoInstance.MarkerSeverity.Error,
-                        },
-                      ]
-                    );
-                  }
 
+                  if (model) {
+                    monacoInstance.editor.setModelMarkers(model, "error", [
+                      {
+                        startLineNumber: errorloc.start.line + 1,
+                        startColumn: errorloc.start.column + 1,
+                        endLineNumber: errorloc.end.line + 1,
+                        endColumn: errorloc.end.column + 1,
+                        message: result.error.error.message,
+                        severity: monacoInstance.MarkerSeverity.Error,
+                      },
+                    ]);
+                  }
                 }
               }
 
@@ -370,4 +416,6 @@ export default function Edit() {
       </style>
     </div>
   );
-}
+};
+
+export default Edit;

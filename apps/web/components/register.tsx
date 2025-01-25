@@ -18,12 +18,101 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Editor } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+import { useEffect, useRef, useState } from "react";
 
-export const Register = () => {
+interface RegisterProps {
+  fileName: string;
+}
+
+export const Register = (props: RegisterProps) => {
+  const [versions, setVersions] = useState<number[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<number>(0);
+
+  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
+    null
+  );
+
+  const fetchFile = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}`,
+        {
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      setVersions(data.versions.sort((a: number, b: number) => b - a));
+      console.log(data.versions);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFile();
+  }, []);
+
+  const fetchContent = async (version: number) => {
+    console.log("fetch", version);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}/${version}`,
+        {
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      console.log(data.content);
+      mainEditorRef.current?.setValue(data.content);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    fetchContent(selectedVersion);
+  }, [selectedVersion]);
+
+  function onChangeVersion(value: string) {
+    setSelectedVersion(parseInt(value));
+  }
+
+  async function register() {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}/${selectedVersion}/register`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tags: [],
+            description: "",
+          }),
+        }
+      );
+      const data = await response.json();
+      //responseのステータスコードを見て、成功したか失敗したかを判断する
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Register">
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Register"
+          onClick={() => {
+            fetchFile();
+            setSelectedVersion(versions[versions.length - 1]);
+            fetchContent(selectedVersion);
+          }}
+        >
           <UserPlus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
@@ -36,21 +125,26 @@ export const Register = () => {
         </DialogHeader>
         <div className="flex py-4">
           <div className="flex flex-col items-center m-2">
-            <Select>
+            <Select onValueChange={onChangeVersion}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select version" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Version</SelectLabel>
-                  <SelectItem value="v10">v10</SelectItem>
-                  <SelectItem value="v9">v9</SelectItem>
-                  <SelectItem value="v8">v8</SelectItem>
-                  <SelectItem value="v7">v7</SelectItem>
+                  {versions &&
+                    versions.map((version) => (
+                      <SelectItem value={version.toString()} key={version}>
+                        v{version}
+                      </SelectItem>
+                    ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <Button className="w-full sm:w-auto m-2 mb-2 mt-auto">
+            <Button
+              className="w-full sm:w-auto m-2 mb-2 mt-auto"
+              onClick={register}
+            >
               Register
               <FilePlus className="ml-2 h-4 w-4" />
             </Button>
@@ -60,12 +154,16 @@ export const Register = () => {
               className="h-auto w-full"
               height="100%"
               theme="vs-light"
+              language="lapisla"
               options={{
                 readOnly: true,
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              value={`Proof: 1 + 1 = 2\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\naaaaaaaa`}
+              value={""}
+              onMount={(editor, monaco) => {
+                mainEditorRef.current = editor;
+              }}
             />
           </div>
         </div>
