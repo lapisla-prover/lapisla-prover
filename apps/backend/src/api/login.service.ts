@@ -71,7 +71,7 @@ export class LoginService {
             },
         }).then((res) => res.data);
         
-        const userName = "PonponJuice";
+        const userName = user.login;
 
         await this.prisma.users.upsert({
             where: {name: userName},
