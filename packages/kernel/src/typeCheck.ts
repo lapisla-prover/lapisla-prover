@@ -12,14 +12,20 @@ function occurIn(v: Ident, type: Type): boolean {
       return false;
     case "Con":
       return type.args.some((arg) => occurIn(v, arg));
-    case "Var":
-      return type.ident === v;
+    case "Var": {
+      if (type.content === undefined) {
+        return type.ident === v;
+      }
+      return occurIn(v, type.content);
+    }
   }
 }
 
-function assign(tvar: { tag: "Var"; ident: Ident }, type: Type) {
-  delete tvar.ident;
-  Object.assign(tvar, type);
+function assign(
+  tvar: { tag: "Var"; ident: Ident; content?: Type },
+  type: Type
+) {
+  tvar.content = type;
 }
 
 function unify(type1: Type, type2: Type): Result<void, string> {
@@ -55,6 +61,22 @@ function unify(type1: Type, type2: Type): Result<void, string> {
     return Ok();
   }
 
+  if (type1.tag === "Var" && type1.content !== undefined) {
+    return unify(type1.content, type2);
+  }
+
+  if (type2.tag === "Var" && type2.content !== undefined) {
+    return unify(type1, type2.content);
+  }
+
+  if (
+    type1.tag === "Var" &&
+    type2.tag === "Var" &&
+    type1.ident === type2.ident
+  ) {
+    return Ok();
+  }
+
   if (type1.tag === "Var") {
     if (occurIn(type1.ident, type2)) {
       return Err(`Recursive type`);
@@ -83,6 +105,10 @@ function matchArr(funcTy: Type, argTy: Type): Result<Type, string> {
   }
 
   if (funcTy.tag === "Var") {
+    if (funcTy.content !== undefined) {
+      return matchArr(funcTy.content, argTy);
+    }
+
     const [left, right] = [newTVar(), newTVar()];
     assign(funcTy, { tag: "Arr", left, right });
     const res = unify(left, argTy);
@@ -100,8 +126,16 @@ function freshenTVars(type: Type): Type {
 
   function rec(type: Type): Type {
     switch (type.tag) {
-      case "Var":
-        return newTVars[type.ident] ?? (newTVars[type.ident] = newTVar());
+      case "Var": {
+        if (type.content !== undefined) {
+          return rec(type.content);
+        }
+
+        return (
+          newTVars.get(type.ident) ??
+          (newTVars.set(type.ident, newTVar()), newTVars.get(type.ident))
+        );
+      }
       case "Con":
         return { tag: "Con", ident: type.ident, args: type.args.map(rec) };
       case "Arr":

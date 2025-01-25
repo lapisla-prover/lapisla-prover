@@ -8,7 +8,7 @@ export type Term =
   | { tag: "App"; func: Term; args: Term[] };
 
 export type Type =
-  | { tag: "Var"; ident: Ident }
+  | { tag: "Var"; ident: Ident; content?: Type }
   | { tag: "Con"; ident: Ident; args: Type[] }
   | { tag: "Arr"; left: Type; right: Type }
   | { tag: "Prop" };
@@ -89,7 +89,7 @@ export function formatTerm(term: Term): string {
 export function formatType(type: Type): string {
   switch (type.tag) {
     case "Var":
-      return type.ident;
+      return type.content === undefined ? type.ident : formatType(type.content);
     case "Con": {
       if (type.args.length === 0) {
         return type.ident;
