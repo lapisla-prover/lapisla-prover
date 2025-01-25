@@ -567,6 +567,8 @@ components:
       properties:
         username:
           $ref: '#/components/schemas/User'
+        github_id:
+          type: integer
       required:
         - username
     Registration:

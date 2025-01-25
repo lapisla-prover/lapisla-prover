@@ -700,16 +700,28 @@ export class MeService {
     }
 
     async getMyUser(auth: string): Promise<UserInfo> {
-        return (
+        const userName = (
             await this.auth.authenticate(auth)
-        )
-            .match(
-                user => {
-                    return {
-                        username: user
-                    }
-                },
-                () => { throw new HttpException('Unauthorized', 401); }
-            );
+        ).match(
+                user => user,
+                (_) => { throw new HttpException('Unauthorized', 401); }
+        );
+        const user = await this.prisma.users.findUnique({
+            where: {
+                name: userName
+            }
+        }).catch((err) => {
+            throw new HttpException('Internal Error', 500);
+        }).then((user) => {
+            if (!user) {
+                throw new HttpException('User not found', 404);
+            }
+            return user;
+        });
+
+        return {
+            username: user.name,
+            github_id: user.githubId,
+        };
     }
 }
