@@ -7,18 +7,19 @@ export type ValidationResult =
   | KernelError;
 
 export type ValidationSuccess = {
+  kind: 'validation_success';
   success: true;
 };
 
 export type ValidationFailed = {
   success: false;
-  reason: 'source_error';
+  kind: 'source_error';
   errorMessage: string;
 };
 
 export type KernelError = {
   success: false;
-  reason: 'kernel_error';
+  kind: 'kernel_error';
   errorMessage: string;
 };
 

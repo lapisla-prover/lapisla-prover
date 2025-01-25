@@ -6,18 +6,24 @@ import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
 import { Snapshot } from '../generated/openapi/model/snapshot';
 import { AbstractAuthService } from '../auth.service';
 import { SourceCodeWrapper } from '../generated/openapi/model/sourceCodeWrapper';
-import { getSnapshotId } from 'src/utils';
+import { getSnapshotId, getSnapshotInfoFromId } from 'src/utils';
 import { get } from 'http';
+import { AbstractCodeAnalyzerService } from '../kernel/index';
+import { parse } from 'path';
+import { ValidationFailed } from '../kernel/index';
+import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
 
 @Injectable()
 export class MeService {
 
     private prisma: PrismaService;
     private auth: AbstractAuthService;
+    private analyzer: AbstractCodeAnalyzerService;
 
-    constructor(private prismaService: PrismaService, private authService: AbstractAuthService) {
+    constructor(private prismaService: PrismaService, private authService: AbstractAuthService, private codeAnalyzerService: AbstractCodeAnalyzerService) {
         this.prisma = prismaService;
         this.auth = authService;
+        this.analyzer = codeAnalyzerService;
     }
 
     public async deleteMyFile(fileName: string, auth: string): Promise<null> {
@@ -186,43 +192,25 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
-        this.prisma.snapshots.create({
+        const thisSnapshot = await this.prisma.snapshots.create({
             data: {
                 fileId: file.id,
                 version: snapshots.length,
                 content: body.content,
-                isPublic: false
+                isPublic: false,
+                snapshotId: getSnapshotId(userName, fileName, snapshots.length)
             }
         })
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
-        const thisSnapshot = await this.prisma.snapshots.findUnique({
-            where: {
-                fileId_version: {
-                    fileId: file.id,
-                    version: snapshots.length
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((snapshot) => {
-                if (!snapshot) {
-                    throw new HttpException('Snapshot not found', 404);
-                }
-                return snapshot;
-            })
-            .finally(() => {});
-
         return {
-            id: thisSnapshot.id,
+            id: getSnapshotId(userName, fileName, snapshots.length),
             owner: userName,
             fileName: fileName,
             version: thisSnapshot.version,
-            registered: thisSnapshot.isPublic,
+            registered: false,
             createdAt: thisSnapshot.createdAt.toISOString()
         };
     }
@@ -374,13 +362,14 @@ export class MeService {
         };
     }
 
-    public async registerMySnapshot(fileName: string, versionStr: string, auth: string): Promise<null> {
+    public async registerMySnapshot(fileName: string, versionStr: string, auth: string): Promise<RegisterMySnapshot201Response> {
         let version: number;
         try {
             version = parseInt(versionStr);
         } catch (err) {
             throw new HttpException('Invalid version', 400);
         }
+        // Get username
         const userName = (
             await this.auth.authenticate(auth)
         )
@@ -438,7 +427,56 @@ export class MeService {
                 }
                 return snapshot;
             });
-        this.prisma.snapshots.update({
+        const dependencies = this.analyzer.listDirectDependencies(snapshot.content)
+            .match(
+                (deps) => {
+                    if (deps.kind === 'invalid_source') {
+                        throw new HttpException('Invalid source code', 400);
+                    }
+                    return deps.value;
+                },
+                () => { throw new HttpException('Internal Error', 500); }
+            );
+        const depsSnapId = dependencies.map(dep => getSnapshotId(dep.owner, dep.name, parseInt(dep.version)));
+        const depsSnaps = await this.prisma.snapshots.findMany({
+            where: {
+                snapshotId: {
+                    in: depsSnapId
+                },
+                isPublic: true
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            });
+        if (depsSnaps.length !== depsSnapId.length) {
+            throw new HttpException('Dependency not found', 404);
+        }
+        const depsSnapsWithMe = depsSnaps.concat(snapshot);
+        // Validate
+        const validationResult = this.analyzer.validate(snapshot.content, depsSnapsWithMe.map(depSnap => {
+            const info = getSnapshotInfoFromId(depSnap.snapshotId).match(
+                info => info,
+                () => { throw new HttpException('Internal Error', 500); }
+            );
+            return {
+                metadata: {
+                    owner: info.owner,
+                    name: info.fileName,
+                    version: info.version.toString()
+                },
+                source: depSnap.content
+            }
+        }));
+        if (validationResult.kind === 'source_error') {
+            return {
+                registered: false
+            }
+        }
+        else if (validationResult.kind === 'kernel_error') {
+            throw new HttpException('Internal Error', 500);
+        }
+        await this.prisma.snapshots.update({
             where: {
                 id: snapshot.id
             },
@@ -448,9 +486,21 @@ export class MeService {
         })
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
+            });
+        await this.prisma.dependencies.createMany({
+            data: depsSnapsWithMe.map(depSnap => {
+                return {
+                    dependerId: snapshot.id,
+                    dependeeId: depSnap.id
+                }
             })
-            .finally(() => {});
-        return null;
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            });
+        return {
+            registered: true
+        };
     }
 
     public async getMyFiles(auth: string): Promise<PrivateFileMeta[]> {

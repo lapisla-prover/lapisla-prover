@@ -5,6 +5,7 @@ export * from './project';
 export * from './projectFetchResult';
 export * from './publicFile';
 export * from './publicFileMeta';
+export * from './registerMySnapshot201Response';
 export * from './searchResult';
 export * from './snapshot';
 export * from './snapshotMeta';
