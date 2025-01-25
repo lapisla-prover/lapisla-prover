@@ -1,7 +1,7 @@
-import { Formula, Ident, Judgement, Rule } from "./ast";
+import { Formula, Ident, Judgement, Rule, Type } from "./ast";
 import { judgeOne } from "./checker";
 import { Err, Ok, Result } from "./common.ts";
-import { Env as TopEnv, initialEnv, insertThm } from "./env.ts";
+import { Env as TopEnv, initialEnv, insertThm, insertConstant } from "./env.ts";
 
 export class ProofHistory {
   private steps: Judgement[][] = [];
@@ -50,12 +50,13 @@ export class ProofHistory {
 
 export type TopStep =
   | {
-    tag: "Theorem";
-    name: string;
-    formula: Formula;
-    proofHistory: ProofHistory;
-    env: TopEnv;
-  }
+      tag: "Theorem";
+      name: string;
+      formula: Formula;
+      proofHistory: ProofHistory;
+      env: TopEnv;
+    }
+  | { tag: "Constant"; name: string; ty: Type; env: TopEnv }
   | { tag: "Other"; env: TopEnv };
 
 export class TopHistory {
@@ -74,6 +75,13 @@ export class TopHistory {
       proofHistory: history,
       env: new_env,
     });
+    return new_env;
+  }
+
+  // Insert type to current environment and push it to stack.
+  insertConstant(name: Ident, ty: Type): TopEnv {
+    const new_env = insertConstant(this.top().env, name, ty);
+    this.steps.push({ tag: "Constant", name, ty, env: new_env });
     return new_env;
   }
 

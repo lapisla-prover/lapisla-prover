@@ -1,4 +1,4 @@
-import { Formula, Ident, Term, Type } from "./ast";
+import { formatType, Formula, Ident, Term, Type } from "./ast";
 import { Err, Ok, reduceResult, Result, traverseResult } from "./common";
 
 const newTVar: () => Type = (() => {
@@ -35,10 +35,14 @@ function unify(type1: Type, type2: Type): Result<void, string> {
 
   if (type1.tag === "Con" && type2.tag === "Con") {
     if (type1.ident !== type2.ident) {
-      return Err(`Type mismatch`);
+      return Err(
+        `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`
+      );
     }
     if (type1.args.length !== type2.args.length) {
-      return Err(`Type mismatch`);
+      return Err(
+        `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`
+      );
     }
     for (let i = 0; i < type1.args.length; i++) {
       const res = unify(type1.args[i], type2.args[i]);
@@ -92,7 +96,9 @@ function unify(type1: Type, type2: Type): Result<void, string> {
     return Ok();
   }
 
-  return Err(`Type mismatch`);
+  return Err(
+    `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`
+  );
 }
 
 function matchArr(funcTy: Type, argTy: Type): Result<Type, string> {

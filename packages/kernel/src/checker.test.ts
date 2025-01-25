@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { Formula, Judgement, ProofCmd, Rule, Term, TopCmd } from "./ast";
+import { Formula, Judgement, ProofCmd, Rule, Term, TopCmd, Type } from "./ast";
 import { judgeMany, judgeOne, proofLoop, topLoop } from "./checker";
 import { ProofHistory, TopHistory } from "./history";
 import { expectErr, expectOk } from "./test-util";
 import { Ok, Result } from "./common";
 import { initialEnv } from "./env";
+import { parseFormula } from "./parser";
 
 test("∀x.((P(x) ∨ Q())) ⊢ (∀x.(P(x)) ∨ Q()) can be proven", () => {
   const sampleAssms: Formula[] = [
@@ -722,8 +723,9 @@ describe("rules", () => {
         pairs: [
           [
             "a",
-            (args) =>
-              Ok({
+            {
+              args: [],
+              body: {
                 tag: "Forall",
                 ident: "x",
                 body: {
@@ -731,7 +733,8 @@ describe("rules", () => {
                   ident: "P",
                   args: [{ tag: "Var", ident: "x" }],
                 },
-              }),
+              },
+            },
           ],
         ],
       },
@@ -743,5 +746,208 @@ describe("rules", () => {
       const res = loop.next(cmd);
       expectOk(res.value);
     }
+  });
+});
+
+describe("type checker", () => {
+  test("type mismatch", () => {
+    const formula: Formula = {
+      tag: "Pred",
+      ident: "P",
+      args: [{ tag: "Var", ident: "x" }],
+    };
+
+    const history = new TopHistory();
+
+    history.insertConstant("P", {
+      tag: "Arr",
+      left: { tag: "Con", ident: "nat", args: [] },
+      right: { tag: "Prop" },
+    });
+    history.insertConstant("x", { tag: "Prop" });
+
+    const command: TopCmd = { tag: "Theorem", name: "thm", formula };
+
+    const loop = topLoop(history);
+
+    loop.next();
+
+    const res = loop.next(command);
+
+    expectErr(res.value);
+
+    expect(res.value.error).toEqual(
+      "Type mismatch: failed to unify nat and Prop"
+    );
+  });
+
+  test("not prop", () => {
+    const formula: Formula = {
+      tag: "Pred",
+      ident: "P",
+      args: [{ tag: "Var", ident: "x" }],
+    };
+
+    const history = new TopHistory();
+
+    history.insertConstant("P", {
+      tag: "Arr",
+      left: { tag: "Con", ident: "nat", args: [] },
+      right: { tag: "Con", ident: "nat", args: [] },
+    });
+    history.insertConstant("x", { tag: "Con", ident: "nat", args: [] });
+
+    const command: TopCmd = { tag: "Theorem", name: "thm", formula };
+
+    const loop = topLoop(history);
+
+    loop.next();
+
+    const res = loop.next(command);
+
+    expectErr(res.value);
+
+    expect(res.value.error).toEqual(
+      "Type mismatch: failed to unify nat and Prop"
+    );
+  });
+
+  test("too many argument on use", () => {
+    const idFormula: Formula = {
+      tag: "Imply",
+      left: { tag: "Pred", ident: "a", args: [] },
+      right: { tag: "Pred", ident: "a", args: [] },
+    };
+
+    const thmFormula: Formula = {
+      tag: "Imply",
+      left: {
+        tag: "Forall",
+        ident: "x",
+        body: { tag: "Pred", ident: "P", args: [{ tag: "Var", ident: "x" }] },
+      },
+      right: {
+        tag: "Forall",
+        ident: "x",
+        body: { tag: "Pred", ident: "P", args: [{ tag: "Var", ident: "x" }] },
+      },
+    };
+
+    const loop = topLoop(new TopHistory());
+
+    loop.next();
+
+    const cmds: TopCmd[] = [
+      { tag: "Theorem", name: "id", formula: idFormula },
+      { tag: "Apply", rule: { tag: "ImpR" } },
+      { tag: "Apply", rule: { tag: "I" } },
+      { tag: "Qed" },
+
+      { tag: "Theorem", name: "thm", formula: thmFormula },
+    ];
+    const lastCommand: TopCmd = {
+      tag: "Use",
+      thm: "id",
+      pairs: [
+        [
+          "a",
+          {
+            args: ["y"],
+            body: {
+              tag: "Forall",
+              ident: "x",
+              body: {
+                tag: "Pred",
+                ident: "P",
+                args: [{ tag: "Var", ident: "x" }],
+              },
+            },
+          },
+        ],
+      ],
+    };
+
+    for (const cmd of cmds) {
+      const res = loop.next(cmd);
+      expectOk(res.value);
+    }
+
+    const res = loop.next(lastCommand);
+
+    expectErr(res.value);
+
+    expect(res.value.error).toEqual(
+      "invalid use: too many number of arguments for a : Prop"
+    );
+  });
+
+  test("type error on use", () => {
+    const history = new TopHistory();
+
+    history.insertConstant("zero", { tag: "Con", ident: "nat", args: [] });
+    history.insertConstant("succ", {
+      tag: "Arr",
+      left: { tag: "Con", ident: "nat", args: [] },
+      right: { tag: "Con", ident: "nat", args: [] },
+    });
+
+    const induction = parseFormula(
+      "P(zero) → ∀n. (P(n) → P(succ(n))) → ∀n. P(n)"
+    );
+    expectOk(induction);
+
+    history.insertThm("nat_ind", induction.value, new ProofHistory([]));
+
+    history.insertConstant("Q", {
+      tag: "Arr",
+      left: { tag: "Con", ident: "bool", args: [] },
+      right: { tag: "Prop" },
+    });
+
+    const loop = topLoop(history);
+
+    const cmds: TopCmd[] = [
+      {
+        tag: "Theorem",
+        name: "thm",
+        formula: {
+          tag: "Pred",
+          ident: "Q",
+          args: [{ tag: "Var", ident: "x" }],
+        },
+      },
+    ];
+
+    const lastCommand: TopCmd = {
+      tag: "Use",
+      thm: "nat_ind",
+      pairs: [
+        [
+          "P",
+          {
+            args: ["x"],
+            body: {
+              tag: "Pred",
+              ident: "Q",
+              args: [{ tag: "Var", ident: "x" }],
+            },
+          },
+        ],
+      ],
+    };
+
+    loop.next();
+
+    for (const cmd of cmds) {
+      const res = loop.next(cmd);
+      expectOk(res.value);
+    }
+
+    const res = loop.next(lastCommand);
+
+    expectErr(res.value);
+    expect(res.value.error).toEqual(
+      "invalid use: Type mismatch: failed to unify bool and nat"
+    );
   });
 });

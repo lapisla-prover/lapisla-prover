@@ -1,4 +1,4 @@
-import { Ok, Result } from "./common";
+import { Err, Ok, Result } from "./common";
 
 export type Ident = string;
 
@@ -52,7 +52,10 @@ export type Judgement = {
   concls: Formula[];
 };
 
-export type Predicate = (args: Term[]) => Result<Formula, string>;
+export type Predicate = {
+  args: Ident[];
+  body: Formula;
+};
 
 export type ProofCmd =
   | { tag: "Apply"; rule: Rule }
@@ -544,7 +547,17 @@ export function substPreds(
 
       const pred = mapping.get(formula.ident);
 
-      return pred(formula.args);
+      if (pred.args.length !== formula.args.length) {
+        return Err("arity mismatch");
+      }
+
+      const predMapping = new Map();
+
+      for (let i = 0; i < formula.args.length; i++) {
+        predMapping.set(pred.args[i], formula.args[i]);
+      }
+
+      return Ok(substAllFormula(pred.body, predMapping));
     }
     case "Top":
     case "Bottom":
