@@ -68,7 +68,11 @@ export class RegistryService {
                 fileId_version: {
                     fileId: file.id,
                     version: snapshotInfo.version
-                }
+                },
+                isPublic: true
+            },
+            include: {
+                dependees: true
             }
         })
             .catch((err) => {
@@ -81,13 +85,13 @@ export class RegistryService {
                 return snapshot;
             })
             .finally(() => {});
-        if (!snapshot.isPublic) {
-            throw new HttpException('Snapshot not found', 404);
-        }
-        const dependenciesDb = await this.prisma.dependencies.findMany({
+        const dependenciesSnaps = await this.prisma.snapshots.findMany({
             where: {
-                dependerId: snapshot.id
-            }
+                id: {
+                    in: snapshot.dependees.map((dep) => dep.dependeeId),
+                },
+                isPublic: true
+            },
         })
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
@@ -96,65 +100,41 @@ export class RegistryService {
                 return dependencies;
             })
             .finally(() => {});
-        const dependencySnapshots = await this.prisma.users.findMany({
-            include: {
-                files: {
-                    include: {
-                        snapshots: {
-                            where: {
-                                id: {
-                                    in: dependenciesDb.map((dependency) => {
-                                        return dependency.dependeeId;
-                                    })
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((snapshots) => {
-                return snapshots;
-            })
-            .finally(() => {});
-        let dependencies: Dependency[] = [];
-        for (let userFileSnap of dependencySnapshots) {
-            for (let fileSnap of userFileSnap.files) {
-                for (let snap of fileSnap.snapshots) {
-                    dependencies.push({
-                        id: getSnapshotId(userFileSnap.name, fileSnap.name, snap.version),
-                        snapshot: {
-                            meta: {
-                                id: getSnapshotId(userFileSnap.name, fileSnap.name, snap.version),
-                                owner: userFileSnap.name,
-                                fileName: fileSnap.name,
-                                version: snap.version,
-                                createdAt: snap.createdAt.toISOString(),
-                            },
-                            content: snap.content
-                        }
-                    })
-                }
-            }
-        }
-        console.log(snapshotInfo);
-        console.log(dependencies);
-        console.log(dependenciesDb);
-        if (dependencies.length !== dependenciesDb.length) {
+        if (dependenciesSnaps.length !== snapshot.dependees.length) {
             return {
                 result: ProjectFetchResult.ResultEnum.Error,
-                error: 'Deleted dependency snapshot'
+                error: 'Deleted dependencies',
             }
+        }
+        const dependencies: Dependency[] = dependenciesSnaps.map((depSnap) => {
+            const snapInfo = getSnapshotInfoFromId(depSnap.snapshotId).match(
+                (info) => info,
+                () => {
+                    throw new Error('Invalid snapshot id');
+                }
+            );
+            return {
+                snapshot: {
+                    meta: {
+                        id: depSnap.snapshotId,
+                        owner: snapInfo.owner,
+                        fileName: snapInfo.fileName,
+                        version: snapInfo.version,
+                        registered: depSnap.isPublic,
+                        createdAt: depSnap.createdAt.toISOString(),
+                    },
+                    content: depSnap.content,
+                },
+                id: snapshot.snapshotId,
+            }
+        })
+        const project: Project = {
+            id: snapshot.snapshotId,
+            dependencies: dependencies,
         }
         return {
             result: ProjectFetchResult.ResultEnum.Ok,
-            ok: {
-                id: snapshotId,
-                dependencies: dependencies
-            }
+            ok: project,
         }
     }
 }
