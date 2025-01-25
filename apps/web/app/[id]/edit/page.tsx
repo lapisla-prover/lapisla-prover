@@ -194,7 +194,11 @@ export default function Edit() {
           defaultValue={`# Welcome to Lapisla! Write your proof here.`}
           onChange={(value: string | undefined, event) => {
             if (interacter) {
-              interacter.resetError();
+              // reset Error
+              const model = mainEditorRef.current.getModel();
+              if (model) {
+                monacoInstance.editor.setModelMarkers(model, "error", []);
+              }
             }
 
             if (value) {
@@ -218,7 +222,28 @@ export default function Edit() {
                     "\n at row " +
                     (errorloc.start.line + 1) +
                     ".";
-                  interacter.errormessage(msg, errorloc);
+
+                  interacter.setMessagesEditorContent(msg);
+
+                  const model = mainEditorRef.current.getModel();
+                  
+                  if (model) {
+                    monacoInstance.editor.setModelMarkers(
+                      model,
+                      "error",
+                      [
+                        {
+                          startLineNumber: errorloc.start.line + 1,
+                          startColumn: errorloc.start.column + 1,
+                          endLineNumber: errorloc.end.line + 1,
+                          endColumn: errorloc.end.column + 1,
+                          message: result.error.error.message,
+                          severity: monacoInstance.MarkerSeverity.Error,
+                        },
+                      ]
+                    );
+                  }
+
                 }
               }
 
