@@ -59,6 +59,8 @@ model tags {
   name      String
   snaps     tagSnaps[]
   createdAt DateTime @default(now())
+
+  @@unique([name])
 }
 
 model tagSnaps {

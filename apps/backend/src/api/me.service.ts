@@ -12,6 +12,7 @@ import { AbstractCodeAnalyzerService } from '../kernel/index';
 import { parse } from 'path';
 import { ValidationFailed } from '../kernel/index';
 import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
+import { Registration } from '../generated/openapi/model/registration';
 
 @Injectable()
 export class MeService {
@@ -564,5 +565,114 @@ export class MeService {
             }
         });
         return fileMetas;
+    }
+
+    public async updateTagsAndDescription(fileName: string, version: string, body: Registration, auth: string): Promise<null> {
+        let versionNumber: number;
+        try {
+            versionNumber = parseInt(version);
+        } catch (err) {
+            throw new HttpException('Invalid version', 400);
+        }
+        const userName = (
+            await this.auth.authenticate(auth)
+        )
+            .match(
+                user => user,
+                () => { throw new HttpException('Unauthorized', 401); }
+            );
+        const userId = await this.prisma.users.findUnique({
+            where: {
+                name: userName
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            })
+            .then((user) => {
+                if (!user) {
+                    throw new HttpException('User not found', 404);
+                }
+                return user.id;
+            })
+            .finally(() => {});
+        const file = await this.prisma.files.findUnique({
+            where: {
+                ownerId_name: {
+                    ownerId: userId,
+                    name: fileName
+                }
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            })
+            .then((file) => {
+                if (!file) {
+                    throw new HttpException('File not found', 404);
+                }
+                return file;
+            })
+            .finally(() => {});
+        const snapshot = await this.prisma.snapshots.findUnique({
+            where: {
+                fileId_version: {
+                    fileId: file.id,
+                    version: versionNumber
+                }
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            })
+            .then((snapshot) => {
+                if (!snapshot) {
+                    throw new HttpException('Snapshot not found', 404);
+                }
+                return snapshot;
+            })
+            .finally(() => {});
+        await this.prisma.tags.createMany({
+            data: body.tags.map(tag => {
+                return {
+                    name: tag
+                }
+            }),
+            skipDuplicates: true
+        })
+            .catch((err) => {
+                console.log(err);
+                throw new HttpException('Internal Error', 500);
+            });
+        const tags = await this.prisma.tags.findMany({
+            where: {
+                name: {
+                    in: body.tags
+                }
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            });
+        await this.prisma.snapshots.update({
+            where: {
+                id: snapshot.id
+            },
+            data: {
+                description: body.description,
+                tags: {
+                    deleteMany: {},
+                    create: tags.map(tag => {
+                        return {
+                            tagId: tag.id
+                        }
+                    })
+                }
+            }
+        })
+            .catch((err) => {
+                throw new HttpException('Internal Error', 500);
+            });
+        return null;
     }
 }
