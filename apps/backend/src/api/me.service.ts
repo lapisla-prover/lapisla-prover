@@ -194,6 +194,10 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
+        // saving exactly the same snapshot is not allowed
+        if (snapshots.length > 0 && snapshots[snapshots.length - 1].content === body.content) {
+            throw new HttpException('No changes', 400);
+        }
         const thisSnapshot = await this.prisma.snapshots.create({
             data: {
                 fileId: file.id,
