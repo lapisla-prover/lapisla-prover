@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/input";
 import { executeAll, step, undo, undoLocation, undoUntil } from "@/lib/editorEventHandler";
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
-import Editor, { useMonaco } from "@monaco-editor/react";
-import { Kernel } from "@repo/kernel/kernel";
 import { useKernel } from "@/lib/userKernel";
+import Editor, { useMonaco } from "@monaco-editor/react";
 import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
@@ -20,16 +19,18 @@ import {
   Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
-import { use, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const runtime = "edge";
 
 export default function Edit() {
-  const monaco = useMonaco();
+  const monacoInstance = useMonaco();
 
-  if (monaco) {
-    configureMonaco(monaco);
-  }
+  useEffect(() => {
+    if (monacoInstance) {
+      configureMonaco(monacoInstance);
+    }
+  }, [monacoInstance]);
 
   const kernel = useKernel();
 
@@ -42,8 +43,7 @@ export default function Edit() {
     kernel.reset();
     interacter.resetGoalEditorContent();
     interacter.resetHighlight();
-  }
-
+  };
 
   return (
     <div className="flex">
@@ -148,8 +148,8 @@ export default function Edit() {
               if (undoloc) {
                 if (isBefore(undoloc, kernel.lastLocation())) {
                   undoUntil(kernel, interacter, undoloc);
-                } 
-              } 
+                }
+              }
               setLatestProgram(value);
             }
           }
