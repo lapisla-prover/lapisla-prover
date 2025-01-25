@@ -13,7 +13,8 @@ import {
   MeService,
   RegistryService,
   SearchService,
-  TimelineService
+  TimelineService,
+  TagsService
 } from './api/api';
 import { PrismaService } from './prisma.service';
 import {
@@ -22,7 +23,8 @@ import {
   MeController,
   RegistryController,
   SearchController,
-  TimelineController
+  TimelineController,
+  TagsController
 } from './controllers/controllers';
 
 @Module({
@@ -38,7 +40,8 @@ import {
     TimelineService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
     { provide: AbstractAuthService, useClass: AuthService },
-    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
+    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
+    TagsService
   ],
   controllers: [
     FilesController,
@@ -46,7 +49,8 @@ import {
     MeController,
     RegistryController,
     SearchController,
-    TimelineController
+    TimelineController,
+    TagsController
   ],
 
 })
