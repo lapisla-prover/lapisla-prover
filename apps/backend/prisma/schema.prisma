@@ -55,3 +55,9 @@ model sessions {
 
   @@unique([sessionId])
 }
+
+model states {
+  id        String   @id @default(uuid())
+  state     String
+  createdAt DateTime @default(now())
+}

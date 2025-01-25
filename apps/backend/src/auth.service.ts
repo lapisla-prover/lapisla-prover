@@ -6,6 +6,10 @@ import { PrismaService } from "./prisma.service";
 export abstract class AbstractAuthService {
     constructor() {}
 
+    abstract saveState(state: string): Promise<string>;
+
+    abstract getState(state_id: string): Promise<string>;
+
     abstract newToken(userId: string): Promise<string>;
 
     abstract authenticate(token: string): Promise<Result<string, string>>;
@@ -15,6 +19,14 @@ export abstract class AbstractAuthService {
 export class MockAuthService extends AbstractAuthService {
     constructor() {
         super();
+    }
+
+    async saveState(state: string): Promise<string> {
+        return 'mockState';
+    }
+
+    async getState(state_id: string): Promise<string> {
+        return 'mockState';
     }
 
     async newToken(userId: string): Promise<string> {
@@ -35,6 +47,41 @@ export class AuthService extends AbstractAuthService {
         this.prisma = prismaService;
     }
 
+    async saveState(state: string): Promise<string> {
+        const state_id = await this.prisma.states.create({
+            data: {
+                state: state
+            }
+        });
+
+        return state_id.id;
+    }
+
+    async getState(state_id: string): Promise<string> {
+        console.log("getState");
+        console.log(state_id);
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+        await this.prisma.states.deleteMany({
+            where: {
+                createdAt: {
+                    lt: fiveMinutesAgo,
+                },
+            },
+        });
+
+        const state = await this.prisma.states.findUnique({
+            where: {
+                id: state_id
+            }
+        });
+        
+        if (state === null) {
+            return "";
+        }
+
+        return state.state;
+    }
 
     async newToken(userName: string): Promise<string> {
         const session = await this.prisma.sessions.create({
