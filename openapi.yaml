@@ -198,14 +198,16 @@ paths:
         - login
       summary: Login with GitHub
       responses:
-        '302':
-          description: Redirect to GitHub login page
-          headers:
-            Location:
-              description: URL of the GitHub login page
+        '200':
+          description: Redirect to GitHub OAuth
+          content:
+            application/json:
               schema:
-                type: string
-                format: uri
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
       operationId: loginWithGitHub
   /login/callback:
     get:
@@ -224,14 +226,16 @@ paths:
           schema:
             type: string
       responses:
-        '302':
-          description: Redirect to the app
-          headers:
-            Location:
-              description: URL of the app
+        '200':
+          description: Redirect to GitHub OAuth
+          content:
+            application/json:
               schema:
-                type: string
-                format: uri
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
       operationId: callbackGitHubOAuth
 
   /files/{userName}:

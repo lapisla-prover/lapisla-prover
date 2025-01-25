@@ -1,4 +1,5 @@
 export * from './dependency';
+export * from './loginWithGitHub200Response';
 export * from './privateFile';
 export * from './privateFileMeta';
 export * from './project';

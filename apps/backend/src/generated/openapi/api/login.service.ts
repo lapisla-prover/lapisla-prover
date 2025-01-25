@@ -15,6 +15,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
+import { LoginWithGitHub200Response } from '../model/loginWithGitHub200Response';
 import { Configuration } from '../configuration';
 import { COLLECTION_FORMATS } from '../variables';
 
@@ -50,7 +51,7 @@ export class LoginService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public callbackGitHubOAuth(code: string, state: string, ): Observable<AxiosResponse<any>>;
+    public callbackGitHubOAuth(code: string, state: string, ): Observable<AxiosResponse<LoginWithGitHub200Response>>;
     public callbackGitHubOAuth(code: string, state: string, ): Observable<any> {
         if (code === null || code === undefined) {
             throw new Error('Required parameter code was null or undefined when calling callbackGitHubOAuth.');
@@ -74,6 +75,7 @@ export class LoginService {
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
+            'application/json'
         ];
         const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         if (httpHeaderAcceptSelected != undefined) {
@@ -89,7 +91,7 @@ export class LoginService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<any>(`${this.basePath}/login/callback`,
+                return this.httpClient.get<LoginWithGitHub200Response>(`${this.basePath}/login/callback`,
                     {
                         params: queryParameters,
                         withCredentials: this.configuration.withCredentials,
@@ -105,7 +107,7 @@ export class LoginService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public loginWithGitHub(): Observable<AxiosResponse<any>>;
+    public loginWithGitHub(): Observable<AxiosResponse<LoginWithGitHub200Response>>;
     public loginWithGitHub(): Observable<any> {
         let headers = {...this.defaultHeaders};
 
@@ -113,6 +115,7 @@ export class LoginService {
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
+            'application/json'
         ];
         const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         if (httpHeaderAcceptSelected != undefined) {
@@ -128,7 +131,7 @@ export class LoginService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.get<any>(`${this.basePath}/login`,
+                return this.httpClient.get<LoginWithGitHub200Response>(`${this.basePath}/login`,
                     {
                         withCredentials: this.configuration.withCredentials,
                         headers: headers
