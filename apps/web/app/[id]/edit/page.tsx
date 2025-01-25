@@ -18,6 +18,7 @@ import {
   ChevronsUp,
   ChevronUp,
   Goal,
+  MessageSquare,
   Mic, Mountain, Search
 } from "lucide-react";
 import * as monaco from 'monaco-editor';
@@ -37,20 +38,21 @@ export default function Edit() {
   const kernel = useKernel();
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const messageEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [latestProgram, setLatestProgram] = useState<string>("");
   const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
   const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
 
   useEffect(() => {
-    if (mainEditorRef.current && goalEditorRef.current) {
-      setInteracter(new EditorInteracter(mainEditorRef, goalEditorRef));
+    if (mainEditorRef.current && goalEditorRef.current && messageEditorRef.current) {
+      setInteracter(new EditorInteracter(mainEditorRef, goalEditorRef, messageEditorRef));
     }
   }, [mainEditorRef.current, goalEditorRef.current]);
 
   const resetAll = () => {
     kernel.reset();
     interacter.resetGoalEditorContent();
-    interacter.resetHighlight();
+    interacter.resetGreenHighlight();
   };
 
   const updateEnv = () => {
@@ -155,15 +157,32 @@ export default function Edit() {
           options={{
             minimap: { enabled: true },
           }}
-          defaultValue={``}
+          defaultValue={`# Welcome to Lapisla! Write your proof here.`}
           onChange={(value: string | undefined, event) => {
+            if (interacter){
+              interacter.resetErrorHighlight();
+            }
+
             if (value) {
+              // Undo check
               const undoloc = undoLocation(latestProgram, value);
               if (undoloc) {
                 if (isBefore(undoloc, kernel.lastLocation())) {
                   undoUntil(kernel, interacter, undoloc);
                 }
               }
+
+              // Parse for Error check
+              const result = kernel.parse(value);
+
+              if (result.tag === "Err") {
+                const errorloc = result.error.error.loc;
+                if (interacter) {
+                  const msg = "Syntax Error:\n" + result.error.error.message + "\n at row " + (errorloc.start.line + 1) + "."
+                  interacter.errormessage(msg, errorloc);
+                }
+              }
+
               setLatestProgram(value);
             }
           }
@@ -171,7 +190,6 @@ export default function Edit() {
           onMount={(editor, monaco) => {
             mainEditorRef.current = editor;
           }
-
 
           }
         />
@@ -222,6 +240,32 @@ export default function Edit() {
           />
         </div>
 
+        <div className="flex items-center space-x-2">
+          <MessageSquare className="h-6 w-6 text-primary" />
+          <div className="text-2xl font-bold">Messages</div>
+        </div>
+
+        <div className="w-full h-32 border border-black text-red-500">
+
+          {/* Message Visualizer */}
+          <Editor
+            className="h-full w-full"
+            height="100%"
+
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              lineNumbers: "off",
+            }}
+
+            defaultValue={`Waiting start of proof...`}
+            onMount={(editor, monaco) => {
+              messageEditorRef.current = editor;
+            }
+            }
+          />
+        </div>
+
         {/* Environment Table */}
         <div className="flex items-center space-x-2">
           <Mountain className="h-6 w-6 text-primary" />
@@ -255,6 +299,12 @@ export default function Edit() {
           .green-highlight {
             background-color: rgba(144, 238, 144, 0.5);
           }
+
+          .error-highlight {
+            background-color: rgba(255, 192, 203, 0.5);
+            border-bottom: 1px solid red;
+          }
+            
         `}
       </style>
 

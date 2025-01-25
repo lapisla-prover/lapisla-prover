@@ -5,12 +5,16 @@ import { drawHighlight } from './drawHighlight';
 export class EditorInteracter {
   mainEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
   goalEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
-  highlightHistory: monaco.editor.IEditorDecorationsCollection[];
+  messageEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
+  greenHighlightHistory: monaco.editor.IEditorDecorationsCollection[];
+  errorHighlightHistory: monaco.editor.IEditorDecorationsCollection[];
 
-  constructor(mainEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, goalEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>) {
+  constructor(mainEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, goalEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, messageEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>) {
     this.mainEditorRef = mainEditorRef;
     this.goalEditorRef = goalEditorRef;
-    this.highlightHistory = [];
+    this.messageEditorRef = messageEditorRef;
+    this.greenHighlightHistory = [];
+    this.errorHighlightHistory = [];
   }
 
   getMainEditorContent(): string {
@@ -26,22 +30,28 @@ export class EditorInteracter {
     }
   }
 
+  setMessagesEditorContent(content: string): void {
+    if (this.messageEditorRef.current) {
+      this.messageEditorRef.current.setValue(content);
+    }
+  }
+
   resetGoalEditorContent(): void {
     if (this.goalEditorRef.current) {
       this.goalEditorRef.current.setValue("");
     }
   }
 
-  highlight(range: Range) {
+  greenHighlight(range: Range) {
     if (this.mainEditorRef.current) {
-      this.highlightHistory.push(drawHighlight(this.mainEditorRef.current, range));
+      this.greenHighlightHistory.push(drawHighlight(this.mainEditorRef.current, range, "green-highlight"));
     }
   }
 
-  removeHighlight(steps: number) {
+  removeGreenHighlight(steps: number) {
     if (this.mainEditorRef.current) {
       for (let i = 0; i < steps; i++) {
-        const highlight = this.highlightHistory.pop();
+        const highlight = this.greenHighlightHistory.pop();
         if (highlight) {
           highlight.clear();
         }
@@ -49,18 +59,36 @@ export class EditorInteracter {
     }
   }
 
-  resetHighlight() {
+  resetGreenHighlight() {
     if (this.mainEditorRef.current) {
-      this.highlightHistory.forEach((highlight) => {
+      this.greenHighlightHistory.forEach((highlight) => {
         highlight.clear();
       });
     }
 
-    this.highlightHistory = [];
+    this.greenHighlightHistory = [];
+  }
+
+  resetErrorHighlight() {
+    if (this.mainEditorRef.current) {
+      this.errorHighlightHistory.forEach((highlight) => {
+        highlight.clear();
+      });
+    }
+
+    this.errorHighlightHistory = [];
   }
 
   getHighlightHistory() {
-    return this.highlightHistory;
+    return this.greenHighlightHistory;
+  }
+
+  errormessage(message: string, range: Range) {
+    if (this.mainEditorRef.current) {
+      this.errorHighlightHistory.push(drawHighlight(this.mainEditorRef.current, range, "error-highlight", message));
+    }
+
+    this.setMessagesEditorContent(message);
   }
 
 }

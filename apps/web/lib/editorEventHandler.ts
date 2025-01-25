@@ -79,7 +79,7 @@ export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepR
         interacter.setGoalEditorContent("No goal. Proven!");
     }
 
-    interacter.highlight(firstCommand.loc);
+    interacter.greenHighlight(firstCommand.loc);
     return { tag: "Ok", value: { somethingExecuted: true } };
 }
 
@@ -94,7 +94,7 @@ export function undo(kernel: Kernel, interacter: EditorInteracter, steps: number
             interacter.setGoalEditorContent(formatProofState(kernel.getCurrentGoals()));
         }
     }
-    interacter.removeHighlight(1);
+    interacter.removeGreenHighlight(1);
 }
 
 
@@ -121,7 +121,7 @@ export function undoStep(kernel: Kernel, interacter: EditorInteracter) {
         interacter.setGoalEditorContent(formatProofState(kernel.getCurrentGoals()));
     }
 
-    interacter.removeHighlight(1);
+    interacter.removeGreenHighlight(1);
 }
 
 
