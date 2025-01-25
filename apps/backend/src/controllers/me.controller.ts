@@ -36,6 +36,22 @@ export class MeController {
 
     @Patch('files/:fileName/:version')
     async updateTagsAndDescription(@Param('fileName') fileName: string, @Param('version') version: string, @Body() body: Registration & {}, @Req() req: Request) {
+        if (typeof body.description !== 'string') {
+            throw new HttpException('description must be a string', 400);
+        }
+        if (!Array.isArray(body.tags)) {
+            throw new HttpException('tags must be an array of strings', 400);
+        }
+        for (const tag of body.tags) {
+            if (typeof tag !== 'string') {
+                throw new HttpException('tags must be an array of strings', 400);
+            }
+        }
+        return await this.meService.updateTagsAndDescription(fileName, version, body, req.cookies['session_id']);
+    }
+    
+    @Post('files/:fileName/:version/register')
+    async registerSnapshot(@Param('fileName') fileName: string, @Param('version') version: string, @Req() req: Request, @Body() body: Registration & {}) {
         let bodyIsOk = true;
         if (typeof body.description !== 'string') {
             bodyIsOk = false;
@@ -48,27 +64,11 @@ export class MeController {
                 bodyIsOk = false;
             }
         }
-        await this.meService.updateTagsAndDescription(fileName, version, body, req.cookies['session_id']);
+        const ret = await this.meService.registerMySnapshot(fileName, version, req.cookies['session_id']);
         if (bodyIsOk) {
             await this.meService.updateTagsAndDescription(fileName, version, body, req.cookies['session_id']);
         }
-        return;
-    }
-
-    @Post('files/:fileName/:version/register')
-    async registerSnapshot(@Param('fileName') fileName: string, @Param('version') version: string, @Req() req: Request, @Body() body: Registration & {}) {
-        if (typeof body.description !== 'string') {
-            throw new HttpException('description must be a string', 400);
-        }
-        if (!Array.isArray(body.tags)) {
-            throw new HttpException('tags must be an array of strings', 400);
-        }
-        for (const tag of body.tags) {
-            if (typeof tag !== 'string') {
-                throw new HttpException('tags must be an array of strings', 400);
-            }
-        }
-        return await this.meService.registerMySnapshot(fileName, version, req.cookies['session_id']);
+        return ret;
     }
 
     @Get('files/:fileName/:version')
