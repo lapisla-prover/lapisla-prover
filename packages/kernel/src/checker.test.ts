@@ -5,7 +5,7 @@ import { ProofHistory, TopHistory } from "./history";
 import { expectErr, expectOk } from "./test-util";
 import { Ok, Result } from "./common";
 import { initialEnv } from "./env";
-import { parseFormula } from "./parser";
+import { parseFormula, parseProgram } from "./parser";
 
 test("∀x.((P(x) ∨ Q())) ⊢ (∀x.(P(x)) ∨ Q()) can be proven", () => {
   const sampleAssms: Formula[] = [
@@ -949,5 +949,221 @@ describe("type checker", () => {
     expect(res.value.error).toEqual(
       "invalid use: Type mismatch: failed to unify bool and nat"
     );
+  });
+});
+
+describe("axiom and constant", () => {
+  test("eq", () => {
+    const program = `
+constant eq : 'a → 'a → prop
+axiom eq_refl : ∀x. eq(x, x)
+axiom eq_transport : ∀x. ∀y. (eq(x, y) → P(x) → P(y))
+
+Theorem eq_sym ∀x. ∀y. (eq(x, y) → eq(y, x))
+  apply ForallR x1
+  apply ForallR y1
+  apply ImpR
+  use eq_transport { P(x1) ↦ eq(x1, x) }
+  apply ForallL x1
+  apply ForallL y1
+  apply ImpL
+  apply PR 1
+  apply WR
+  apply I 
+  apply ImpL 
+  apply WL
+  apply PR 1
+  apply WR
+  use eq_refl 
+  apply ForallL x1 
+  apply I 
+  apply PL 1
+  apply WL
+  apply I
+qed
+
+Theorem eq_trans ∀x. ∀y. ∀ z. (eq(x, y) → eq(y, z) → eq(x, z))
+  apply ForallR x1
+  apply ForallR y1
+  apply ForallR z1
+  apply ImpR 
+  apply ImpR 
+  use eq_sym
+  apply ForallL x1
+  apply ForallL y1
+  apply ImpL 
+  apply WL
+  apply PR 1
+  apply WR
+  apply I 
+  use eq_transport { P(x) ↦ eq(x, z1) }
+  apply ForallL y1
+  apply ForallL x1
+  apply ImpL 
+  apply PL 1
+  apply WL
+  apply PL 1
+  apply WL
+  apply PR 1
+  apply WR
+  apply I
+  apply PL 1
+  apply WL
+  apply PL 2
+  apply WL
+  apply ImpL
+  apply PR 1
+  apply WR
+  apply I 
+  apply PL 1
+  apply WL
+  apply I
+qed
+`;
+    const cmds = parseProgram(program);
+    expectOk(cmds);
+
+    const history = new TopHistory();
+
+    const loop = topLoop(history);
+    loop.next();
+
+    for (const { cmd } of cmds.value) {
+      const res = loop.next(cmd);
+      expectOk(res.value);
+    }
+
+    const { thms, types } = history.top().env;
+
+    expect(thms.size).toEqual(4);
+
+    expect(thms.get("eq_refl")).toEqual({
+      tag: "Forall",
+      ident: "x",
+      body: {
+        tag: "Pred",
+        ident: "eq",
+        args: [
+          { tag: "Var", ident: "x" },
+          { tag: "Var", ident: "x" },
+        ],
+      },
+    });
+
+    expect(thms.get("eq_transport")).toEqual({
+      tag: "Forall",
+      ident: "x",
+      body: {
+        tag: "Forall",
+        ident: "y",
+        body: {
+          tag: "Imply",
+          left: {
+            tag: "Pred",
+            ident: "eq",
+            args: [
+              { tag: "Var", ident: "x" },
+              { tag: "Var", ident: "y" },
+            ],
+          },
+          right: {
+            tag: "Imply",
+            left: {
+              tag: "Pred",
+              ident: "P",
+              args: [{ tag: "Var", ident: "x" }],
+            },
+            right: {
+              tag: "Pred",
+              ident: "P",
+              args: [{ tag: "Var", ident: "y" }],
+            },
+          },
+        },
+      },
+    });
+
+    expect(thms.get("eq_sym")).toEqual({
+      tag: "Forall",
+      ident: "x",
+      body: {
+        tag: "Forall",
+        ident: "y",
+        body: {
+          tag: "Imply",
+          left: {
+            tag: "Pred",
+            ident: "eq",
+            args: [
+              { tag: "Var", ident: "x" },
+              { tag: "Var", ident: "y" },
+            ],
+          },
+          right: {
+            tag: "Pred",
+            ident: "eq",
+            args: [
+              { tag: "Var", ident: "y" },
+              { tag: "Var", ident: "x" },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(thms.get("eq_trans")).toEqual({
+      tag: "Forall",
+      ident: "x",
+      body: {
+        tag: "Forall",
+        ident: "y",
+        body: {
+          tag: "Forall",
+          ident: "z",
+          body: {
+            tag: "Imply",
+            left: {
+              tag: "Pred",
+              ident: "eq",
+              args: [
+                { tag: "Var", ident: "x" },
+                { tag: "Var", ident: "y" },
+              ],
+            },
+            right: {
+              tag: "Imply",
+              left: {
+                tag: "Pred",
+                ident: "eq",
+                args: [
+                  { tag: "Var", ident: "y" },
+                  { tag: "Var", ident: "z" },
+                ],
+              },
+              right: {
+                tag: "Pred",
+                ident: "eq",
+                args: [
+                  { tag: "Var", ident: "x" },
+                  { tag: "Var", ident: "z" },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(types.size).toEqual(1);
+
+    expect(types.get("eq")).toEqual({
+      tag: "Arr",
+      left: { tag: "Var", ident: "a" },
+      right: {
+        tag: "Arr",
+        left: { tag: "Var", ident: "a" },
+        right: { tag: "Prop" },
+      },
+    });
   });
 });

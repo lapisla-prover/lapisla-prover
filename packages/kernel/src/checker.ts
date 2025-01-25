@@ -415,12 +415,16 @@ export function* proofLoop(
         }
 
         for (const [ident, pred] of pairs) {
-          const predType = normalizeType(ctx.get(ident));
+          const rawType = ctx.get(ident);
 
-          if (predType === undefined) {
+          if (rawType === undefined) {
+            console.log(ctx);
+
             result = Err(`invalid use: unknown predicate ${ident}`);
             continue loop;
           }
+
+          const predType = normalizeType(rawType);
 
           let tmpType = predType;
 
@@ -574,12 +578,33 @@ export function* topLoop(
       }
 
       if (topCmd.tag === "Constant") {
-        result = Err("constant is unimplemented");
+        const { name, ty } = topCmd;
+
+        topHistory.insertConstant(name, ty);
+
+        result = Ok({ mode: "DeclareWait" });
+
         continue topMode;
       }
 
       if (topCmd.tag === "Axiom") {
-        result = Err("axiom is unimplemented");
+        const { name, formula } = topCmd;
+
+        const checkResult = checkFormula(
+          topHistory.top().env.types,
+          new Map(),
+          formula
+        );
+
+        if (checkResult.tag === "Err") {
+          result = Err(checkResult.error);
+          continue topMode;
+        }
+
+        topHistory.insertAxiom(name, formula);
+
+        result = Ok({ mode: "DeclareWait" });
+
         continue topMode;
       }
 
