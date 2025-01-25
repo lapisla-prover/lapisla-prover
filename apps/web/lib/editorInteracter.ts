@@ -69,7 +69,7 @@ export class EditorInteracter {
     this.greenHighlightHistory = [];
   }
 
-  resetErrorHighlight() {
+  resetError() {
     if (this.mainEditorRef.current) {
       this.errorHighlightHistory.forEach((highlight) => {
         highlight.clear();
@@ -77,6 +77,7 @@ export class EditorInteracter {
     }
 
     this.errorHighlightHistory = [];
+    this.setMessagesEditorContent("");
   }
 
   getHighlightHistory() {
