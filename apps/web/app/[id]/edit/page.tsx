@@ -23,7 +23,7 @@ import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { formatFormula } from "@repo/kernel/ast";
-import { Env } from "@repo/kernel/env";
+import { Env, initialEnv } from "@repo/kernel/env";
 import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
@@ -62,7 +62,7 @@ export default function Edit() {
   );
   const [latestProgram, setLatestProgram] = useState<string>("");
   const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
-  const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
+  const [globalenv, setGlobalEnv] = useState<Env>(initialEnv());
 
   useEffect(() => {
     if (
