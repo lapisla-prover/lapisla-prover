@@ -9,7 +9,7 @@ export class LoginController {
     @Get()
     async login(@Res() res: Response) {
         const {state_id, url} = await this.loginService.loginWithGitHub();
-        res.cookie('state_id', state_id, { httpOnly: true });
+        res.cookie('state_id', state_id, { httpOnly: true , maxAge: 300000 });
         res.redirect(url);
     }
 
