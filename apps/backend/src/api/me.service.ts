@@ -14,6 +14,7 @@ import { ValidationFailed } from '../kernel/index';
 import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
 import { Registration } from '../generated/openapi/model/registration';
 import { UserInfo } from '../generated/openapi/model/userInfo';
+import { isValidTag } from '../utils';
 
 @Injectable()
 export class MeService {
@@ -491,7 +492,8 @@ export class MeService {
                 id: snapshot.id
             },
             data: {
-                isPublic: true
+                isPublic: true,
+                registeredAt: new Date()
             }
         })
             .catch((err) => {
@@ -576,7 +578,7 @@ export class MeService {
         return fileMetas;
     }
 
-    public async updateTagsAndDescription(fileName: string, version: string, body: Registration, auth: string): Promise<null> {
+    public async updateTagsAndDescription(fileName: string, version: string, body: Registration, auth: string): Promise<SnapshotMeta> {
         let versionNumber: number;
         try {
             versionNumber = parseInt(version);
@@ -584,7 +586,7 @@ export class MeService {
             throw new HttpException('Invalid version', 400);
         }
         for (let tag of body.tags) {
-            if (!this.isValidTag(tag)) {
+            if (!isValidTag(tag)) {
                 throw new HttpException('Invalid tag', 400);
             }
         }
@@ -687,7 +689,14 @@ export class MeService {
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
             });
-        return null;
+        return {
+            id: snapshot.snapshotId,
+            owner: userName,
+            fileName: fileName,
+            version: versionNumber,
+            registered: snapshot.isPublic,
+            createdAt: snapshot.createdAt.toISOString()
+        }
     }
 
     async getMyUser(auth: string): Promise<UserInfo> {
@@ -702,10 +711,5 @@ export class MeService {
                 },
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-    }
-
-    private isValidTag(tag: string): boolean {
-        const regex = /^[a-zA-Z0-9-]+$/;
-        return regex.test(tag);
     }
 }
