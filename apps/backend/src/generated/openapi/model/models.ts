@@ -13,3 +13,4 @@ export * from './snapshot';
 export * from './snapshotMeta';
 export * from './sourceCodeWrapper';
 export * from './timelineEntry';
+export * from './userInfo';
