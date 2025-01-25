@@ -3,8 +3,20 @@
 import { SideMenu } from "@/components/sidemenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { executeAll, step, undo, undoLocation, undoUntil } from "@/lib/editorEventHandler";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  executeAll,
+  step,
+  undo,
+  undoLocation,
+  undoUntil,
+} from "@/lib/editorEventHandler";
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
@@ -18,9 +30,11 @@ import {
   ChevronsUp,
   ChevronUp,
   Goal,
-  Mic, Mountain, Search
+  Mic,
+  Mountain,
+  Search,
 } from "lucide-react";
-import * as monaco from 'monaco-editor';
+import * as monaco from "monaco-editor";
 import { useEffect, useRef, useState } from "react";
 
 export const runtime = "edge";
@@ -35,8 +49,12 @@ export default function Edit() {
   }, [monacoInstance]);
 
   const kernel = useKernel();
-  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
+    null
+  );
+  const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
+    null
+  );
   const [latestProgram, setLatestProgram] = useState<string>("");
   const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
   const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
@@ -55,18 +73,17 @@ export default function Edit() {
 
   const updateEnv = () => {
     setGlobalEnv(kernel.currentglobalEnv());
-  }
+  };
 
   return (
     <div className="flex">
-
       <SideMenu />
 
-
       <div className="w-[80%] p-4 space-y-4">
-
         <div className="flex justify-between items-end">
-          <div className="text-2xl font-bold g-4 p-4">abap34/simplest-sort.l</div>
+          <div className="text-3xl font-bold g-4 p-4 font-monaco">
+            abap34/simplest-sort.l
+          </div>
           <div className="text-gray-500">Last saved 2 minutes ago</div>
         </div>
 
@@ -74,22 +91,17 @@ export default function Edit() {
         <div className="border-b border-gray-300"></div>
 
         <div className="flex justify-end items-center">
-
-
           <div className="flex">
-
             {/* Up Button */}
             <Button
               variant="ghost"
               size="sm"
               className="p-1"
               title="Move Up"
-              onClick={
-                () => {
-                  undo(kernel, interacter, 1);
-                }
-              }>
-
+              onClick={() => {
+                undo(kernel, interacter, 1);
+              }}
+            >
               <ChevronUp className="h-4 w-4" />
             </Button>
 
@@ -99,15 +111,10 @@ export default function Edit() {
               size="sm"
               className="p-1"
               title="Move Down"
-              onClick={
-                () => {
-                  step(
-                    kernel,
-                    interacter
-                  );
-                  updateEnv();
-                }
-              }
+              onClick={() => {
+                step(kernel, interacter);
+                updateEnv();
+              }}
             >
               <ChevronDown className="h-4 w-4" />
             </Button>
@@ -120,12 +127,10 @@ export default function Edit() {
               title="Move to Top"
               onClick={() => {
                 resetAll();
-              }
-              }
+              }}
             >
               <ChevronsUp className="h-4 w-4" />
             </Button>
-
 
             {/* Down all button */}
             <Button
@@ -137,8 +142,7 @@ export default function Edit() {
                 resetAll();
                 executeAll(kernel, interacter);
                 updateEnv();
-              }
-              }
+              }}
             >
               <ChevronsDown className="h-4 w-4" />
             </Button>
@@ -151,7 +155,6 @@ export default function Edit() {
           height={"calc(100vh - 200px)"}
           theme="vs"
           language="lapisla"
-
           options={{
             minimap: { enabled: true },
           }}
@@ -166,14 +169,10 @@ export default function Edit() {
               }
               setLatestProgram(value);
             }
-          }
-          }
+          }}
           onMount={(editor, monaco) => {
             mainEditorRef.current = editor;
-          }
-
-
-          }
+          }}
         />
       </div>
 
@@ -200,15 +199,12 @@ export default function Edit() {
         </div>
 
         <div className="w-full h-64 border border-black">
-
-
           {/* Goal Visualizer */}
           <Editor
             className="h-full w-full"
             height="100%"
             theme="vs"
             language="proof-state"
-
             options={{
               readOnly: true,
               minimap: { enabled: false },
@@ -217,8 +213,7 @@ export default function Edit() {
             defaultValue={`Waiting start of proof...`}
             onMount={(editor, monaco) => {
               goalEditorRef.current = editor;
-            }
-            }
+            }}
           />
         </div>
 
@@ -246,9 +241,6 @@ export default function Edit() {
             })}
           </TableBody>
         </Table>
-
-
-
       </div>
       <style>
         {`
@@ -257,10 +249,6 @@ export default function Edit() {
           }
         `}
       </style>
-
     </div>
-
-
   );
 }
-
