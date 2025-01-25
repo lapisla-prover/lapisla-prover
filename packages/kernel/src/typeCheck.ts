@@ -1,19 +1,17 @@
 import { Formula, Ident, Term, Type } from "./ast";
 import { Err, Ok, reduceResult, Result, traverseResult } from "./common";
 
-export type Signature = Map<string, Type>;
-
 const newTVar: () => Type = (() => {
   let cnt = 0;
   return () => ({ tag: "Var", ident: `α${cnt++}` });
 })();
 
-function occurs(v: Ident, type: Type): boolean {
+function occurIn(v: Ident, type: Type): boolean {
   switch (type.tag) {
     case "Prop":
       return false;
     case "Con":
-      return type.args.some((arg) => occurs(v, arg));
+      return type.args.some((arg) => occurIn(v, arg));
     case "Var":
       return type.ident === v;
   }
@@ -53,14 +51,14 @@ function unify(type1: Type, type2: Type): Result<void, string> {
   }
 
   if (type1.tag === "Var") {
-    if (occurs(type1.ident, type2)) {
+    if (occurIn(type1.ident, type2)) {
       return Err(`Recursive type`);
     }
     Object.assign(type1, type2);
     return Ok();
   }
   if (type2.tag === "Var") {
-    if (occurs(type2.ident, type1)) {
+    if (occurIn(type2.ident, type1)) {
       return Err(`Recursive type`);
     }
     Object.assign(type2, type1);
@@ -90,6 +88,25 @@ function matchArr(funcTy: Type, argTy: Type): Result<Type, string> {
   }
 
   return Err(`Expected function type`);
+}
+
+function freshenTVars(type: Type): Type {
+  const newTVars = new Map<Ident, Type>();
+
+  function rec(type: Type): Type {
+    switch (type.tag) {
+      case "Var":
+        return newTVars[type.ident] ?? (newTVars[type.ident] = newTVar());
+      case "Con":
+        return { tag: "Con", ident: type.ident, args: type.args.map(rec) };
+      case "Arr":
+        return { tag: "Arr", left: rec(type.left), right: rec(type.right) };
+      case "Prop":
+        return { tag: "Prop" };
+    }
+  }
+
+  return rec(type);
 }
 
 export function inferTerm(
@@ -137,50 +154,62 @@ export function inferTerm(
   }
 }
 
+// check if the given formula has type Prop
 export function checkFormula(
-  sig: Signature,
-  env: Record<Ident, Type>,
-  formula: Formula,
-  type: Type
-): Result<void, string> {
-  const inferred = inferFormula(sig, env, formula);
-  if (inferred.tag === "Err") {
-    return inferred;
-  }
-}
-
-export function inferFormula(
-  sig: Signature,
+  sig: Map<string, Type>,
   env: Record<Ident, Type>,
   formula: Formula
-): Result<Type, string> {
+): Result<void, string> {
   switch (formula.tag) {
-    case "Pred":
-      throw new Error("Not implemented");
+    case "Pred": {
+      let pTy: Type;
+      if (sig.has(formula.ident)) {
+        pTy = freshenTVars(sig.get(formula.ident));
+      } else {
+        pTy = newTVar();
+        sig.set(formula.ident, pTy);
+      }
+
+      const retTy = reduceResult(
+        (acc, arg) => {
+          const argTy = inferTerm(env, arg);
+          if (argTy.tag === "Err") {
+            return argTy;
+          }
+          return matchArr(acc, argTy.value);
+        },
+        pTy,
+        formula.args
+      );
+
+      if (retTy.tag === "Err") {
+        return retTy;
+      }
+      if (retTy.value.tag !== "Prop") {
+        return Err(`Type mismatch`);
+      }
+      return Ok();
+    }
     case "Top":
     case "Bottom":
-      return Ok({ tag: "Prop" });
+      return Ok();
     case "And":
     case "Or":
     case "Imply": {
-      const leftRes = checkFormula(sig, env, formula.left, { tag: "Prop" });
+      const leftRes = checkFormula(sig, env, formula.left);
       if (leftRes.tag === "Err") {
         return leftRes;
       }
-      const rightRes = checkFormula(sig, env, formula.right, { tag: "Prop" });
+      const rightRes = checkFormula(sig, env, formula.right);
       if (rightRes.tag === "Err") {
         return rightRes;
       }
-      return Ok({ tag: "Prop" });
+      return Ok();
     }
     case "Forall":
     case "Exist": {
       const newEnv = { ...env, [formula.ident]: newTVar() };
-      const bodyRes = checkFormula(sig, newEnv, formula.body, { tag: "Prop" });
-      if (bodyRes.tag === "Err") {
-        return bodyRes;
-      }
-      return Ok({ tag: "Prop" });
+      return checkFormula(sig, newEnv, formula.body);
     }
   }
 }
