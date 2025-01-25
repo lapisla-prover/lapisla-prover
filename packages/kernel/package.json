@@ -12,7 +12,9 @@
     "./checker": "./src/checker.ts",
     "./common": "./src/common.ts",
     "./parser": "./src/parser.ts",
-    "./kernel": "./src/kernel.ts"
+    "./kernel": "./src/kernel.ts",
+    "./history": "./src/history.ts",
+    "./env": "./src/env.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

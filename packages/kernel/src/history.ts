@@ -89,4 +89,15 @@ export class TopHistory {
     }
     return Ok(this.steps.pop()!);
   }
+
+  allTheorem(): TopStep[] {
+    const result: TopStep[] = [];
+    for (const step of this.steps) {
+        if (step.tag === "Theorem") {
+            result.push(step);
+        }
+    }
+
+    return result;
+}
 }
