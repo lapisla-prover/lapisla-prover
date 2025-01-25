@@ -57,6 +57,7 @@ export type TopStep =
       env: TopEnv;
     }
   | { tag: "Constant"; name: string; ty: Type; env: TopEnv }
+  | { tag: "Axiom"; name: string; formula: Formula; env: TopEnv }
   | { tag: "Other"; env: TopEnv };
 
 export class TopHistory {
@@ -85,6 +86,13 @@ export class TopHistory {
     return new_env;
   }
 
+  // Insert axiom to current environment and push it to stack.
+  insertAxiom(name: Ident, formula: Formula): TopEnv {
+    const new_env = insertThm(this.top().env, name, formula);
+    this.steps.push({ tag: "Axiom", name, formula, env: new_env });
+    return new_env;
+  }
+
   // Get current step (top of stack)
   top(): TopStep {
     return this.steps.at(-1);
@@ -101,11 +109,11 @@ export class TopHistory {
   allTheorem(): TopStep[] {
     const result: TopStep[] = [];
     for (const step of this.steps) {
-        if (step.tag === "Theorem") {
-            result.push(step);
-        }
+      if (step.tag === "Theorem") {
+        result.push(step);
+      }
     }
 
     return result;
-}
+  }
 }

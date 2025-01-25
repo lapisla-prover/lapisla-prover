@@ -174,17 +174,27 @@ export function inferTerm(
       return Ok(ty);
     }
     case "Abs": {
-      const newCtx = new Map(ctx);
+      const oldCtx = new Map(ctx);
+
       const paramTys = term.idents.map((ident) => [ident, newTVar()] as const);
-      paramTys.forEach(([ident, ty]) => newCtx.set(ident, ty));
-      const retTy = inferTerm(sig, newCtx, term.body);
+      paramTys.forEach(([ident, ty]) => ctx.set(ident, ty));
+
+      const retTy = inferTerm(sig, ctx, term.body);
       if (retTy.tag === "Err") {
         return retTy;
       }
+
       const ty = paramTys.reduceRight<Type>(
         (acc, [_, paramTys]) => ({ tag: "Arr", left: paramTys, right: acc }),
         retTy.value
       );
+
+      paramTys.forEach(([ident, _]) =>
+        oldCtx.has(ident)
+          ? ctx.set(ident, oldCtx.get(ident))
+          : ctx.delete(ident)
+      );
+
       return Ok(ty);
     }
     case "App": {
@@ -264,9 +274,19 @@ export function checkFormula(
     }
     case "Forall":
     case "Exist": {
-      const newCtx = new Map(ctx);
-      newCtx.set(formula.ident, newTVar());
-      return checkFormula(sig, newCtx, formula.body);
+      const oldType: Type | undefined = ctx.get(formula.ident);
+
+      ctx.set(formula.ident, newTVar());
+
+      const checkResult = checkFormula(sig, ctx, formula.body);
+
+      if (oldType === undefined) {
+        ctx.delete(formula.ident);
+      } else {
+        ctx.set(formula.ident, oldType);
+      }
+
+      return checkResult;
     }
   }
 }
