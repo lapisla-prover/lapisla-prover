@@ -15,8 +15,7 @@ import { Ok } from "./common.ts";
 describe("tokenize", () => {
   test("head spaces", () => {
     const tokens = tokenize("   a");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Ident",
         ident: "a",
@@ -31,8 +30,7 @@ describe("tokenize", () => {
 
   test("skip comment", () => {
     const tokens = tokenize("a # comment\nb");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Ident",
         ident: "a",
@@ -52,8 +50,7 @@ describe("tokenize", () => {
 
   test("∀x.((P(x) ∨ Q())) can be tokenized", () => {
     const tokens = tokenize("∀x.((P(x) ∨ Q()))");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Forall",
         loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 1 } },
@@ -125,9 +122,8 @@ describe("tokenize", () => {
     ]);
   });
   test("all symbols can be tokenized", () => {
-    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:=>{}");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    const tokens = tokenize("∀∃λ.,⊤⊥∧∨→⊢:↦{}");
+    expect(tokens).toEqual([
       {
         tag: "Forall",
         loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 1 } },
@@ -177,27 +173,26 @@ describe("tokenize", () => {
         loc: { start: { line: 0, column: 11 }, end: { line: 0, column: 12 } },
       },
       {
-        tag: "Arrow",
-        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 14 } },
+        tag: "Mapsto",
+        loc: { start: { line: 0, column: 12 }, end: { line: 0, column: 13 } },
       },
       {
         tag: "LBrace",
-        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
+        loc: { start: { line: 0, column: 13 }, end: { line: 0, column: 14 } },
       },
       {
         tag: "RBrace",
-        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 16 } },
+        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
       },
       {
         tag: "EOF",
-        loc: { start: { line: 0, column: 16 }, end: { line: 0, column: 16 } },
+        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 15 } },
       },
     ]);
   });
   test("identifiers can be tokenized", () => {
     const tokens = tokenize("a20 b_2 lambda");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Ident",
         ident: "a20",
@@ -222,8 +217,7 @@ describe("tokenize", () => {
 
   test("keywords can be tokenized", () => {
     const tokens = tokenize("apply Theorem qed apply2 use");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Keyword",
         name: "apply",
@@ -258,8 +252,7 @@ describe("tokenize", () => {
 
   test("integers can be tokenized", () => {
     const tokens = tokenize("123abc123");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Int",
         value: 123,
@@ -279,8 +272,7 @@ describe("tokenize", () => {
 
   test("correct location", () => {
     const tokens = tokenize("aaa\n\n   bbb ccc\nppp");
-    expectOk(tokens);
-    expect(tokens.value).toEqual([
+    expect(tokens).toEqual([
       {
         tag: "Ident",
         ident: "aaa",
@@ -304,6 +296,32 @@ describe("tokenize", () => {
       {
         tag: "EOF",
         loc: { start: { line: 3, column: 3 }, end: { line: 3, column: 3 } },
+      },
+    ]);
+  });
+  test("error token", () => {
+    const tokens = tokenize("a b c % d");
+
+    expect(tokens).toEqual([
+      {
+        tag: "Ident",
+        ident: "a",
+        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 1 } },
+      },
+      {
+        tag: "Ident",
+        ident: "b",
+        loc: { start: { line: 0, column: 2 }, end: { line: 0, column: 3 } },
+      },
+      {
+        tag: "Ident",
+        ident: "c",
+        loc: { start: { line: 0, column: 4 }, end: { line: 0, column: 5 } },
+      },
+      {
+        tag: "ERROR",
+        message: "unexpected character '%'",
+        loc: { start: { line: 0, column: 6 }, end: { line: 0, column: 7 } },
       },
     ]);
   });
@@ -380,18 +398,21 @@ describe("parser", () => {
       const str = "f(x";
       const term = parseTerm(str);
       expectErr(term);
-      expect(term.error).toEqual(
-        "expected RParen but got EOF (while parsing function application)"
-      );
+      expect(term.error).toEqual({
+        message:
+          "expected RParen but got EOF (while parsing function application)",
+        loc: { start: { line: 0, column: 3 }, end: { line: 0, column: 3 } },
+      });
     });
 
     test("misplaced comma", () => {
       const str = "λ x. f(x, g(y,))";
       const term = parseTerm(str);
       expectErr(term);
-      expect(term.error).toEqual(
-        "expected term but got unexpected token RParen at 0:14"
-      );
+      expect(term.error).toEqual({
+        message: "expected term but got unexpected token RParen",
+        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 15 } },
+      });
     });
   });
 
@@ -781,10 +802,9 @@ qed
     });
   });
   test("predicate", () => {
-    const str = "P(x, y) => Q(f(x, g(y), x)) ∧ R";
+    const str = "P(x, y) ↦ Q(f(x, g(y), x)) ∧ R";
     const tokens = tokenize(str);
-    expectOk(tokens);
-    const pred = new Parser(tokens.value).parsePredicate();
+    const pred = new Parser(tokens).parsePredicate();
     expectOk(pred);
     expect(pred.value[0]).toEqual("P");
     const result = pred.value[1]([
@@ -827,12 +847,11 @@ qed
     });
   });
   test("predicates", () => {
-    const str = "{ P(x, y) => A → B, Q(x) => R }";
+    const str = "{ P(x, y) ↦ A → B, Q(x) ↦ R }";
 
     const tokens = tokenize(str);
-    expectOk(tokens);
 
-    const preds = new Parser(tokens.value).parsePredicates();
+    const preds = new Parser(tokens).parsePredicates();
 
     expectOk(preds);
     expect(preds.value).toHaveLength(2);
@@ -874,7 +893,7 @@ Theorem id P → P
 qed
 
 Theorem thm ∀x.P(x) → ∀x.P(x)
-  use id { P => ∀x. P(x) }
+  use id { P ↦ ∀x. P(x) }
   apply I
 qed
 `;
@@ -946,7 +965,7 @@ qed
           thm: "id",
           pairs: [["P", pred]],
         },
-        loc: { start: { line: 7, column: 2 }, end: { line: 7, column: 26 } },
+        loc: { start: { line: 7, column: 2 }, end: { line: 7, column: 25 } },
       },
       {
         cmd: { tag: "Apply", rule: { tag: "I" } },
@@ -957,5 +976,92 @@ qed
         loc: { start: { line: 9, column: 0 }, end: { line: 9, column: 3 } },
       },
     ]);
+  });
+
+  describe("parse error", () => {
+    test("unknown rule", () => {
+      const program = `
+Theorem id P → P
+  apply ImpR
+  apply ImR
+  apply I
+qed
+`;
+      const result = parseProgram(program);
+
+      expectErr(result);
+      expect(result.error.cmds).toEqual<CmdWithLoc[]>([
+        {
+          cmd: {
+            tag: "Theorem",
+            name: "id",
+            formula: {
+              tag: "Imply",
+              left: { tag: "Pred", ident: "P", args: [] },
+              right: { tag: "Pred", ident: "P", args: [] },
+            },
+          },
+          loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 16 } },
+        },
+        {
+          cmd: { tag: "Apply", rule: { tag: "ImpR" } },
+          loc: { start: { line: 2, column: 2 }, end: { line: 2, column: 12 } },
+        },
+      ]);
+      expect(result.error.error).toEqual({
+        message: "unknown rule ImR",
+        loc: { start: { line: 3, column: 8 }, end: { line: 3, column: 11 } },
+      });
+    });
+
+    test("unfinished program", () => {
+      const program = `
+Theorem thm P
+  use thm2 { P(x, y
+`;
+      const result = parseProgram(program);
+
+      expectErr(result);
+      expect(result.error.cmds).toEqual<CmdWithLoc[]>([
+        {
+          cmd: {
+            tag: "Theorem",
+            name: "thm",
+            formula: { tag: "Pred", ident: "P", args: [] },
+          },
+          loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 13 } },
+        },
+      ]);
+      expect(result.error.error).toEqual({
+        message: "expected RParen but got EOF",
+        loc: { start: { line: 3, column: 0 }, end: { line: 3, column: 0 } },
+      });
+    });
+
+    test("broken formula", () => {
+      const program = `
+Theorem thm P
+  use thm2 { P(x, y) ↦ Q ∀x. R(x, y) }
+  apply I
+qed
+`;
+      const result = parseProgram(program);
+
+      expectErr(result);
+      expect(result.error.cmds).toEqual<CmdWithLoc[]>([
+        {
+          cmd: {
+            tag: "Theorem",
+            name: "thm",
+            formula: { tag: "Pred", ident: "P", args: [] },
+          },
+          loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 13 } },
+        },
+      ]);
+      expect(result.error.error).toEqual({
+        message: "expected RBrace but got unexpected token Forall",
+        loc: { start: { line: 2, column: 25 }, end: { line: 2, column: 26 } },
+      });
+    });
   });
 });
