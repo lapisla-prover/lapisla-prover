@@ -16,6 +16,7 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
 import { PrivateFileMeta } from '../model/privateFileMeta';
+import { RegisterMySnapshot201Response } from '../model/registerMySnapshot201Response';
 import { Snapshot } from '../model/snapshot';
 import { SnapshotMeta } from '../model/snapshotMeta';
 import { SourceCodeWrapper } from '../model/sourceCodeWrapper';
@@ -304,7 +305,7 @@ export class MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public registerMySnapshot(fileName: string, version: number, ): Observable<AxiosResponse<any>>;
+    public registerMySnapshot(fileName: string, version: number, ): Observable<AxiosResponse<RegisterMySnapshot201Response>>;
     public registerMySnapshot(fileName: string, version: number, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
             throw new Error('Required parameter fileName was null or undefined when calling registerMySnapshot.');
@@ -326,6 +327,7 @@ export class MeService {
         }
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
+            'application/json'
         ];
         const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         if (httpHeaderAcceptSelected != undefined) {
@@ -341,7 +343,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<any>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
+                return this.httpClient.post<RegisterMySnapshot201Response>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
                     null,
                     {
                         withCredentials: this.configuration.withCredentials,

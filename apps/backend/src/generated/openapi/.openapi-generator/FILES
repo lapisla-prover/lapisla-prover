@@ -18,6 +18,7 @@ model/project.ts
 model/projectFetchResult.ts
 model/publicFile.ts
 model/publicFileMeta.ts
+model/registerMySnapshot201Response.ts
 model/searchResult.ts
 model/snapshot.ts
 model/snapshotMeta.ts

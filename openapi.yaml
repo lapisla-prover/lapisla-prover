@@ -130,6 +130,14 @@ paths:
               schema:
                 type: string
                 format: uri
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+                    description: Whether the snapshot is registered
         '400':
           description: Invalid input
         '404':
