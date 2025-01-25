@@ -1,6 +1,6 @@
 import { Result } from "@repo/kernel/common";
 import { Kernel } from "@repo/kernel/kernel";
-import { CmdWithLoc, isAfter, Location } from "@repo/kernel/parser";
+import { CmdWithLoc, isAfter, Location, PartialProgram } from "@repo/kernel/parser";
 import { EditorInteracter } from "./editorInteracter";
 import { formatProofState } from "./format";
 
@@ -46,14 +46,14 @@ export function undoLocation(prev: string, next: string): Location | undefined {
 
 export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepResult, string> {
     const content = interacter.getMainEditorContent();
-    const commandsResult = kernel.parse(content);
+    const commandsResult: Result<CmdWithLoc[], PartialProgram> = kernel.parse(content);
 
-    if (commandsResult.tag !== "Ok") {
-        console.log("Failed to parse");
-        return { tag: "Err", error: "Failed to parse" };
+    const commands = commandsResult.tag === "Ok" ? commandsResult.value : commandsResult.error.cmds;
+
+    if (commandsResult.tag === "Err") {
+        const errorloc = commandsResult.error.error.loc;
+        console.log(`Error at ${errorloc.start.line}:${errorloc.start.column}`);
     }
-
-    const commands = commandsResult.value;
 
     if (commands.length === 0 || !commands[0]) {
         console.log("No command execute new.");
