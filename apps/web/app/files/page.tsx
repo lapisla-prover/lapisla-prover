@@ -1,6 +1,15 @@
 "use client";
 
+import { NewFile } from "@/components/newFile";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -11,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { Trash, Edit as EditIcon, FilePlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type File = {
@@ -21,10 +31,11 @@ type File = {
   updatedAt: string;
 };
 
-const user = "hoge";
+const user = "PonponJuice";
 
-export default function Edit() {
+export default function Files() {
   const [files, setFiles] = useState<File[]>([]);
+  const router = useRouter();
   useEffect(() => {
     const fetchFiles = async () => {
       try {
@@ -69,7 +80,10 @@ export default function Edit() {
                 key={file.fileName}
                 className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-200 truncate max-w-[300px]"
               >
-                <TableCell className="px-4 py-2 text-blue-800 font-semibold">
+                <TableCell
+                  className="px-4 py-2 text-blue-800 font-semibold"
+                  onClick={() => router.push(`/${file.fileName}/edit`)}
+                >
                   {file.fileName}
                 </TableCell>
                 <TableCell className="px-4 py-2 text-gray-800 whitespace-nowrap">
@@ -77,7 +91,10 @@ export default function Edit() {
                 </TableCell>
                 <TableCell className="px-4 py-2 text-gray-800 text-center whitespace-nowrap">
                   <div className="flex gap-2 justify-end items-center">
-                    <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white">
+                    <Button
+                      className="flex items-center gap-1 px-3 py-1 text-xs text-white"
+                      onClick={() => router.push(`/${file.fileName}/edit`)}
+                    >
                       Edit <EditIcon />
                     </Button>
                     <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white bg-red-500 hover:bg-red-600 rounded">
@@ -89,9 +106,7 @@ export default function Edit() {
             ))}
         </TableBody>
       </Table>
-      <Button className="flex items-center gap-1 px-4 py-2 m-2">
-        New File <FilePlus />
-      </Button>
+      <NewFile />
     </div>
   );
 }
