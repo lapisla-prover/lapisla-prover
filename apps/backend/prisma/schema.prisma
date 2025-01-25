@@ -73,3 +73,16 @@ model tagSnaps {
   @@index([tagId])
   @@index([snapDbId])
 }
+
+model sessions {
+  sessionId    String   @id @default(uuid())
+  value        String
+
+  @@unique([sessionId])
+}
+
+model states {
+  id        String   @id @default(uuid())
+  state     String
+  createdAt DateTime @default(now())
+}

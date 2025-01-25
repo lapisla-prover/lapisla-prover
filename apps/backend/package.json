@@ -30,7 +30,9 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.2.1",
+    "@types/cookie-parser": "^1.4.8",
     "axios": "^1.7.9",
+    "cookie-parser": "^1.4.7",
     "neverthrow": "^8.1.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
