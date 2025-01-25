@@ -102,3 +102,32 @@ test("nat induction", () => {
     args: [],
   });
 });
+
+test("forall", () => {
+  const formula = parseFormula("∀a. (P(a) → Q(a))");
+  expectOk(formula);
+
+  const sig: Map<Ident, Type> = new Map([
+    [
+      "P",
+      {
+        tag: "Arr",
+        left: { tag: "Con", ident: "nat", args: [] },
+        right: { tag: "Prop" },
+      },
+    ],
+  ]);
+  const ctx = new Map();
+
+  const res = checkFormula(sig, ctx, formula.value);
+
+  expectOk(res);
+
+  expect(ctx.size).toEqual(1);
+
+  expect(normalizeType(ctx.get("Q"))).toEqual({
+    tag: "Arr",
+    left: { tag: "Con", ident: "nat", args: [] },
+    right: { tag: "Prop" },
+  });
+});
