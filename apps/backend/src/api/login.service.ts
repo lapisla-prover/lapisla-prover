@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { HttpException, Injectable, Optional } from '@nestjs/common';
 import { AbstractAuthService } from '../auth.service';
 import axios from 'axios';
+import * as crypto from "crypto"
 
 type GithubAccessTokenResponse = {
     access_token: string;
