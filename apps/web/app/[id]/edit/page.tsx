@@ -202,6 +202,7 @@ export default function Edit() {
               const model = mainEditorRef.current.getModel();
               if (model) {
                 monacoInstance.editor.setModelMarkers(model, "error", []);
+                interacter.setMessagesEditorContent("");
               }
             }
 
