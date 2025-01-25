@@ -5,7 +5,7 @@ import { KernelState, topLoop } from "./checker";
 import { Result } from "./common";
 import { Env } from "./env";
 import { TopHistory } from "./history";
-import { CmdWithLoc, Location, parseProgram } from "./parser";
+import { CmdWithLoc, isAfter, Location, parseProgram, PartialProgram } from "./parser";
 
 export class Kernel {
     private tophistory: TopHistory;
@@ -37,11 +37,11 @@ export class Kernel {
         return this.lastLoc[this.lastLoc.length - 1];
     }
 
-    parse(input: string): Result<CmdWithLoc[], string> {
+    parse(input: string): Result<CmdWithLoc[], PartialProgram> {
         const program = parseProgram(input);
 
         if (program.tag === "Err") {
-            console.log(program.error);
+            console.log(program.error.error.message);
         }
         return program;
     }
