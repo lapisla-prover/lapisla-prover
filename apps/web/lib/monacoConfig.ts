@@ -5,7 +5,7 @@ export const configureMonaco = (monaco: Monaco) => {
 
     monaco.languages.setMonarchTokensProvider("lapisla", {
         defaultToken: "invalid",
-        keywords: ["Theorem", "qed", "apply"],
+        keywords: ["Theorem", "qed", "apply", "use"],
         operators: ["∧", "∨", "→", "⊤", "⊥", "∀", "∃", "λ", "⊢"],
         symbols: /[∀∃⊤⊥∧∨→λ\\,\.]/,
         tokenizer: {
@@ -42,7 +42,7 @@ export const configureMonaco = (monaco: Monaco) => {
     });
 
     monaco.languages.registerCompletionItemProvider("lapisla", {
-        provideCompletionItems: (model, position) => {
+        provideCompletionItems: (model, position, context, token) => {
             const word = model.getWordUntilPosition(position);
             const range = {
                 startLineNumber: position.lineNumber,
@@ -147,6 +147,14 @@ export const configureMonaco = (monaco: Monaco) => {
                     insertText: 'apply',
                     insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                     documentation: 'Apply rule',
+                    range: range
+                },
+                {
+                    label: 'use',
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: 'use',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Use hypothesis',
                     range: range
                 },
             ];
