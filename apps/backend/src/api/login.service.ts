@@ -45,8 +45,6 @@ export class LoginService {
         const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
         const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
-        console.log(`code: ${code}`);
-
         const accessToken: GithubAccessTokenResponse = await axios.post(
             `https://github.com/login/oauth/access_token?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${code}`,
             {
