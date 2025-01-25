@@ -24,6 +24,8 @@ async function handleCallback(router: any) {
     if (!response.ok) {
       throw new Error("認証処理に失敗しました。");
     }
+
+    window.location.href = "/files";
   } catch (error) {
     console.error("コールバック処理中にエラーが発生しました:", error);
     console.log(error);
