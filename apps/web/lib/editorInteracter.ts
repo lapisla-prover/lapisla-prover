@@ -63,6 +63,10 @@ export class EditorInteracter {
     return this.highlightHistory;
   }
 
+  errormessage(message: string, range: Range) {
+    console.log(message + " at " + range.start.line + ":" + range.start.column);
+  }
+
 }
 
 

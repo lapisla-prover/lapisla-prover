@@ -158,12 +158,23 @@ export default function Edit() {
           defaultValue={``}
           onChange={(value: string | undefined, event) => {
             if (value) {
+
+              // Undo check
               const undoloc = undoLocation(latestProgram, value);
               if (undoloc) {
                 if (isBefore(undoloc, kernel.lastLocation())) {
                   undoUntil(kernel, interacter, undoloc);
                 }
               }
+
+              // Parse for Error check
+              const result = kernel.parse(value);
+
+              if (result.tag === "Err") {
+                const errorloc = result.error.error.loc;
+                interacter.errormessage(result.error.error.message, errorloc);
+              }
+
               setLatestProgram(value);
             }
           }
