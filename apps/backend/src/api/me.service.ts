@@ -348,20 +348,20 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
-        const snapshots = await this.prisma.snapshots.findMany({
-            where: {
-                fileId: file.id
+        await this.prisma.snapshots.create({
+            data: {
+                fileId: file.id,
+                version: 0,
+                content: '# Welcome to Lapisla! Write your proof here.\n',
+                isPublic: false,
+                snapshotId: getSnapshotId(userName, fileName, 0)
             }
         })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
         return {
             owner: userName,
             fileName: fileName,
-            versions: snapshots.map(snapshot => snapshot.version),
-            registeredVersions: snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
+            versions: [0],
+            registeredVersions: [],
             createdAt: file.createdAt.toISOString(),
             updatedAt: file.createdAt.toISOString()
         };
