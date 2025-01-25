@@ -86,3 +86,31 @@ export class Kernel {
         return this.tophistory.top().env;
     }
 }
+
+// execute a program. 
+// if execute failed because of **internal** error, return Err with error message.
+// if execute finished successfully, return Ok.
+//    ATTENTION: This does not mean the program is correct. 
+//               If execute failed because of fail of proof, parser error, etc, return Ok with false.
+export function executeProgram(src: string): Result<boolean, string> {
+    const kernel = new Kernel();
+    const program = kernel.parse(src);
+
+    if (program.tag === "Err") {
+        return { tag: "Ok", value: false };
+    }
+
+    for (const cmd of program.value) {
+        const res = kernel.execute(cmd);
+        if (res.tag === "Err") {
+            return { tag: "Ok", value: false };
+        }
+    }
+
+    // proof is not finished
+    if (kernel.getCurrentMode().mode === "Proving") {
+        return { tag: "Ok", value: false };
+    }
+
+    return { tag: "Ok", value: true };
+}
