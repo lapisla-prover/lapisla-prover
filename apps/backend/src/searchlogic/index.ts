@@ -25,3 +25,22 @@ export abstract class AbstractSearchLogicService<ReturnType> {
         searchCandidate: SearchCandidate<ReturnType>[]
     ): Promise<ReturnType[]>;
 }
+
+@Injectable()
+export class MockSearchLogicService extends AbstractSearchLogicService<string> {
+    constructor(prismaService: PrismaService) {
+        super(prismaService);
+    }
+
+    async search(
+        query: string,
+        offset: number,
+        limit: number,
+        searchCandidate: SearchCandidate<string>[]
+    ): Promise<string[]> {
+        return searchCandidate
+            .filter(candidate => candidate.source.includes(query))
+            .slice(offset, offset + limit)
+            .map(candidate => candidate.returnVal);
+    }
+}
