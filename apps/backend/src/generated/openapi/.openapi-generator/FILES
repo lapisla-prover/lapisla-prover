@@ -13,6 +13,7 @@ configuration.ts
 git_push.sh
 index.ts
 model/dependency.ts
+model/loginWithGitHub200Response.ts
 model/models.ts
 model/privateFile.ts
 model/privateFileMeta.ts
