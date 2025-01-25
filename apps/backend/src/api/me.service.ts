@@ -13,6 +13,7 @@ import { parse } from 'path';
 import { ValidationFailed } from '../kernel/index';
 import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
 import { Registration } from '../generated/openapi/model/registration';
+import { UserInfo } from '../generated/openapi/model/userInfo';
 
 @Injectable()
 export class MeService {
@@ -685,12 +686,16 @@ export class MeService {
         return null;
     }
 
-    async getMyUser(auth: string): Promise<string> {
+    async getMyUser(auth: string): Promise<UserInfo> {
         return (
             await this.auth.authenticate(auth)
         )
             .match(
-                user => user,
+                user => {
+                    return {
+                        username: user
+                    }
+                },
                 () => { throw new HttpException('Unauthorized', 401); }
             );
     }
