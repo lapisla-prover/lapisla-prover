@@ -74,7 +74,7 @@ export default function Edit() {
         new EditorInteracter(mainEditorRef, goalEditorRef, messageEditorRef)
       );
     }
-  }, [mainEditorRef.current, goalEditorRef.current]);
+  }, [mainEditorRef.current, goalEditorRef.current, messageEditorRef.current]);
 
   const resetAll = () => {
     kernel.reset();
@@ -172,7 +172,7 @@ export default function Edit() {
           defaultValue={`# Welcome to Lapisla! Write your proof here.`}
           onChange={(value: string | undefined, event) => {
             if (interacter) {
-              interacter.resetErrorHighlight();
+              interacter.resetError();
             }
 
             if (value) {
@@ -227,7 +227,7 @@ export default function Edit() {
         </div>
 
         <Card className="p-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 py-2">
             <Goal className="h-6 w-6 text-primary" />
             <div className="text-2xl font-bold">Goal</div>
           </div>
@@ -253,7 +253,7 @@ export default function Edit() {
         </Card>
 
         <Card className="p-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2  py-2">
             <MessageSquare className="h-6 w-6 text-primary" />
             <div className="text-2xl font-bold">Messages</div>
           </div>
@@ -278,7 +278,7 @@ export default function Edit() {
 
         <Card className="p-4">
           {/* Environment Table */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2  py-2">
             <Mountain className="h-6 w-6 text-primary" />
             <div className="text-2xl font-bold">Environment</div>
           </div>
@@ -301,25 +301,6 @@ export default function Edit() {
               })}
             </TableBody>
           </Table>
-
-          <div className="w-full h-64">
-            {/* Goal Visualizer */}
-            <Editor
-              className="h-full w-full"
-              height="100%"
-              theme="vs"
-              language="proof-state"
-              options={{
-                readOnly: true,
-                minimap: { enabled: false },
-                lineNumbers: "off",
-              }}
-              defaultValue={`Waiting start of proof...`}
-              onMount={(editor, monaco) => {
-                goalEditorRef.current = editor;
-              }}
-            />
-          </div>
         </Card>
       </div>
       <style>
