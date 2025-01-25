@@ -2,7 +2,8 @@
 
 import { Judgement, TopCmd } from "./ast";
 import { KernelState, topLoop } from "./checker";
-import { Ok, Result } from "./common";
+import { Result } from "./common";
+import { Env } from "./env";
 import { TopHistory } from "./history";
 import { CmdWithLoc, isAfter, Location, parseProgram, PartialProgram } from "./parser";
 
@@ -16,7 +17,7 @@ export class Kernel {
         this.tophistory = new TopHistory();
         this.loop = topLoop(this.tophistory);
         this.loop.next(); // initialize
-        this.lastLoc = [{ line: 0, column: 0 }];    
+        this.lastLoc = [{ line: 0, column: 0 }];
     }
 
     reset(): void {
@@ -79,5 +80,9 @@ export class Kernel {
             this.currentState = res.value.value;
         }
         return res.value;
+    }
+
+    currentglobalEnv(): Env {
+        return this.tophistory.top().env;
     }
 }
