@@ -5,6 +5,7 @@ import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
 import { AbstractAuthService, MockAuthService } from './auth.service';
 import { JsonOnlyMiddleware } from './jsonOnly.middleware';
 import { MiddlewareConsumer } from '@nestjs/common/interfaces';
+import { AbstractSearchLogicService, MockSearchLogicService } from './searchlogic';
 
 import {
   FilesService,
@@ -33,7 +34,8 @@ import {
     RegistryService,
     SearchService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
-    { provide: AbstractAuthService, useClass: MockAuthService }
+    { provide: AbstractAuthService, useClass: MockAuthService },
+    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
   ],
   controllers: [
     FilesController,
