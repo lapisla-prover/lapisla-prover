@@ -4,7 +4,9 @@ import { Location, Range } from "@repo/kernel/parser";
 
 export function drawHighlight(
     editor: monaco.editor.IStandaloneCodeEditor,
-    range: Range
+    range: Range,
+    className: string,
+    hovermessage: string = ""
 ): monaco.editor.IEditorDecorationsCollection {
     return editor.createDecorationsCollection(
         [
@@ -17,9 +19,9 @@ export function drawHighlight(
                 },
                 options: {
                     isWholeLine: false,
-                    className: "green-highlight",
+                    className: className,
                     hoverMessage: {
-                        value: "This is a highlight",
+                        value: hovermessage,
                     },
                 },
             },

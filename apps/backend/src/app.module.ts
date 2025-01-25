@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { AbstractCodeAnalyzerService } from './kernel';
 import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
-import { AbstractAuthService, MockAuthService } from './auth.service';
+import { AbstractAuthService, AuthService } from './auth.service';
 import { JsonOnlyMiddleware } from './jsonOnly.middleware';
 import { MiddlewareConsumer } from '@nestjs/common/interfaces';
 import { AbstractSearchLogicService, MockSearchLogicService } from './searchlogic';
@@ -12,7 +12,8 @@ import {
   LoginService,
   MeService,
   RegistryService,
-  SearchService
+  SearchService,
+  TimelineService
 } from './api/api';
 import { PrismaService } from './prisma.service';
 import {
@@ -20,7 +21,8 @@ import {
   LoginController,
   MeController,
   RegistryController,
-  SearchController
+  SearchController,
+  TimelineController
 } from './controllers/controllers';
 
 @Module({
@@ -33,8 +35,9 @@ import {
     MeService,
     RegistryService,
     SearchService,
+    TimelineService,
     { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
-    { provide: AbstractAuthService, useClass: MockAuthService },
+    { provide: AbstractAuthService, useClass: AuthService },
     { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
   ],
   controllers: [
@@ -42,7 +45,8 @@ import {
     LoginController,
     MeController,
     RegistryController,
-    SearchController
+    SearchController,
+    TimelineController
   ],
 
 })

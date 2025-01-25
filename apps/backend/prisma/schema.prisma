@@ -36,6 +36,9 @@ model snapshots {
   content   String   @db.Text
   file      files    @relation(fields: [fileId], references: [id], onDelete: Cascade)
   dependees dependencies[]
+  tags      tagSnaps[]
+  registeredAt DateTime @default(now())
+  description String @db.Text @default("")
 
   @@unique([fileId, version])
   @@index([fileId])
@@ -49,4 +52,37 @@ model dependencies {
   depender   snapshots @relation(fields: [dependerId], references: [id], onDelete: Cascade)
 
   @@index([dependerId])
+}
+
+model tags {
+  id       String @id @default(uuid())
+  name      String
+  snaps     tagSnaps[]
+  createdAt DateTime @default(now())
+}
+
+model tagSnaps {
+  id      String @id @default(uuid())
+  tagId    String
+  snapDbId   String
+  createdAt DateTime @default(now())
+  tag      tags @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  snap     snapshots @relation(fields: [snapDbId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, snapDbId])
+  @@index([tagId])
+  @@index([snapDbId])
+}
+
+model sessions {
+  sessionId    String   @id @default(uuid())
+  value        String
+
+  @@unique([sessionId])
+}
+
+model states {
+  id        String   @id @default(uuid())
+  state     String
+  createdAt DateTime @default(now())
 }
