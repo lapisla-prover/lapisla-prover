@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, Save } from "lucide-react";
+import { Book, Folder, Home, Save } from "lucide-react";
 import { Register } from "@/components/register";
 import { Share } from "@/components/share";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,24 @@ export function SideMenu() {
         onClick={() => router.push("/")}
       >
         <Home className="h-6 w-6" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Files"
+        onClick={() => router.push("/files")}
+      >
+        <Folder className="h-6 w-6" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Document"
+        onClick={() => router.push("/")}
+      >
+        <Book className="h-6 w-6" />
       </Button>
 
       <Button variant="ghost" size="icon" title="Save">
