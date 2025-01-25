@@ -13,5 +13,6 @@
 
 export interface UserInfo { 
     username: string;
+    github_id?: number;
 }
 

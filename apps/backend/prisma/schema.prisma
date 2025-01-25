@@ -9,8 +9,9 @@ datasource db {
 }
 
 model users {
-  id    String  @id @default(uuid())
-  name  String  @unique
+  id        String  @id @default(uuid())
+  name      String  @unique
+  githubId  Int  @unique
   files files[]
 }
 

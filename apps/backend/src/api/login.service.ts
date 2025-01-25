@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { HttpException, Injectable, Optional } from '@nestjs/common';
 import { AbstractAuthService } from '../auth.service';
 import axios from 'axios';
+import * as crypto from 'crypto';
 
 type GithubAccessTokenResponse = {
     access_token: string;
@@ -72,11 +73,15 @@ export class LoginService {
         }).then((res) => res.data);
         
         const userName = user.login;
+        const githubId = user.id;
 
         await this.prisma.users.upsert({
             where: {name: userName},
             update: {},
-            create: {name: userName},
+            create: {
+                name: userName,
+                githubId: githubId,
+            },
         });
 
         const session_id = await this.auth.newToken(userName);
