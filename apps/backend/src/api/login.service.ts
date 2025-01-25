@@ -1,6 +1,6 @@
 import { PrismaService } from '../prisma.service';
 
-import { Injectable, Optional } from '@nestjs/common';
+import { HttpException, Injectable, Optional } from '@nestjs/common';
 import { AbstractAuthService } from '../auth.service';
 import axios from 'axios';
 
@@ -39,7 +39,7 @@ export class LoginService {
     public async callbackGitHubOAuth(code: string, state: string, state_id): Promise<{session_id: string, url: string}> {
         const session_state = await this.auth.getState(state_id);
         if (state !== session_state) {
-            throw new Error('Invalid state');
+            throw new HttpException('Invalid state', 400);
         }
 
         const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
@@ -59,7 +59,11 @@ export class LoginService {
                 token_type: param.get("token_type"),
                 scope: param.get("scope"),
             };
-        })
+        });
+
+        if (!accessToken.access_token) {
+            throw new HttpException("Invalid code", 400);
+        }
 
         const user: GithubUserResponse = await axios.get("https://api.github.com/user", {
             headers: {
