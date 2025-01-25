@@ -302,6 +302,10 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
+        const isValidFileName = /^[a-zA-Z0-9-]+$/.test(fileName);
+        if (!isValidFileName) {
+            throw new HttpException('Invalid file name', 400);
+        }
         const userId = await this.prisma.users.findUnique({
             where: {
                 name: userName
