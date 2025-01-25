@@ -14,7 +14,7 @@ export function formatRelativeTime(isoTimestamp: string): string {
     { unit: '年', value: 60 * 60 * 24 * 365 }, 
   ];
 
-  for (const { unit, value } of timeUnits) {
+  for (const { unit, value } of timeUnits.reverse()) {
     if (diffInSeconds >= value) {
       const diff = Math.floor(diffInSeconds / value);
       return `${diff} ${unit}前`;
