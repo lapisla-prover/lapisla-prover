@@ -36,7 +36,6 @@ export class TimelineService {
             }
         })
             .catch((err) => {
-                console.log(err);
                 throw new HttpException('Internal Error', 500);
             });
         const timelineEntries: TimelineEntry[] = latestSnapshots.map(snapshot => {
