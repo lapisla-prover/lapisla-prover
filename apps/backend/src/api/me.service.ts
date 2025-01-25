@@ -574,6 +574,11 @@ export class MeService {
         } catch (err) {
             throw new HttpException('Invalid version', 400);
         }
+        for (let tag of body.tags) {
+            if (!this.isValidTag(tag)) {
+                throw new HttpException('Invalid tag', 400);
+            }
+        }
         const userName = (
             await this.auth.authenticate(auth)
         )
@@ -674,5 +679,10 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             });
         return null;
+    }
+
+    private isValidTag(tag: string): boolean {
+        const regex = /^[a-zA-Z0-9-]+$/;
+        return regex.test(tag);
     }
 }
