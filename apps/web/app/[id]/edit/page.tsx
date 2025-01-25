@@ -86,6 +86,28 @@ export default function Edit() {
     setGlobalEnv(kernel.currentglobalEnv());
   };
 
+
+
+  useEffect(() => {
+    if (kernel && interacter) {
+      mainEditorRef.current.addCommand(
+        monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.DownArrow,
+        () => {
+          step(kernel, interacter);
+        }
+      );
+
+      mainEditorRef.current.addCommand(
+        monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.UpArrow,
+        () => {
+          undo(kernel, interacter, 1);
+        }
+      );
+    }
+  },
+    [kernel, interacter]
+  );
+
   return (
     <div className="flex">
       <SideMenu />
