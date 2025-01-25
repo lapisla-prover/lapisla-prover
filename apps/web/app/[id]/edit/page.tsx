@@ -35,13 +35,18 @@ export default function Edit() {
   }, [monacoInstance]);
 
   const kernel = useKernel();
-
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [latestProgram, setLatestProgram] = useState<string>("");
+  const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
   const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
 
-  const interacter = new EditorInteracter(mainEditorRef, goalEditorRef);
+  useEffect(() => {
+    if (mainEditorRef.current && goalEditorRef.current) {
+      setInteracter(new EditorInteracter(mainEditorRef, goalEditorRef));
+    }
+  }, [mainEditorRef.current, goalEditorRef.current]);
+
   const resetAll = () => {
     kernel.reset();
     interacter.resetGoalEditorContent();
