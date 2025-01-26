@@ -1,3 +1,8 @@
+<div style="text-align: center;">
+     <a href="README.md">English</a> | <a href="README_ja.md">日本語</a>
+</div>
+
+
 # lapisla-prover 🐶🐱
 
 **lapisla** is a Theorem proving...
