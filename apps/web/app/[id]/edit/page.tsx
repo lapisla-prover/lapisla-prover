@@ -22,6 +22,7 @@ import {
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { formatFormula } from "@repo/kernel/ast";
 import { Env, initialEnv } from "@repo/kernel/env";
@@ -54,6 +55,7 @@ const Edit: FC<EditProps> = ({ params }) => {
   const { account } = useAccount();
   const [versions, setVersions] = useState<number[]>([]);
   const [currentSnapshotId, setCurrentSnapshotId] = useState<string>("");
+  const [recentSavedTime, setRecentSavedTime] = useState<string>("");
 
   useEffect(() => {
     if (monacoInstance) {
@@ -128,6 +130,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         );
         const data = await response.json();
         setVersions([...data.versions]);
+        setRecentSavedTime(data.updatedAt);
       } catch (error) {
         console.error(error);
       }
@@ -163,6 +166,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         content={latestProgram}
         snapshotId={currentSnapshotId}
         setSnapshotId={setCurrentSnapshotId}
+        setRecentSavedTime={setRecentSavedTime}
       />
 
       <div className="w-[80%] p-4 space-y-4">
@@ -170,7 +174,9 @@ const Edit: FC<EditProps> = ({ params }) => {
           <div className="text-3xl text-gray-700 font-bold g-4 p-4 font-monaco">
             {account.username}/{id}
           </div>
-          <div className="text-gray-500">Last saved 2 minutes ago</div>
+          <div className="text-gray-500">
+            Last saved {formatRelativeTime(recentSavedTime)}
+          </div>
         </div>
 
         {/* 灰色の線 */}

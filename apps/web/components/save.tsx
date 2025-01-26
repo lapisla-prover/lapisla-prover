@@ -15,6 +15,7 @@ interface SaveProps {
   fileName: string;
   content: string;
   setSnapshotId: (snapshotId: string) => void;
+  setRecentSavedTime: (recentSavedTime: string) => void;
 }
 
 export const Save = (props: SaveProps) => {
@@ -44,6 +45,7 @@ export const Save = (props: SaveProps) => {
       if (data.saved) {
         setDialogHeader("New version saved");
         setDialogDescription(`Your new version is ${data.version}`);
+        props.setRecentSavedTime(data.createdAt);
       } else {
         setDialogHeader("New version was not saved");
         setDialogDescription("No changes were made");
