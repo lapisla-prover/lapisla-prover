@@ -18,7 +18,6 @@ export type StepResult = {
     somethingExecuted: boolean;
 };
 
-
 export function undoLocation(prev: string, next: string): Location | undefined {
     if (next.startsWith(prev)) {
         return undefined;
@@ -43,8 +42,7 @@ export function undoLocation(prev: string, next: string): Location | undefined {
     return undefined;
 }
 
-
-export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepResult, string> {
+export async function step(kernel: Kernel, interacter: EditorInteracter): Promise<Result<StepResult, string>> {
     if (!interacter) {
         return { tag: "Err", error: "No editor interacter." };
     }
@@ -70,14 +68,14 @@ export function step(kernel: Kernel, interacter: EditorInteracter): Result<StepR
         return { tag: "Ok", value: { somethingExecuted: false } };
     }
 
-    const result = kernel.execute(firstCommand);
+    const result = await kernel.execute(firstCommand);
 
     if (result.tag !== "Ok") {
         interacter.setMessagesEditorContent(
             `Execution Error:\n${result.error} \n at row ${firstCommand.loc.start.line + 1}.`
         );
         return { tag: "Err", error: result.error };
-    } 
+    }
 
     const proofHistory = result.value.proofHistory;
     if (proofHistory) {
@@ -104,10 +102,9 @@ export function undo(kernel: Kernel, interacter: EditorInteracter, steps: number
     interacter.removeGreenHighlight(1);
 }
 
-
-export function executeAll(kernel: Kernel, interacter: EditorInteracter) {
+export async function executeAll(kernel: Kernel, interacter: EditorInteracter) {
     while (true) {
-        const result = step(kernel, interacter);
+        const result = await step(kernel, interacter);
         if (result.tag === "Err") {
             console.log(result.error);
             break;
@@ -130,8 +127,6 @@ export function undoStep(kernel: Kernel, interacter: EditorInteracter) {
 
     interacter.removeGreenHighlight(1);
 }
-
-
 
 export function undoUntil(kernel: Kernel, interacter: EditorInteracter, loc: Location): void {
     while (isAfter(kernel.lastLocation(), loc)) {
