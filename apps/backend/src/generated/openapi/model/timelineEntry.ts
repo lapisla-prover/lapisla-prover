@@ -14,6 +14,7 @@
 export interface TimelineEntry { 
     id: string;
     owner: string;
+    ownerGithubId?: string;
     fileName: string;
     version: number;
     registeredAt: string;
