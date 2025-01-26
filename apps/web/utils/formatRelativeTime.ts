@@ -22,5 +22,5 @@ export function formatRelativeTime(isoTimestamp: string): string {
   }
 
   // 0 秒前の場合
-  return 'たった今';
+  return 'just now';
 }
