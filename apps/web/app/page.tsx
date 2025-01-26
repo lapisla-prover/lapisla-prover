@@ -57,7 +57,7 @@ export default function Home() {
       </div>
 
       {/* ログインボタン */}
-      <Button className="mt-6 sm:mt-8 flex items-center">
+      <Button className="mt-6 sm:mt-8 flex items-center" onClick={login}>
         Login with GitHub
         <img src="/mark-github.svg" alt="github-icon" className="ml-2 h-4 w-4 sm:h-6 sm:w-6" />
       </Button>
