@@ -13,7 +13,10 @@ async function bootstrap() {
     }
     app.use(cookieParser())
     app.enableCors({
-        origin: ['http://localhost:3001'],
+        origin: [
+            'http://localhost:3001',
+            'https://lapisla.net/'
+        ],
         allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
         credentials: true,
     });
