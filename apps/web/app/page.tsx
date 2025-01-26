@@ -1,3 +1,5 @@
+"use client";
+
 import Image, { type ImageProps } from "next/image";
 import { Button } from "@/components/ui/button";
 import { Book } from "lucide-react";
@@ -17,6 +19,18 @@ const ThemeImage = (props: Props) => {
     </>
   );
 };
+
+async function login() {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+      credentials: "include",
+    });
+    const data = await response.json();
+    window.location.href = data.url;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 export default function Home() {
   return (
@@ -40,7 +54,7 @@ export default function Home() {
           <Book className="m-2 h-8 w-8" />
         </a>
       </div>
-      <Button className="m-2">
+      <Button className="m-2" onClick={login}>
         Login with GitHub
         <img
           src="/mark-github.svg"

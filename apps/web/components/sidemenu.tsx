@@ -1,11 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { Book, Folder, Home, Save } from "lucide-react";
+import { Book, Folder, Home } from "lucide-react";
 import { Register } from "@/components/register";
 import { Share } from "@/components/share";
+import { Save } from "@/components/save";
 import { useRouter } from "next/navigation";
+import { useAccount } from "@/context/accountContext";
 
-export function SideMenu() {
+interface SideMenuProps {
+  fileName: string;
+  content: string;
+  version: number;
+  setRecentSavedTime: (recentSavedTime: string) => void;
+}
+
+export function SideMenu(props: SideMenuProps) {
   const router = useRouter();
+  const { account } = useAccount();
   return (
     <div className="left-0 top-0 h-screen bg-gray-100 w-24 flex flex-col items-center py-4 space-y-4">
       <Button
@@ -35,13 +45,19 @@ export function SideMenu() {
         <Book className="h-6 w-6" />
       </Button>
 
-      <Button variant="ghost" size="icon" title="Save">
-        <Save className="h-6 w-6" />
-      </Button>
+      <Save
+        fileName={props.fileName}
+        content={props.content}
+        setRecentSavedTime={props.setRecentSavedTime}
+      />
 
-      <Share />
+      <Share
+        owner={account.username}
+        fileName={props.fileName}
+        version={props.version}
+      />
 
-      <Register />
+      <Register fileName={props.fileName} />
     </div>
   );
 }
