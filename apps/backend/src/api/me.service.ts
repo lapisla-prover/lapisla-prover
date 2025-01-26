@@ -11,7 +11,8 @@ import { get } from 'http';
 import { AbstractCodeAnalyzerService } from '../kernel/index';
 import { parse } from 'path';
 import { ValidationFailed } from '../kernel/index';
-import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
+import { SnapshotRegisterResponse } from '../generated/openapi/model/snapshotRegisterResponse';
+import { SnapshotSaveResponse } from '../generated/openapi/model/snapshotSaveResponse';
 import { Registration } from '../generated/openapi/model/registration';
 import { UserInfo } from '../generated/openapi/model/userInfo';
 import { isValidTag } from '../utils';
@@ -145,7 +146,7 @@ export class MeService {
 
     }
 
-    public async uploadMySnapshot(fileName: string, body: SourceCodeWrapper, auth: string): Promise<SnapshotMeta> {
+    public async uploadMySnapshot(fileName: string, body: SourceCodeWrapper, auth: string): Promise<SnapshotSaveResponse> {
         const userName = (
             await this.auth.authenticate(auth)
         )
@@ -197,7 +198,17 @@ export class MeService {
             .finally(() => {});
         // saving exactly the same snapshot is not allowed
         if (snapshots.length > 0 && snapshots[snapshots.length - 1].content === body.content) {
-            throw new HttpException('No changes', 400);
+            return {
+                result: 'already_saved',
+                snapshot: {
+                    id: getSnapshotId(userName, fileName, snapshots.length - 1),
+                    owner: userName,
+                    fileName: fileName,
+                    version: snapshots.length - 1,
+                    registered: snapshots[snapshots.length - 1].isPublic,
+                    createdAt: snapshots[snapshots.length - 1].createdAt.toISOString()
+                }
+            }
         }
         const thisSnapshot = await this.prisma.snapshots.create({
             data: {
@@ -213,12 +224,15 @@ export class MeService {
             })
             .finally(() => {});
         return {
-            id: getSnapshotId(userName, fileName, snapshots.length),
-            owner: userName,
-            fileName: fileName,
-            version: thisSnapshot.version,
-            registered: false,
-            createdAt: thisSnapshot.createdAt.toISOString()
+            result: 'newly_saved',
+            snapshot: {
+                id: getSnapshotId(userName, fileName, snapshots.length),
+                owner: userName,
+                fileName: fileName,
+                version: thisSnapshot.version,
+                registered: false,
+                createdAt: thisSnapshot.createdAt.toISOString()
+            }
         };
     }
 
@@ -373,7 +387,7 @@ export class MeService {
         };
     }
 
-    public async registerMySnapshot(fileName: string, versionStr: string, auth: string): Promise<RegisterMySnapshot201Response> {
+    public async registerMySnapshot(fileName: string, versionStr: string, auth: string): Promise<SnapshotRegisterResponse> {
         let version: number;
         try {
             version = parseInt(versionStr);
@@ -438,6 +452,11 @@ export class MeService {
                 }
                 return snapshot;
             });
+        if (snapshot.isPublic) {
+            return {
+                result: 'already_registered'
+            }
+        }
         const dependencies = this.analyzer.listDirectDependencies(snapshot.content)
             .match(
                 (deps) => {
@@ -481,7 +500,7 @@ export class MeService {
         }));
         if (validationResult.kind === 'source_error') {
             return {
-                registered: false
+                result: 'invalid'
             }
         }
         else if (validationResult.kind === 'kernel_error') {
@@ -511,7 +530,7 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             });
         return {
-            registered: true
+            result: 'registered'
         };
     }
 

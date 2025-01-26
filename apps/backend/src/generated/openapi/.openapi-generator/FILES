@@ -21,11 +21,12 @@ model/project.ts
 model/projectFetchResult.ts
 model/publicFile.ts
 model/publicFileMeta.ts
-model/registerMySnapshot201Response.ts
 model/registration.ts
 model/searchResult.ts
 model/snapshot.ts
 model/snapshotMeta.ts
+model/snapshotRegisterResponse.ts
+model/snapshotSaveResponse.ts
 model/sourceCodeWrapper.ts
 model/timelineEntry.ts
 model/userInfo.ts

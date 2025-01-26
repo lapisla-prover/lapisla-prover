@@ -16,10 +16,11 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import { Observable, from, of, switchMap } from 'rxjs';
 import { PrivateFileMeta } from '../model/privateFileMeta';
-import { RegisterMySnapshot201Response } from '../model/registerMySnapshot201Response';
 import { Registration } from '../model/registration';
 import { Snapshot } from '../model/snapshot';
 import { SnapshotMeta } from '../model/snapshotMeta';
+import { SnapshotRegisterResponse } from '../model/snapshotRegisterResponse';
+import { SnapshotSaveResponse } from '../model/snapshotSaveResponse';
 import { SourceCodeWrapper } from '../model/sourceCodeWrapper';
 import { UserInfo } from '../model/userInfo';
 import { Configuration } from '../configuration';
@@ -353,7 +354,7 @@ export class MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public registerMySnapshot(fileName: string, version: number, registration?: Registration, ): Observable<AxiosResponse<RegisterMySnapshot201Response>>;
+    public registerMySnapshot(fileName: string, version: number, registration?: Registration, ): Observable<AxiosResponse<SnapshotRegisterResponse>>;
     public registerMySnapshot(fileName: string, version: number, registration?: Registration, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
             throw new Error('Required parameter fileName was null or undefined when calling registerMySnapshot.');
@@ -396,7 +397,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.post<RegisterMySnapshot201Response>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
+                return this.httpClient.post<SnapshotRegisterResponse>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}/${encodeURIComponent(String(version))}/register`,
                     registration,
                     {
                         withCredentials: this.configuration.withCredentials,
@@ -476,7 +477,7 @@ export class MeService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public uploadMySnapshot(fileName: string, sourceCodeWrapper?: SourceCodeWrapper, ): Observable<AxiosResponse<SnapshotMeta>>;
+    public uploadMySnapshot(fileName: string, sourceCodeWrapper?: SourceCodeWrapper, ): Observable<AxiosResponse<SnapshotSaveResponse>>;
     public uploadMySnapshot(fileName: string, sourceCodeWrapper?: SourceCodeWrapper, ): Observable<any> {
         if (fileName === null || fileName === undefined) {
             throw new Error('Required parameter fileName was null or undefined when calling uploadMySnapshot.');
@@ -515,7 +516,7 @@ export class MeService {
                     headers['Authorization'] = `Bearer ${accessToken}`;
                 }
 
-                return this.httpClient.patch<SnapshotMeta>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
+                return this.httpClient.patch<SnapshotSaveResponse>(`${this.basePath}/me/files/${encodeURIComponent(String(fileName))}`,
                     sourceCodeWrapper,
                     {
                         withCredentials: this.configuration.withCredentials,

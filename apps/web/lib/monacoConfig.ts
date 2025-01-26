@@ -11,6 +11,10 @@ export const configureMonaco = (monaco: Monaco) => {
         tokenizer: {
             root: [
                 [
+                    /"(?:[^\\"]|\\.)*"?/,
+                    "string",
+                ],
+                [
                     /[a-zA-Z_]\w*/,
                     {
                         cases: {

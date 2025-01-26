@@ -107,7 +107,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SnapshotMeta'
+                $ref: '#/components/schemas/SnapshotSaveResponse'
         '404':
           description: File not found
       security:
@@ -138,11 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  registered:
-                    type: boolean
-                    description: Whether the snapshot is registered
+                $ref: '#/components/schemas/SnapshotRegisterResponse'
         '400':
           description: Invalid input
         '404':
@@ -625,6 +621,25 @@ components:
           $ref: '#/components/schemas/SourceCode'
       required:
         - content
+    SnapshotSaveResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [newly_saved, already_saved]
+        snapshot:
+          $ref: '#/components/schemas/SnapshotMeta'
+      required:
+        - result
+        - snapshot
+    SnapshotRegisterResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [registered, already_registered, invalid]
+      required:
+        - result
     # search schemas
     SearchResult:
       type: object
