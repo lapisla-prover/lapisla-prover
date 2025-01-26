@@ -56,6 +56,7 @@ const Edit: FC<EditProps> = ({ params }) => {
   const [versions, setVersions] = useState<number[]>([]);
   const [currentSnapshotId, setCurrentSnapshotId] = useState<string>("");
   const [recentSavedTime, setRecentSavedTime] = useState<string>("");
+  const [isEditorMounted, setEditorMounted] = useState(false);
 
   useEffect(() => {
     if (monacoInstance) {
@@ -143,13 +144,14 @@ const Edit: FC<EditProps> = ({ params }) => {
       const fetchLatestProgram = async () => {
         try {
           const response2 = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}/${versions[versions.length - 1].toString()}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}/${Math.max(...versions).toString()}`,
             {
               credentials: "include",
             }
           );
           const data2 = await response2.json();
-          setLatestProgram(data2.content);
+          console.log(data2);
+          mainEditorRef.current?.setValue(data2.content);
           setCurrentSnapshotId(data2.meta.id);
         } catch (error) {
           console.error(error);
@@ -157,14 +159,14 @@ const Edit: FC<EditProps> = ({ params }) => {
       };
       fetchLatestProgram();
     }
-  }, [versions, id]);
+  }, [versions, id, isEditorMounted]);
 
   return (
     <div className="flex">
       <SideMenu
         fileName={id}
         content={latestProgram}
-        snapshotId={currentSnapshotId}
+        version={Math.max(...versions)}
         setSnapshotId={setCurrentSnapshotId}
         setRecentSavedTime={setRecentSavedTime}
       />
@@ -309,6 +311,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           }}
           onMount={(editor, monaco) => {
             mainEditorRef.current = editor;
+            setEditorMounted(true);
           }}
         />
       </div>
