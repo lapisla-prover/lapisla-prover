@@ -10,7 +10,6 @@ interface SideMenuProps {
   fileName: string;
   content: string;
   version: number;
-  setSnapshotId: (snapshotId: string) => void;
   setRecentSavedTime: (recentSavedTime: string) => void;
 }
 
@@ -49,7 +48,6 @@ export function SideMenu(props: SideMenuProps) {
       <Save
         fileName={props.fileName}
         content={props.content}
-        setSnapshotId={props.setSnapshotId}
         setRecentSavedTime={props.setRecentSavedTime}
       />
 
