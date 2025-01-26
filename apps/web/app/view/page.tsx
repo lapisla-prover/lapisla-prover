@@ -2,32 +2,75 @@
 import { Editor } from "@monaco-editor/react";
 import { FC, use, useEffect, useRef, useState } from "react";
 import * as monaco from "monaco-editor";
+import { getSnapshotInfoFromId } from "@/utils/parseSnapshot";
+import { useSearchParams } from "next/navigation";
 
 interface ViewProps {
   params: Promise<{
     id: string;
   }>;
 }
+type SnapshotInfo = {
+  owner: string;
+  fileName: string;
+  version: number;
+};
 
 const View: FC<ViewProps> = ({ params }) => {
-  const { id } = use(params);
-  const [fileName, setFileName] = useState<string>("");
-  const [userName, setUseName] = useState<string>("");
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id"); // クエリパラメータ `id` を取得
+  const [snapshotInfo, setSnapshotInfo] = useState<SnapshotInfo>({
+    owner: "",
+    fileName: "",
+    version: 0,
+  });
+  const [isEditorMounted, setEditorMounted] = useState(false);
 
-  const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
+  const viewEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
     null
   );
 
   useEffect(() => {
-    console.log(id);
-    // mainEditorRef.current?.setValue(data.content);
+    if (!id) return;
+    const result = getSnapshotInfoFromId(id);
+    if (result.isOk()) {
+      const { owner, fileName, version } = result.value;
+      setSnapshotInfo({ owner, fileName, version });
+    }
   }, [id]);
+
+  useEffect(() => {
+    const fetchSnapshot = async () => {
+      console.log(snapshotInfo);
+      if (
+        !snapshotInfo.owner ||
+        !snapshotInfo.fileName ||
+        !snapshotInfo.version
+      )
+        return;
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/files/${snapshotInfo.owner}/${snapshotInfo.fileName}/${snapshotInfo.version}`,
+          {
+            credentials: "include",
+          }
+        );
+        const data = await response.json();
+        console.log(data);
+        viewEditorRef.current?.setValue(data.content);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchSnapshot();
+  }, [snapshotInfo, isEditorMounted]);
+
   return (
     <div className="p-8 gap-8">
       <div className="w-[60%] p-4 space-y-4">
         <div className="flex justify-between items-end">
           <div className="text-2xl font-bold">
-            {userName}/{fileName}
+            {snapshotInfo.owner}/{snapshotInfo.fileName}
           </div>
         </div>
         <div className="h-0.5 w-full bg-black" />
@@ -41,7 +84,8 @@ const View: FC<ViewProps> = ({ params }) => {
           readOnly: true,
         }}
         onMount={(editor, monaco) => {
-          mainEditorRef.current = editor;
+          viewEditorRef.current = editor;
+          setEditorMounted(true);
         }}
       />
     </div>

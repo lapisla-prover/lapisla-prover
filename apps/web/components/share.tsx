@@ -8,13 +8,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ShareIcon, Clipboard } from "lucide-react";
+import { getSnapshotId } from "@/utils/parseSnapshot";
 
 interface SaveProps {
-  snapshotId: string;
+  owner: string;
+  fileName: string;
+  version: number;
 }
 
 export const Share = (props: SaveProps) => {
-  const permanentLink = `https://lapisla.net/view?id=${props.snapshotId}`;
+  const permanentLink = `https://lapisla.net/view?id=${getSnapshotId(props.owner, props.fileName, props.version)}`;
   return (
     <Dialog>
       <DialogTrigger asChild>
