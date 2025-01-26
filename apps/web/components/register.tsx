@@ -61,7 +61,6 @@ export const Register = (props: RegisterProps) => {
   }, []);
 
   const fetchContent = async (version: number) => {
-    console.log("fetch", version);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}/${version}`,

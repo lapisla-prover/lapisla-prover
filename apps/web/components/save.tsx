@@ -38,7 +38,6 @@ export const Save = (props: SaveProps) => {
         }
       );
       const data = await response.json();
-      console.log(data);
       if (data.result === "newly_saved") {
         setDialogHeader("New version saved");
         setDialogDescription(`Your new version is ${data.snapshot.version}`);

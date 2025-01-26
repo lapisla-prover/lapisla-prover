@@ -48,7 +48,6 @@ const View: FC<ViewProps> = ({ params }) => {
 
   useEffect(() => {
     const fetchSnapshot = async () => {
-      console.log(snapshotInfo);
       if (
         !snapshotInfo.owner ||
         !snapshotInfo.fileName ||
@@ -63,7 +62,6 @@ const View: FC<ViewProps> = ({ params }) => {
           }
         );
         const data = await response.json();
-        console.log(data);
         viewEditorRef.current?.setValue(data.content);
       } catch (error) {
         console.error(error);

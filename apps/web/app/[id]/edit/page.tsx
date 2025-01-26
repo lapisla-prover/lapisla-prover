@@ -150,7 +150,6 @@ const Edit: FC<EditProps> = ({ params }) => {
             }
           );
           const data2 = await response2.json();
-          console.log(data2);
           mainEditorRef.current?.setValue(data2.content);
           setCurrentSnapshotId(data2.meta.id);
         } catch (error) {
