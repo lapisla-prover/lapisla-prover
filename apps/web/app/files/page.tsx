@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAccount } from "@/context/accountContext";
+import { ensureFileExtension } from "@/utils/ensureFileExtension";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { Trash, Edit as EditIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -99,7 +100,7 @@ export default function Files() {
                       window.location.href = `/${file.fileName}/edit`;
                     }}
                   >
-                    {file.fileName}
+                    {ensureFileExtension(file.fileName)}
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-2 text-gray-800 whitespace-nowrap">
