@@ -22,6 +22,7 @@ import {
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
+import { ensureFileExtension } from "@/utils/ensureFileExtension";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { formatFormula } from "@repo/kernel/ast";
@@ -172,7 +173,7 @@ const Edit: FC<EditProps> = ({ params }) => {
       <div className="w-[80%] p-4 space-y-4">
         <div className="flex justify-between items-end">
           <div className="text-3xl text-gray-700 font-bold g-4 p-4 font-monaco">
-            {account.username}/{id}
+            {account.username}/{ensureFileExtension(id)}
           </div>
           <div className="text-gray-500">
             Last saved {formatRelativeTime(recentSavedTime)}
