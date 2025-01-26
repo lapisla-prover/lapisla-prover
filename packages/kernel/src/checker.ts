@@ -13,10 +13,13 @@ import {
   Predicate,
   Ident,
   substPreds,
+  Type,
+  formatType,
 } from "./ast.ts";
 import { Err, Ok, Result, deepEqual } from "./common.ts";
 import { ProofHistory, TopHistory } from "./history.ts";
 import { Env } from "./env.ts";
+import { checkFormula, normalizeType } from "./typeCheck.ts";
 
 export function judgeOne(
   rule: Rule,
@@ -403,6 +406,58 @@ export function* proofLoop(
 
         const thmFormula = env.thms.get(thm);
 
+        const ctx = new Map<Ident, Type>();
+        const checkResult = checkFormula(env.types, ctx, thmFormula);
+
+        if (checkResult.tag === "Err") {
+          result = Err("type error: " + checkResult.error);
+          continue loop;
+        }
+
+        for (const [ident, pred] of pairs) {
+          const rawType = ctx.get(ident);
+
+          if (rawType === undefined) {
+            console.log(ctx);
+
+            result = Err(`invalid use: unknown predicate ${ident}`);
+            continue loop;
+          }
+
+          const predType = normalizeType(rawType);
+
+          let tmpType = predType;
+
+          const innerCtx = new Map<Ident, Type>();
+
+          for (const arg of pred.args) {
+            if (tmpType.tag !== "Arr") {
+              result = Err(
+                `invalid use: too many number of arguments for ${ident} : ${formatType(predType)}`
+              );
+              continue loop;
+            }
+
+            innerCtx.set(arg, tmpType.left);
+
+            tmpType = tmpType.right;
+          }
+
+          if (tmpType.tag !== "Prop") {
+            result = Err(
+              `invalid use: insufficient number of arguments for ${ident} : ${formatType(predType)}`
+            );
+            continue loop;
+          }
+
+          const checkResult = checkFormula(env.types, innerCtx, pred.body);
+
+          if (checkResult.tag === "Err") {
+            result = Err("invalid use: " + checkResult.error);
+            continue loop;
+          }
+        }
+
         const mapping = new Map<Ident, Predicate>(pairs);
 
         const formula = substPreds(thmFormula, mapping);
@@ -476,6 +531,18 @@ export function* topLoop(
       if (topCmd.tag === "Theorem") {
         thmName = topCmd.name;
         thmFormula = topCmd.formula;
+
+        const checkResult = checkFormula(
+          topHistory.top().env.types,
+          new Map(),
+          thmFormula
+        );
+
+        if (checkResult.tag === "Err") {
+          result = Err(checkResult.error);
+          continue;
+        }
+
         proofHistory = new ProofHistory([{ assms: [], concls: [thmFormula] }]);
         result = Ok({ mode: "Proving", proofHistory });
         break topMode;
@@ -500,6 +567,44 @@ export function* topLoop(
         }
 
         result = Ok({ mode: "DeclareWait" });
+        continue topMode;
+      }
+
+      if (topCmd.tag === "Import") {
+        result = Err(
+          "Invalid command; do not send checker an import command directly! please import theorems via wrapper."
+        );
+        continue topMode;
+      }
+
+      if (topCmd.tag === "Constant") {
+        const { name, ty } = topCmd;
+
+        topHistory.insertConstant(name, ty);
+
+        result = Ok({ mode: "DeclareWait" });
+
+        continue topMode;
+      }
+
+      if (topCmd.tag === "Axiom") {
+        const { name, formula } = topCmd;
+
+        const checkResult = checkFormula(
+          topHistory.top().env.types,
+          new Map(),
+          formula
+        );
+
+        if (checkResult.tag === "Err") {
+          result = Err(checkResult.error);
+          continue topMode;
+        }
+
+        topHistory.insertAxiom(name, formula);
+
+        result = Ok({ mode: "DeclareWait" });
+
         continue topMode;
       }
 

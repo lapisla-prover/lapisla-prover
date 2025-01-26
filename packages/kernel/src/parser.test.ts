@@ -6,11 +6,11 @@ import {
   parseProgram,
   Parser,
   parseTerm,
+  parseType,
   tokenize,
 } from "./parser.ts";
 import { expectErr, expectOk } from "./test-util.ts";
-import { formatJudgement, TopCmd } from "./ast.ts";
-import { Ok } from "./common.ts";
+import { formatJudgement } from "./ast.ts";
 
 describe("tokenize", () => {
   test("head spaces", () => {
@@ -191,7 +191,7 @@ describe("tokenize", () => {
     ]);
   });
   test("identifiers can be tokenized", () => {
-    const tokens = tokenize("a20 b_2 lambda");
+    const tokens = tokenize("a20 b_2 lambda 'a '    tvar x'prop'use");
     expect(tokens).toEqual([
       {
         tag: "Ident",
@@ -209,8 +209,58 @@ describe("tokenize", () => {
         loc: { start: { line: 0, column: 8 }, end: { line: 0, column: 14 } },
       },
       {
+        tag: "TVar",
+        ident: "a",
+        loc: { start: { line: 0, column: 15 }, end: { line: 0, column: 17 } },
+      },
+      {
+        tag: "TVar",
+        ident: "tvar",
+        loc: { start: { line: 0, column: 18 }, end: { line: 0, column: 27 } },
+      },
+      {
+        tag: "Ident",
+        ident: "x",
+        loc: { start: { line: 0, column: 28 }, end: { line: 0, column: 29 } },
+      },
+      {
+        tag: "TVar",
+        ident: "prop",
+        loc: { start: { line: 0, column: 29 }, end: { line: 0, column: 34 } },
+      },
+      {
+        tag: "TVar",
+        ident: "use",
+        loc: { start: { line: 0, column: 34 }, end: { line: 0, column: 38 } },
+      },
+      {
         tag: "EOF",
-        loc: { start: { line: 0, column: 14 }, end: { line: 0, column: 14 } },
+        loc: { start: { line: 0, column: 38 }, end: { line: 0, column: 38 } },
+      },
+    ]);
+  });
+
+  test("string literal can be tokenized", () => {
+    const tokens = tokenize('aa "abc def/ghi@49" bb');
+    expect(tokens).toEqual([
+      {
+        tag: "Ident",
+        ident: "aa",
+        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 2 } },
+      },
+      {
+        tag: "String",
+        value: "abc def/ghi@49",
+        loc: { start: { line: 0, column: 3 }, end: { line: 0, column: 19 } },
+      },
+      {
+        tag: "Ident",
+        ident: "bb",
+        loc: { start: { line: 0, column: 20 }, end: { line: 0, column: 22 } },
+      },
+      {
+        tag: "EOF",
+        loc: { start: { line: 0, column: 22 }, end: { line: 0, column: 22 } },
       },
     ]);
   });
@@ -807,43 +857,36 @@ qed
     const pred = new Parser(tokens).parsePredicate();
     expectOk(pred);
     expect(pred.value[0]).toEqual("P");
-    const result = pred.value[1]([
-      { tag: "Var", ident: "a" },
-      {
-        tag: "App",
-        func: { tag: "Var", ident: "b" },
-        args: [{ tag: "Var", ident: "a" }],
+    expect(pred.value[1]).toEqual({
+      args: ["x", "y"],
+      body: {
+        tag: "And",
+        left: {
+          tag: "Pred",
+          ident: "Q",
+          args: [
+            {
+              tag: "App",
+              func: { tag: "Var", ident: "f" },
+              args: [
+                { tag: "Var", ident: "x" },
+                {
+                  tag: "App",
+                  func: { tag: "Var", ident: "g" },
+                  args: [
+                    {
+                      tag: "Var",
+                      ident: "y",
+                    },
+                  ],
+                },
+                { tag: "Var", ident: "x" },
+              ],
+            },
+          ],
+        },
+        right: { tag: "Pred", ident: "R", args: [] },
       },
-    ]);
-    expectOk(result);
-    expect(result.value).toEqual({
-      tag: "And",
-      left: {
-        tag: "Pred",
-        ident: "Q",
-        args: [
-          {
-            tag: "App",
-            func: { tag: "Var", ident: "f" },
-            args: [
-              { tag: "Var", ident: "a" },
-              {
-                tag: "App",
-                func: { tag: "Var", ident: "g" },
-                args: [
-                  {
-                    tag: "App",
-                    func: { tag: "Var", ident: "b" },
-                    args: [{ tag: "Var", ident: "a" }],
-                  },
-                ],
-              },
-              { tag: "Var", ident: "a" },
-            ],
-          },
-        ],
-      },
-      right: { tag: "Pred", ident: "R", args: [] },
     });
   });
   test("predicates", () => {
@@ -861,27 +904,18 @@ qed
     expect(pred1[0]).toEqual("P");
     expect(pred2[0]).toEqual("Q");
 
-    const result1 = pred1[1]([
-      { tag: "Var", ident: "a" },
-      { tag: "Var", ident: "b" },
-    ]);
-
-    expectOk(result1);
-
-    expect(result1.value).toEqual({
-      tag: "Imply",
-      left: { tag: "Pred", ident: "A", args: [] },
-      right: { tag: "Pred", ident: "B", args: [] },
+    expect(pred1[1]).toEqual({
+      args: ["x", "y"],
+      body: {
+        tag: "Imply",
+        left: { tag: "Pred", ident: "A", args: [] },
+        right: { tag: "Pred", ident: "B", args: [] },
+      },
     });
 
-    const result2 = pred2[1]([{ tag: "Var", ident: "a" }]);
-
-    expectOk(result2);
-
-    expect(result2.value).toEqual({
-      tag: "Pred",
-      ident: "R",
-      args: [],
+    expect(pred2[1]).toEqual({
+      args: ["x"],
+      body: { tag: "Pred", ident: "R", args: [] },
     });
   });
 
@@ -1063,5 +1097,335 @@ qed
         loc: { start: { line: 2, column: 25 }, end: { line: 2, column: 26 } },
       });
     });
+  });
+
+  describe("types", () => {
+    test("parse ident as constructor", () => {
+      const str = "nat";
+      const result = parseType(str);
+
+      expectOk(result);
+      expect(result.value).toEqual({ tag: "Con", ident: "nat", args: [] });
+    });
+
+    test("parse type application", () => {
+      const str = "result(nat, 'a)";
+      const result = parseType(str);
+
+      expectOk(result);
+      expect(result.value).toEqual({
+        tag: "Con",
+        ident: "result",
+        args: [
+          { tag: "Con", ident: "nat", args: [] },
+          { tag: "Var", ident: "a" },
+        ],
+      });
+    });
+
+    test("parse function type", () => {
+      const str = "('a → 'b → 'a) → 'a → list('b) → 'a";
+      const result = parseType(str);
+
+      expectOk(result);
+      expect(result.value).toEqual({
+        tag: "Arr",
+        left: {
+          tag: "Arr",
+          left: { tag: "Var", ident: "a" },
+          right: {
+            tag: "Arr",
+            left: { tag: "Var", ident: "b" },
+            right: { tag: "Var", ident: "a" },
+          },
+        },
+        right: {
+          tag: "Arr",
+          left: { tag: "Var", ident: "a" },
+          right: {
+            tag: "Arr",
+            left: {
+              tag: "Con",
+              ident: "list",
+              args: [{ tag: "Var", ident: "b" }],
+            },
+            right: { tag: "Var", ident: "a" },
+          },
+        },
+      });
+    });
+
+    test("type variables with same name should be same object", () => {
+      const str = "'a → 'a";
+      const result = parseType(str);
+
+      expectOk(result);
+      assert(result.value.tag === "Arr");
+
+      expect(result.value).toEqual({
+        tag: "Arr",
+        left: { tag: "Var", ident: "a" },
+        right: { tag: "Var", ident: "a" },
+      });
+
+      // equal as object
+      expect(result.value.left).toBe(result.value.right);
+    });
+  });
+
+  test("import", () => {
+    const program = `
+import "zer0-star/fermat-last-theorem@2"
+import "zer0-star/riemann-hypothesis@999"
+
+Theorem thm P
+qed
+`;
+    const result = parseProgram(program);
+
+    expectOk(result);
+    expect(result.value).toEqual<CmdWithLoc[]>([
+      {
+        cmd: {
+          tag: "Import",
+          name: "zer0-star/fermat-last-theorem@2",
+        },
+        loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 40 } },
+      },
+      {
+        cmd: {
+          tag: "Import",
+          name: "zer0-star/riemann-hypothesis@999",
+        },
+        loc: { start: { line: 2, column: 0 }, end: { line: 2, column: 41 } },
+      },
+      {
+        cmd: {
+          tag: "Theorem",
+          name: "thm",
+          formula: { tag: "Pred", ident: "P", args: [] },
+        },
+        loc: { start: { line: 4, column: 0 }, end: { line: 4, column: 13 } },
+      },
+      {
+        cmd: { tag: "Qed" },
+        loc: { start: { line: 5, column: 0 }, end: { line: 5, column: 3 } },
+      },
+    ]);
+  });
+
+  test("constant", () => {
+    const program = `
+constant zero : nat
+constant succ : nat → nat
+constant iszero : nat → prop
+constant fixed_point : (nat → nat) → nat
+`;
+    const result = parseProgram(program);
+
+    expectOk(result);
+    expect(result.value).toEqual<CmdWithLoc[]>([
+      {
+        cmd: {
+          tag: "Constant",
+          name: "zero",
+          ty: { tag: "Con", ident: "nat", args: [] },
+        },
+        loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 19 } },
+      },
+      {
+        cmd: {
+          tag: "Constant",
+          name: "succ",
+          ty: {
+            tag: "Arr",
+            left: { tag: "Con", ident: "nat", args: [] },
+            right: { tag: "Con", ident: "nat", args: [] },
+          },
+        },
+        loc: { start: { line: 2, column: 0 }, end: { line: 2, column: 25 } },
+      },
+      {
+        cmd: {
+          tag: "Constant",
+          name: "iszero",
+          ty: {
+            tag: "Arr",
+            left: { tag: "Con", ident: "nat", args: [] },
+            right: { tag: "Prop" },
+          },
+        },
+        loc: { start: { line: 3, column: 0 }, end: { line: 3, column: 28 } },
+      },
+      {
+        cmd: {
+          tag: "Constant",
+          name: "fixed_point",
+          ty: {
+            tag: "Arr",
+            left: {
+              tag: "Arr",
+              left: { tag: "Con", ident: "nat", args: [] },
+              right: { tag: "Con", ident: "nat", args: [] },
+            },
+            right: { tag: "Con", ident: "nat", args: [] },
+          },
+        },
+        loc: { start: { line: 4, column: 0 }, end: { line: 4, column: 40 } },
+      },
+    ]);
+  });
+
+  test("axiom", () => {
+    const program = `
+constant eq : 'a → 'a → prop
+
+constant zero : nat
+constant succ : nat → nat
+axiom nat_ind : P(zero) → ∀n. (P(n) → P(succ(n))) → ∀n. P(n)
+
+constant fixed_point : (nat → nat) → nat
+axiom fixed_point_def : ∀f. eq(fixed_point(f), f(fixed_point(f)))
+`;
+    const result = parseProgram(program);
+
+    expectOk(result);
+    expect(result.value).toEqual<CmdWithLoc[]>([
+      {
+        cmd: {
+          tag: "Constant",
+          name: "eq",
+          ty: {
+            tag: "Arr",
+            left: { tag: "Var", ident: "a" },
+            right: {
+              tag: "Arr",
+              left: { tag: "Var", ident: "a" },
+              right: { tag: "Prop" },
+            },
+          },
+        },
+        loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 28 } },
+      },
+      {
+        cmd: {
+          tag: "Constant",
+          name: "zero",
+          ty: { tag: "Con", ident: "nat", args: [] },
+        },
+        loc: { start: { line: 3, column: 0 }, end: { line: 3, column: 19 } },
+      },
+      {
+        cmd: {
+          tag: "Constant",
+          name: "succ",
+          ty: {
+            tag: "Arr",
+            left: { tag: "Con", ident: "nat", args: [] },
+            right: { tag: "Con", ident: "nat", args: [] },
+          },
+        },
+        loc: { start: { line: 4, column: 0 }, end: { line: 4, column: 25 } },
+      },
+      {
+        cmd: {
+          tag: "Axiom",
+          name: "nat_ind",
+          formula: {
+            tag: "Imply",
+            left: {
+              tag: "Pred",
+              ident: "P",
+              args: [{ tag: "Var", ident: "zero" }],
+            },
+            right: {
+              tag: "Imply",
+              left: {
+                tag: "Forall",
+                ident: "n",
+                body: {
+                  tag: "Imply",
+                  left: {
+                    tag: "Pred",
+                    ident: "P",
+                    args: [{ tag: "Var", ident: "n" }],
+                  },
+                  right: {
+                    tag: "Pred",
+                    ident: "P",
+                    args: [
+                      {
+                        tag: "App",
+                        func: { tag: "Var", ident: "succ" },
+                        args: [{ tag: "Var", ident: "n" }],
+                      },
+                    ],
+                  },
+                },
+              },
+              right: {
+                tag: "Forall",
+                ident: "n",
+                body: {
+                  tag: "Pred",
+                  ident: "P",
+                  args: [{ tag: "Var", ident: "n" }],
+                },
+              },
+            },
+          },
+        },
+        loc: { start: { line: 5, column: 0 }, end: { line: 5, column: 60 } },
+      },
+      {
+        cmd: {
+          tag: "Constant",
+          name: "fixed_point",
+          ty: {
+            tag: "Arr",
+            left: {
+              tag: "Arr",
+              left: { tag: "Con", ident: "nat", args: [] },
+              right: { tag: "Con", ident: "nat", args: [] },
+            },
+            right: { tag: "Con", ident: "nat", args: [] },
+          },
+        },
+        loc: { start: { line: 7, column: 0 }, end: { line: 7, column: 40 } },
+      },
+      {
+        cmd: {
+          tag: "Axiom",
+          name: "fixed_point_def",
+          formula: {
+            tag: "Forall",
+            ident: "f",
+            body: {
+              tag: "Pred",
+              ident: "eq",
+              args: [
+                {
+                  tag: "App",
+                  func: { tag: "Var", ident: "fixed_point" },
+                  args: [{ tag: "Var", ident: "f" }],
+                },
+                {
+                  tag: "App",
+                  func: { tag: "Var", ident: "f" },
+                  args: [
+                    {
+                      tag: "App",
+                      func: { tag: "Var", ident: "fixed_point" },
+                      args: [{ tag: "Var", ident: "f" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        loc: { start: { line: 8, column: 0 }, end: { line: 8, column: 65 } },
+      },
+    ]);
   });
 });

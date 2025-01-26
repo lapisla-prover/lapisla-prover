@@ -39,6 +39,9 @@ export class MeController {
         if (typeof body.description !== 'string') {
             throw new HttpException('description must be a string', 400);
         }
+        if (!Array.isArray(body.tags)) {
+            throw new HttpException('tags must be an array of strings', 400);
+        }
         for (const tag of body.tags) {
             if (typeof tag !== 'string') {
                 throw new HttpException('tags must be an array of strings', 400);
@@ -46,14 +49,35 @@ export class MeController {
         }
         return await this.meService.updateTagsAndDescription(fileName, version, body, req.cookies['session_id']);
     }
-
+    
     @Post('files/:fileName/:version/register')
-    async registerSnapshot(@Param('fileName') fileName: string, @Param('version') version: string, @Req() req: Request) {
-        return await this.meService.registerMySnapshot(fileName, version, req.cookies['session_id']);
+    async registerSnapshot(@Param('fileName') fileName: string, @Param('version') version: string, @Req() req: Request, @Body() body: Registration & {}) {
+        let bodyIsOk = true;
+        if (typeof body.description !== 'string') {
+            bodyIsOk = false;
+        }
+        if (!Array.isArray(body.tags)) {
+            bodyIsOk = false;
+        }
+        for (const tag of body.tags) {
+            if (typeof tag !== 'string') {
+                bodyIsOk = false;
+            }
+        }
+        const ret = await this.meService.registerMySnapshot(fileName, version, req.cookies['session_id']);
+        if (bodyIsOk) {
+            await this.meService.updateTagsAndDescription(fileName, version, body, req.cookies['session_id']);
+        }
+        return ret;
     }
 
     @Get('files/:fileName/:version')
     async getSnapshot(@Param('fileName') fileName: string, @Param('version') version: string, @Req() req: Request) {
         return await this.meService.getMySnapshot(fileName, version, req.cookies['session_id']);
+    }
+
+    @Get('user')
+    async getUser(@Req() req: Request) {
+        return await this.meService.getMyUser(req.cookies['session_id']);
     }
 }

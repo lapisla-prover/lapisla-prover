@@ -191,6 +191,24 @@ paths:
                 $ref: '#/components/schemas/SnapshotMeta'
         '404':
           description: Snapshot not found
+      security:
+        - BearerAuth: []
+      operationId: updateMySnapshot
+  /me/user:
+    get:
+      tags: 
+        - me
+      summary: Get the user information
+      responses:
+        '200':
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+      security:
+        - BearerAuth: []
+      operationId: getMyInfo
   
   /login:
     get:
@@ -544,6 +562,15 @@ components:
         - version
         - registeredAt
         - tags
+    UserInfo:
+      type: object
+      properties:
+        username:
+          $ref: '#/components/schemas/User'
+        github_id:
+          type: integer
+      required:
+        - username
     Registration:
       type: object
       properties:

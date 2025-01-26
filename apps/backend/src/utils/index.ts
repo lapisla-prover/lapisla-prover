@@ -26,3 +26,7 @@ export function getSnapshotInfoFromId(id: string): Result<SnapshotInfo, string> 
   }
   return new Ok({ owner, fileName, version: parseInt(version) });
 }
+
+export function isValidTag(tag) {
+  return /^[A-Za-z0-9-ぁ-んァ-ヶー亜-熙]+$/.test(tag);
+}

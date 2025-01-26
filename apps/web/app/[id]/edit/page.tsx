@@ -23,7 +23,7 @@ import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { formatFormula } from "@repo/kernel/ast";
-import { Env } from "@repo/kernel/env";
+import { Env, initialEnv } from "@repo/kernel/env";
 import { isBefore } from "@repo/kernel/parser";
 import {
   ChevronDown,
@@ -62,7 +62,7 @@ export default function Edit() {
   );
   const [latestProgram, setLatestProgram] = useState<string>("");
   const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
-  const [globalenv, setGlobalEnv] = useState<Env>({ thms: new Map() });
+  const [globalenv, setGlobalEnv] = useState<Env>(initialEnv());
 
   useEffect(() => {
     if (
@@ -85,6 +85,30 @@ export default function Edit() {
   const updateEnv = () => {
     setGlobalEnv(kernel.currentglobalEnv());
   };
+
+
+
+  useEffect(() => {
+    if (kernel && interacter) {
+      mainEditorRef.current.addCommand(
+        monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.DownArrow,
+        () => {
+          step(kernel, interacter);
+          updateEnv();
+        }
+      );
+
+      mainEditorRef.current.addCommand(
+        monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.UpArrow,
+        () => {
+          undo(kernel, interacter, 1);
+          updateEnv();
+        }
+      );
+    }
+  },
+    [kernel, interacter]
+  );
 
   return (
     <div className="flex">
@@ -111,6 +135,7 @@ export default function Edit() {
               title="Move Up"
               onClick={() => {
                 undo(kernel, interacter, 1);
+                updateEnv();
               }}
             >
               <ChevronUp className="h-4 w-4" />
@@ -138,6 +163,7 @@ export default function Edit() {
               title="Move to Top"
               onClick={() => {
                 resetAll();
+                updateEnv();
               }}
             >
               <ChevronsUp className="h-4 w-4" />
@@ -172,7 +198,12 @@ export default function Edit() {
           defaultValue={`# Welcome to Lapisla! Write your proof here.`}
           onChange={(value: string | undefined, event) => {
             if (interacter) {
-              interacter.resetError();
+              // reset Error
+              const model = mainEditorRef.current.getModel();
+              if (model) {
+                monacoInstance.editor.setModelMarkers(model, "error", []);
+                interacter.setMessagesEditorContent("");
+              }
             }
 
             if (value) {
@@ -196,7 +227,28 @@ export default function Edit() {
                     "\n at row " +
                     (errorloc.start.line + 1) +
                     ".";
-                  interacter.errormessage(msg, errorloc);
+
+                  interacter.setMessagesEditorContent(msg);
+
+                  const model = mainEditorRef.current.getModel();
+                  
+                  if (model) {
+                    monacoInstance.editor.setModelMarkers(
+                      model,
+                      "error",
+                      [
+                        {
+                          startLineNumber: errorloc.start.line + 1,
+                          startColumn: errorloc.start.column + 1,
+                          endLineNumber: errorloc.end.line + 1,
+                          endColumn: errorloc.end.column + 1,
+                          message: result.error.error.message,
+                          severity: monacoInstance.MarkerSeverity.Error,
+                        },
+                      ]
+                    );
+                  }
+
                 }
               }
 
@@ -244,7 +296,7 @@ export default function Edit() {
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              defaultValue={`Waiting start of proof...`}
+              defaultValue={``}
               onMount={(editor, monaco) => {
                 goalEditorRef.current = editor;
               }}
@@ -268,7 +320,7 @@ export default function Edit() {
                 minimap: { enabled: false },
                 lineNumbers: "off",
               }}
-              defaultValue={`Waiting start of proof...`}
+              defaultValue={``}
               onMount={(editor, monaco) => {
                 messageEditorRef.current = editor;
               }}

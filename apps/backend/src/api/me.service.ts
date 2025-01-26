@@ -13,6 +13,8 @@ import { parse } from 'path';
 import { ValidationFailed } from '../kernel/index';
 import { RegisterMySnapshot201Response } from '../generated/openapi/model/registerMySnapshot201Response';
 import { Registration } from '../generated/openapi/model/registration';
+import { UserInfo } from '../generated/openapi/model/userInfo';
+import { isValidTag } from '../utils';
 
 @Injectable()
 export class MeService {
@@ -193,6 +195,10 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
+        // saving exactly the same snapshot is not allowed
+        if (snapshots.length > 0 && snapshots[snapshots.length - 1].content === body.content) {
+            throw new HttpException('No changes', 400);
+        }
         const thisSnapshot = await this.prisma.snapshots.create({
             data: {
                 fileId: file.id,
@@ -302,6 +308,10 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
+        const isValidFileName = /^[a-zA-Z0-9-]+$/.test(fileName);
+        if (!isValidFileName) {
+            throw new HttpException('Invalid file name', 400);
+        }
         const userId = await this.prisma.users.findUnique({
             where: {
                 name: userName
@@ -344,20 +354,20 @@ export class MeService {
                 throw new HttpException('Internal Error', 500);
             })
             .finally(() => {});
-        const snapshots = await this.prisma.snapshots.findMany({
-            where: {
-                fileId: file.id
+        await this.prisma.snapshots.create({
+            data: {
+                fileId: file.id,
+                version: 0,
+                content: '# Welcome to Lapisla! Write your proof here.\n',
+                isPublic: false,
+                snapshotId: getSnapshotId(userName, fileName, 0)
             }
         })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
         return {
             owner: userName,
             fileName: fileName,
-            versions: snapshots.map(snapshot => snapshot.version),
-            registeredVersions: snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
+            versions: [0],
+            registeredVersions: [],
             createdAt: file.createdAt.toISOString(),
             updatedAt: file.createdAt.toISOString()
         };
@@ -482,7 +492,8 @@ export class MeService {
                 id: snapshot.id
             },
             data: {
-                isPublic: true
+                isPublic: true,
+                registeredAt: new Date()
             }
         })
             .catch((err) => {
@@ -567,12 +578,17 @@ export class MeService {
         return fileMetas;
     }
 
-    public async updateTagsAndDescription(fileName: string, version: string, body: Registration, auth: string): Promise<null> {
+    public async updateTagsAndDescription(fileName: string, version: string, body: Registration, auth: string): Promise<SnapshotMeta> {
         let versionNumber: number;
         try {
             versionNumber = parseInt(version);
         } catch (err) {
             throw new HttpException('Invalid version', 400);
+        }
+        for (let tag of body.tags) {
+            if (!isValidTag(tag)) {
+                throw new HttpException('Invalid tag', 400);
+            }
         }
         const userName = (
             await this.auth.authenticate(auth)
@@ -673,6 +689,39 @@ export class MeService {
             .catch((err) => {
                 throw new HttpException('Internal Error', 500);
             });
-        return null;
+        return {
+            id: snapshot.snapshotId,
+            owner: userName,
+            fileName: fileName,
+            version: versionNumber,
+            registered: snapshot.isPublic,
+            createdAt: snapshot.createdAt.toISOString()
+        }
+    }
+
+    async getMyUser(auth: string): Promise<UserInfo> {
+        const userName = (
+            await this.auth.authenticate(auth)
+        ).match(
+                user => user,
+                (_) => { throw new HttpException('Unauthorized', 401); }
+        );
+        const user = await this.prisma.users.findUnique({
+            where: {
+                name: userName
+            }
+        }).catch((err) => {
+            throw new HttpException('Internal Error', 500);
+        }).then((user) => {
+            if (!user) {
+                throw new HttpException('User not found', 404);
+            }
+            return user;
+        });
+
+        return {
+            username: user.name,
+            github_id: user.githubId,
+        };
     }
 }
