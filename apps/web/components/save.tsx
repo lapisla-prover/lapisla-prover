@@ -14,7 +14,6 @@ import { useState } from "react";
 interface SaveProps {
   fileName: string;
   content: string;
-  setSnapshotId: (snapshotId: string) => void;
   setRecentSavedTime: (recentSavedTime: string) => void;
 }
 
@@ -40,12 +39,10 @@ export const Save = (props: SaveProps) => {
       );
       const data = await response.json();
       console.log(data);
-      props.setSnapshotId(data.id);
-      //responseのステータスコードを見て、成功したか失敗したかを判断する
-      if (data.saved) {
+      if (data.result === "newly_saved") {
         setDialogHeader("New version saved");
-        setDialogDescription(`Your new version is ${data.version}`);
-        props.setRecentSavedTime(data.createdAt);
+        setDialogDescription(`Your new version is ${data.snapshot.version}`);
+        props.setRecentSavedTime(data.snapshot.createdAt);
       } else {
         setDialogHeader("New version was not saved");
         setDialogDescription("No changes were made");
@@ -68,7 +65,7 @@ export const Save = (props: SaveProps) => {
         </DialogHeader>
         <div className="flex justify-end">
           <DialogClose asChild>
-            <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white mr-2">
+            <Button className="flex items-center gap-1 px-3 py-1 text-xs mr-2">
               Close
             </Button>
           </DialogClose>
