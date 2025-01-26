@@ -127,17 +127,11 @@ export function formatFormula(formula: Formula): string {
     case "Bottom":
       return "⊥";
     case "And":
-      return `(${formatFormula(formula.left)} ∧ ${formatFormula(
-        formula.right
-      )})`;
+      return `(${formatFormula(formula.left)} ∧ ${formatFormula(formula.right)})`;
     case "Or":
-      return `(${formatFormula(formula.left)} ∨ ${formatFormula(
-        formula.right
-      )})`;
+      return `(${formatFormula(formula.left)} ∨ ${formatFormula(formula.right)})`;
     case "Imply":
-      return `(${formatFormula(formula.left)} → ${formatFormula(
-        formula.right
-      )})`;
+      return `(${formatFormula(formula.left)} → ${formatFormula(formula.right)})`;
     case "Forall":
       return `∀${formula.ident}.(${formatFormula(formula.body)})`;
     case "Exist":
@@ -492,7 +486,7 @@ export function substAllFormula(
           tag: "Forall",
           ident: new_ident,
           body: substAllFormula(
-            renameFormula(formula, new Map([[formula.ident, new_ident]])),
+            renameFormula(formula.body, new Map([[formula.ident, new_ident]])),
             new_mapping
           ),
         };
@@ -524,7 +518,7 @@ export function substAllFormula(
           tag: "Exist",
           ident: new_ident,
           body: substAllFormula(
-            renameFormula(formula, new Map([[formula.ident, new_ident]])),
+            renameFormula(formula.body, new Map([[formula.ident, new_ident]])),
             new_mapping
           ),
         };
@@ -618,27 +612,101 @@ export function substPreds(
       });
     }
     case "Forall": {
-      const body = substPreds(formula.body, mapping);
-      if (body.tag === "Err") {
-        return body;
+      const new_mapping = new Map(mapping);
+
+      new_mapping.delete(formula.ident);
+
+      if (new_mapping.size === 0) {
+        return Ok(formula);
+      }
+
+      let body: Formula;
+
+      let ident = formula.ident;
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      let fvarsInTarget = new Set<Ident>();
+      for (const target of new_mapping.values()) {
+        fvarsInTarget = fvarsInTarget.union(
+          allFreeVarsInFormula(target.body).difference(new Set(target.args))
+        );
+      }
+      if (fvarsInTarget.has(formula.ident)) {
+        ident = freshen(fvarsInTarget, formula.ident);
+
+        const bodyResult = substPreds(
+          renameFormula(formula.body, new Map([[formula.ident, ident]])),
+          new_mapping
+        );
+
+        if (bodyResult.tag === "Err") {
+          return bodyResult;
+        }
+
+        body = bodyResult.value;
+      } else {
+        const bodyResult = substPreds(formula.body, new_mapping);
+
+        if (bodyResult.tag === "Err") {
+          return bodyResult;
+        }
+
+        body = bodyResult.value;
       }
 
       return Ok({
         tag: "Forall",
-        ident: formula.ident,
-        body: body.value,
+        ident,
+        body: body,
       });
     }
     case "Exist": {
-      const body = substPreds(formula.body, mapping);
-      if (body.tag === "Err") {
-        return body;
+      const new_mapping = new Map(mapping);
+
+      new_mapping.delete(formula.ident);
+
+      if (new_mapping.size === 0) {
+        return Ok(formula);
+      }
+
+      let body: Formula;
+
+      let ident = formula.ident;
+
+      // TODO: 毎回fvarsInTargetを計算しているので効率が悪い
+      let fvarsInTarget = new Set<Ident>();
+      for (const target of new_mapping.values()) {
+        fvarsInTarget = fvarsInTarget.union(
+          allFreeVarsInFormula(target.body).difference(new Set(target.args))
+        );
+      }
+      if (fvarsInTarget.has(formula.ident)) {
+        ident = freshen(fvarsInTarget, formula.ident);
+
+        const bodyResult = substPreds(
+          renameFormula(formula.body, new Map([[formula.ident, ident]])),
+          new_mapping
+        );
+
+        if (bodyResult.tag === "Err") {
+          return bodyResult;
+        }
+
+        body = bodyResult.value;
+      } else {
+        const bodyResult = substPreds(formula.body, new_mapping);
+
+        if (bodyResult.tag === "Err") {
+          return bodyResult;
+        }
+
+        body = bodyResult.value;
       }
 
       return Ok({
         tag: "Exist",
-        ident: formula.ident,
-        body: body.value,
+        ident,
+        body: body,
       });
     }
     default: {

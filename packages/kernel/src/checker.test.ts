@@ -963,7 +963,7 @@ Theorem eq_sym ∀x. ∀y. (eq(x, y) → eq(y, x))
   apply ForallR x1
   apply ForallR y1
   apply ImpR
-  use eq_transport { P(x1) ↦ eq(x1, x) }
+  use eq_transport { P(x) ↦ eq(x, x1) }
   apply ForallL x1
   apply ForallL y1
   apply ImpL
