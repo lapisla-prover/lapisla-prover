@@ -59,8 +59,8 @@ export class TimelineService {
                     in: timelineEntries.map(entry => entry.owner)
                     }
                 }
-            })
-        let nameToIdMap: Map<string, string>;
+            });
+        const nameToIdMap = new Map<string, string>();
         for (let user of users) {
             nameToIdMap.set(user.name, user.githubId.toString());
         }
