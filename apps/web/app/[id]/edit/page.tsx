@@ -167,7 +167,6 @@ const Edit: FC<EditProps> = ({ params }) => {
         fileName={id}
         content={latestProgram}
         version={Math.max(...versions)}
-        setSnapshotId={setCurrentSnapshotId}
         setRecentSavedTime={setRecentSavedTime}
       />
 
