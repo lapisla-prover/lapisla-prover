@@ -12,9 +12,9 @@ export class Kernel {
     private lastLoc: Location[] = [{ line: 0, column: 0 }];
     private currentState: KernelState = { mode: "DeclareWait" };
     private loop: Generator<Result<KernelState, string>, never, TopCmd>;
-    private pkggeter: (name: string) => string;
+    private pkggeter: (name: string) => Promise<Result<string, string>>;
 
-    constructor(pkggeter: (name: string) => string) {
+    constructor(pkggeter: (name: string) => Promise<Result<string, string>>) {
         this.loop = topLoop(this.tophistory);
         this.loop.next(); // initialize
         this.pkggeter = pkggeter;
@@ -62,9 +62,7 @@ export class Kernel {
 
     // return the environment after the proof
     // under the assumption that the proof is correct
-    private collectEnv(
-        src: string
-    ): Result<Env, string> {
+    private async collectEnv(src: string): Promise<Result<Env, string>> {
         console.log("Collecting environment from", src);
         const res = parseProgram(src);
         if (res.tag === "Err") {
@@ -86,7 +84,13 @@ export class Kernel {
                 //    It means that we need to pack all import for one command.
                 //    So, don't create new command, just collect and merge the environment.
 
-                const childEnv = this.collectEnv(this.pkggeter(cmd.cmd.name));
+                const pkg = await this.pkggeter(cmd.cmd.name);
+
+                if (pkg.tag === "Err") {
+                    return Err(pkg.error);
+                }
+
+                const childEnv = await this.collectEnv(pkg.value);
 
                 if (childEnv.tag === "Err") {
                     return Err(childEnv.error);
@@ -105,17 +109,23 @@ export class Kernel {
         return Ok(newEnv);
     }
 
-
-
     // execute a command
-    execute(command: CmdWithLoc): Result<KernelState, string> {
+    async execute(command: CmdWithLoc): Promise<Result<KernelState, string>> {
         if (command.cmd.tag === "Import") {
-            const importprogram = this.pkggeter(command.cmd.name);
+            const importprogram = await this.pkggeter(command.cmd.name);
+            if (importprogram.tag === "Err") {
+                return Err(
+                    `Import Error: Failed to import ${command.cmd.name} with ${importprogram.error}`,
+                );
+            }
 
-            const newEnv = this.collectEnv(importprogram);
+            const newEnv = await this.collectEnv(importprogram.value);
 
             if (newEnv.tag === "Err") {
-                return { tag: "Err", error: `Import Error: Failed to import ${command.cmd.name} with ${newEnv.error}` };
+                return {
+                    tag: "Err",
+                    error: `Import Error: Failed to import ${command.cmd.name} with ${newEnv.error}`,
+                };
             }
 
             this.tophistory.insertImport(command.cmd.name, newEnv.value);
@@ -124,7 +134,6 @@ export class Kernel {
             this.lastLoc.push(command.loc.end);
 
             return { tag: "Ok", value: this.currentState };
-
         } else {
             const res = this.loop.next(command.cmd);
             if (res.value.tag == "Ok") {
@@ -152,6 +161,7 @@ export class Kernel {
     }
 }
 
+/*
 // execute a program. 
 // if execute failed because of **internal** error, return Err with error message.
 // if execute finished successfully, return Ok.
@@ -179,3 +189,4 @@ export function executeProgram(src: string): Result<boolean, string> {
 
     return { tag: "Ok", value: true };
 }
+*/

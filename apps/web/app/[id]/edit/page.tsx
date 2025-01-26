@@ -66,13 +66,13 @@ const Edit: FC<EditProps> = ({ params }) => {
 
   const kernel = useKernel();
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const messageEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const [latestProgram, setLatestProgram] = useState<string>("");
   const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
@@ -85,7 +85,7 @@ const Edit: FC<EditProps> = ({ params }) => {
       messageEditorRef.current
     ) {
       setInteracter(
-        new EditorInteracter(mainEditorRef, goalEditorRef, messageEditorRef)
+        new EditorInteracter(mainEditorRef, goalEditorRef, messageEditorRef),
       );
     }
   }, [mainEditorRef.current, goalEditorRef.current, messageEditorRef.current]);
@@ -104,10 +104,10 @@ const Edit: FC<EditProps> = ({ params }) => {
     if (kernel && interacter) {
       mainEditorRef.current.addCommand(
         monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.DownArrow,
-        () => {
-          step(kernel, interacter);
+        async () => {
+          await step(kernel, interacter);
           updateEnv();
-        }
+        },
       );
 
       mainEditorRef.current.addCommand(
@@ -115,7 +115,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         () => {
           undo(kernel, interacter, 1);
           updateEnv();
-        }
+        },
       );
     }
   }, [kernel, interacter]);
@@ -127,7 +127,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}`,
           {
             credentials: "include",
-          }
+          },
         );
         const data = await response.json();
         setVersions([...data.versions]);
@@ -147,7 +147,7 @@ const Edit: FC<EditProps> = ({ params }) => {
             `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}/${Math.max(...versions).toString()}`,
             {
               credentials: "include",
-            }
+            },
           );
           const data2 = await response2.json();
           console.log(data2);
