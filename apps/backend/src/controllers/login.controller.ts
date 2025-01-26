@@ -9,7 +9,12 @@ export class LoginController {
     @Get()
     async login(@Res({ passthrough: true }) res: Response) {
         const {state_id, url} = await this.loginService.loginWithGitHub();
-        res.cookie('state_id', state_id, { httpOnly: true , maxAge: 300000 });
+        res.cookie('state_id', state_id, { 
+            httpOnly: true, 
+            maxAge: 300000,
+            sameSite: 'none',
+            secure: true
+        });
         return {url};
     }
 
@@ -17,7 +22,11 @@ export class LoginController {
     async loginCallback(@Query('code') code: string, @Query('state') state: string, @Res({ passthrough: true }) res: Response, @Req() req: Request) {
         const state_id = req.cookies['state_id'];
         const {session_id, url} = await this.loginService.callbackGitHubOAuth(code, state, state_id);
-        res.cookie('session_id', session_id, { httpOnly: true });
+        res.cookie('session_id', session_id, { 
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true
+        });
         return {url};
     }
 }

@@ -34,33 +34,32 @@ async function login() {
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center py-32">
-      <div className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center text-5xl m-6">
+    <div className="flex flex-col items-center justify-center py-16 sm:py-32">
+      {/* メインタイトル */}
+      <div className="flex flex-col items-center justify-center w-full px-6 sm:px-20 text-center text-3xl sm:text-5xl font-semibold m-4 sm:m-6">
         The User-Friendly
         <br /> Theorem Proof Platform
       </div>
-      <div className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center font-black text-9xl m-8 mb-16">
+
+      {/* サブタイトル */}
+      <div className="flex flex-col items-center justify-center w-full px-6 sm:px-20 text-center font-black text-5xl sm:text-9xl m-6 sm:m-8 mb-12 sm:mb-16">
         Lapisla.net
       </div>
-      <div className="flex">
+
+      {/* アイコンリンク */}
+      <div className="flex space-x-4">
         <a href="https://github.com/lapisla-prover/lapisla-prover">
-          <img
-            src="/mark-github.svg"
-            alt="github-icon"
-            className="m-2 h-8 w-8"
-          />
+          <img src="/mark-github.svg" alt="github-icon" className="h-6 w-6 sm:h-8 sm:w-8" />
         </a>
         <a href="">
-          <Book className="m-2 h-8 w-8" />
+          <Book className="h-6 w-6 sm:h-8 sm:w-8" />
         </a>
       </div>
-      <Button className="m-2" onClick={login}>
+
+      {/* ログインボタン */}
+      <Button className="mt-6 sm:mt-8 flex items-center" onClick={login}>
         Login with GitHub
-        <img
-          src="/mark-github.svg"
-          alt="github-icon"
-          className="m-2 ml-0 h-6 w-6"
-        />
+        <img src="/mark-github.svg" alt="github-icon" className="ml-2 h-4 w-4 sm:h-6 sm:w-6" />
       </Button>
     </div>
   );

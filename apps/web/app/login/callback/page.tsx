@@ -28,7 +28,6 @@ async function handleCallback(router: any) {
     window.location.href = "/files";
   } catch (error) {
     console.error("コールバック処理中にエラーが発生しました:", error);
-    console.log(error);
     alert("ログイン処理中にエラーが発生しました。");
   }
 }

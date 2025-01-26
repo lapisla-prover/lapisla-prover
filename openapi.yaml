@@ -540,6 +540,8 @@ components:
           $ref: '#/components/schemas/SnapshotId'
         owner:
           $ref: '#/components/schemas/User'
+        ownerGithubId:
+          type: string
         fileName:
           $ref: '#/components/schemas/FileName'
         version:

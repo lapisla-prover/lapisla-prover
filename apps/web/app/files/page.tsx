@@ -39,7 +39,6 @@ export default function Files() {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        console.log("account.username", account.username);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/files/${account.username}`
         );

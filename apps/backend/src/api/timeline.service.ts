@@ -53,6 +53,22 @@ export class TimelineService {
             }
             return timelineEntry;
         })
-        return timelineEntries;
+        const users = await this.prisma.users.findMany({
+            where: {
+                name: {
+                    in: timelineEntries.map(entry => entry.owner)
+                    }
+                }
+            });
+        const nameToIdMap = new Map<string, string>();
+        for (let user of users) {
+            nameToIdMap.set(user.name, user.githubId.toString());
+        }
+        const timelineEntriesWithGithubId = timelineEntries.map(entry => {
+            let newEntry = entry;
+            newEntry.ownerGithubId = nameToIdMap.get(entry.owner);
+            return newEntry;
+        })
+        return timelineEntriesWithGithubId;
     }
 }
