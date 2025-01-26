@@ -1,5 +1,6 @@
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -28,6 +29,10 @@ interface RegisterProps {
 export const Register = (props: RegisterProps) => {
   const [versions, setVersions] = useState<number[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<number>(0);
+  const [dialogHeader, setDialogHeader] = useState<string>("Registered");
+  const [dialogDescription, setDialogDescription] = useState<string>(
+    "Your new version is registered"
+  );
 
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
     null
@@ -93,7 +98,15 @@ export const Register = (props: RegisterProps) => {
         }
       );
       const data = await response.json();
-      //responseのステータスコードを見て、成功したか失敗したかを判断する
+      if (data.result === "registered") {
+        setDialogHeader("Registered");
+        setDialogDescription(
+          `${props.fileName} v${selectedVersion} is registered`
+        );
+      } else {
+        setDialogHeader("Not registered");
+        setDialogDescription("No changes were made");
+      }
     } catch (error) {
       console.error(error);
     }
@@ -140,13 +153,30 @@ export const Register = (props: RegisterProps) => {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <Button
-              className="w-full sm:w-auto m-2 mb-2 mt-auto"
-              onClick={register}
-            >
-              Register
-              <FilePlus className="ml-2 h-4 w-4" />
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  className="w-full sm:w-auto m-2 mb-2 mt-auto"
+                  onClick={register}
+                >
+                  Register
+                  <FilePlus className="ml-2 h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{dialogHeader}</DialogTitle>
+                  <DialogDescription>{dialogDescription}</DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end">
+                  <DialogClose asChild>
+                    <Button className="flex items-center gap-1 px-3 py-1 text-xs mr-2">
+                      Close
+                    </Button>
+                  </DialogClose>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
           <div className="min-h-[300px] h-[60vh] w-[60vw] border border-gray-200 rounded-md overflow-hidden">
             <Editor
