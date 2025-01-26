@@ -300,7 +300,7 @@ export function judgeOne(
     }
     //   Γ |- Δ
     // ----------- (WR)
-    //  A, Γ |- Δ
+    //  Γ |- A, Δ
     case "WR": {
       if (concls.length === 0) {
         return Err("No conclusion");
