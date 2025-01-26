@@ -1,84 +1,39 @@
-# Turborepo starter
+# lapisla-prover 🐶🐱
 
-This Turborepo starter is maintained by the Turborepo core team.
+**lapisla** is a Theorem proving...
 
-## Using this example
+- assistant system  
+- Ecosystem  
+- Platform
 
-Run the following command:
+**for everyone!**
+ 
+<img  style="text-align: center;" width="1311" alt="image" src="https://github.com/user-attachments/assets/18bebe50-9a35-499a-a2c0-263fa8d17ed9" />
 
-```sh
-npx create-turbo@latest
-```
 
-## What's inside?
+## Motivation
 
-This Turborepo includes the following packages/apps:
+Existing theorem proving assistant systems are often considered challenging compared to "general-purpose" software development.  
 
-### Apps and Packages
+This is because while popular programming languages enjoy a highly developed ecosystem, active user communities, and a vast array of reusable programs, many theorem proving assistant systems lack such infrastructure.  
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+We aim to solve this problem by creating a fully browser-based kernel, user interface (UI), and registry.  
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+**lapisla** is software for everyone!  
 
-### Utilities
+## lapisla-kernel
 
-This Turborepo has some additional tools already setup for you:
+The **lapisla** kernel is based on sequent calculus and is heavily inspired by [claire](https://github.com/myuon/claire).  
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+The kernel resides under [packages/kernel](packages/kernel) 
 
-### Build
+## lapisla-webui
 
-To build all apps and packages, run the following command:
+**lapisla** comes with a custom-built web UI that delivers a development experience as seamless as working locally!  
 
-```
-cd my-turborepo
-pnpm build
-```
+The web UI can be found under [apps/web](apps/web) 
 
-### Develop
+## lapisla-registry
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+**lapisla** features user management and registry functionalities.  
+The backend, including the registry, can be found under [apps/api](apps/api)
