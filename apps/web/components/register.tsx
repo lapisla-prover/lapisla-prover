@@ -21,6 +21,7 @@ import {
 import { Editor } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { useEffect, useRef, useState } from "react";
+import TagForm from "./tagForm";
 
 interface RegisterProps {
   fileName: string;
@@ -33,6 +34,7 @@ export const Register = (props: RegisterProps) => {
   const [dialogDescription, setDialogDescription] = useState<string>(
     "Your new version is registered"
   );
+  const [tags, setTags] = useState<string[]>([]);
 
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
     null
@@ -59,7 +61,6 @@ export const Register = (props: RegisterProps) => {
   }, []);
 
   const fetchContent = async (version: number) => {
-    console.log("fetch", version);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}/${version}`,
@@ -92,7 +93,7 @@ export const Register = (props: RegisterProps) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            tags: [],
+            tags: tags,
             description: "",
           }),
         }
@@ -153,6 +154,7 @@ export const Register = (props: RegisterProps) => {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <TagForm onChange={setTags} />
             <Dialog>
               <DialogTrigger asChild>
                 <Button

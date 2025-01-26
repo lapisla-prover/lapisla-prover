@@ -1,9 +1,10 @@
 "use client";
-import { Editor } from "@monaco-editor/react";
+import { Editor, useMonaco } from "@monaco-editor/react";
 import { FC, use, useEffect, useRef, useState } from "react";
 import * as monaco from "monaco-editor";
 import { getSnapshotInfoFromId } from "@/utils/parseSnapshot";
 import { useSearchParams } from "next/navigation";
+import { configureMonaco } from "@/lib/monacoConfig";
 
 interface ViewProps {
   params: Promise<{
@@ -29,6 +30,12 @@ const View: FC<ViewProps> = ({ params }) => {
   const viewEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
     null
   );
+  const monacoInstance = useMonaco();
+  useEffect(() => {
+    if (monacoInstance) {
+      configureMonaco(monacoInstance);
+    }
+  }, [monacoInstance]);
 
   useEffect(() => {
     if (!id) return;
@@ -41,7 +48,6 @@ const View: FC<ViewProps> = ({ params }) => {
 
   useEffect(() => {
     const fetchSnapshot = async () => {
-      console.log(snapshotInfo);
       if (
         !snapshotInfo.owner ||
         !snapshotInfo.fileName ||
@@ -56,7 +62,6 @@ const View: FC<ViewProps> = ({ params }) => {
           }
         );
         const data = await response.json();
-        console.log(data);
         viewEditorRef.current?.setValue(data.content);
       } catch (error) {
         console.error(error);

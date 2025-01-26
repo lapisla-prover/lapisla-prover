@@ -38,7 +38,6 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = await response.json();
-      console.log(data);
       setAccount(data);
     } catch (error) {
       console.error(error);

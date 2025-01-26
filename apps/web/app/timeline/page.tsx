@@ -44,7 +44,6 @@ export default function Timeline() {
       );
       const data = await response.json();
       setTimelines(data);
-      console.log(data);
     } catch (error) {
       console.error(error);
     }
