@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Book, Folder, Home } from "lucide-react";
+import { Book, ChartGantt, Folder, Home } from "lucide-react";
 import { Register } from "@/components/register";
 import { Share } from "@/components/share";
 import { Save } from "@/components/save";
@@ -34,6 +34,15 @@ export function SideMenu(props: SideMenuProps) {
         onClick={() => router.push("/files")}
       >
         <Folder className="h-6 w-6" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Files"
+        onClick={() => router.push("/timeline")}
+      >
+        <ChartGantt className="h-6 w-6" />
       </Button>
 
       <Button
