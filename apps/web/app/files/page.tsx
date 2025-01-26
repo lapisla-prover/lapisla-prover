@@ -91,15 +91,27 @@ export default function Files() {
                 key={file.fileName}
                 className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-200 truncate max-w-[300px]"
               >
-                <TableCell className="px-4 py-2 text-blue-800 font-semibold">
-                  {file.fileName}
+                <TableCell className="px-4 py-2 ">
+                  <div
+                    className="text-blue-800 font-semibold cursor-pointer whitespace-nowrap"
+                    onClick={() => {
+                      window.location.href = `/${file.fileName}/edit`;
+                    }}
+                  >
+                    {file.fileName}
+                  </div>
                 </TableCell>
                 <TableCell className="px-4 py-2 text-gray-800 whitespace-nowrap">
                   {formatRelativeTime(file.updatedAt)}
                 </TableCell>
                 <TableCell className="px-4 py-2 text-gray-800 text-center whitespace-nowrap">
                   <div className="flex gap-2 justify-end items-center">
-                    <Button className="flex items-center gap-1 px-3 py-1 text-xs text-white">
+                    <Button
+                      className="flex items-center gap-1 px-3 py-1 text-xs"
+                      onClick={() => {
+                        window.location.href = `/${file.fileName}/edit`;
+                      }}
+                    >
                       Edit <EditIcon />
                     </Button>
                     <Dialog>
