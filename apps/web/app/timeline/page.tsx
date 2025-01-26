@@ -17,26 +17,7 @@ interface TimelineProps {
 }
 
 export default function Timeline() {
-  const [timelines, setTimelines] = useState<TimelineProps[]>([
-    {
-      id: "id",
-      owner: "owner",
-      ownerGithubId: "61650874",
-      fileName: "fileName",
-      version: 0,
-      registeredAt: "registeredAt",
-      tags: ["tags", "aho"],
-    },
-    {
-      id: "id2",
-      owner: "owner",
-      ownerGithubId: "53076594",
-      fileName: "fileName",
-      version: 1,
-      registeredAt: "registeredAt",
-      tags: ["tags"],
-    },
-  ]);
+  const [timelines, setTimelines] = useState<TimelineProps[]>([]);
   const fetchTimelines = async () => {
     try {
       const response = await fetch(
