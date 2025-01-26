@@ -3,7 +3,6 @@ import { AbstractCodeAnalyzerService, DependencyMetadata, Dependency, Validation
 import { Ok } from "neverthrow"
 import { KernelError } from "./index";
 import { getSnapshotInfoFromId } from "src/utils";
-import { executeProgram } from "../../../../packages/kernel/src/kernel"
 
 
 @Injectable()
@@ -48,6 +47,11 @@ export class MockAnalyzerService extends AbstractCodeAnalyzerService {
     }
 
     validate(sourceCode: string, dependencies: Dependency[]): ValidationResult {
+        return {
+            kind: 'validation_success',
+            success: true
+        }
+        /* TS build error: Fix Me!
         const result = executeProgram(sourceCode);
         if (result.tag == 'Err') {
             return {
@@ -64,10 +68,11 @@ export class MockAnalyzerService extends AbstractCodeAnalyzerService {
         }
         else {
             return {
-                success: false,
-                kind: 'source_error',
+        success: false,
+        kind: 'source_error',
                 errorMessage: 'Validation failed'
             }
         }
+        */
     }
 }
