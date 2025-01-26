@@ -43,7 +43,7 @@ export const Register = (props: RegisterProps) => {
       );
       const data = await response.json();
       setVersions(data.versions.sort((a: number, b: number) => b - a));
-      console.log(data.versions);
+      fetchContent(Math.max(...data.versions));
     } catch (error) {
       console.error(error);
     }
@@ -63,7 +63,6 @@ export const Register = (props: RegisterProps) => {
         }
       );
       const data = await response.json();
-      console.log(data.content);
       mainEditorRef.current?.setValue(data.content);
     } catch (error) {
       console.error(error);
