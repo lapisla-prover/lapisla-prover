@@ -1,5 +1,6 @@
 "use client";
 
+import { NewFile } from "@/components/newfile";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { useAccount } from "@/context/accountContext";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
-import { Trash, Edit as EditIcon, FilePlus } from "lucide-react";
+import { Trash, Edit as EditIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type File = {
@@ -156,9 +157,7 @@ export default function Files() {
             ))}
         </TableBody>
       </Table>
-      <Button className="flex items-center gap-1 px-4 py-2 m-2">
-        New File <FilePlus />
-      </Button>
+      <NewFile />
     </div>
   );
 }
