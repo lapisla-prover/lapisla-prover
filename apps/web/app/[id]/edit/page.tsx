@@ -86,7 +86,7 @@ const Edit: FC<EditProps> = ({ params }) => {
       messageEditorRef.current
     ) {
       setInteracter(
-        new EditorInteracter(mainEditorRef, goalEditorRef, messageEditorRef),
+        new EditorInteracter(monacoInstance, mainEditorRef, goalEditorRef, messageEditorRef),
       );
     }
   }, [mainEditorRef.current, goalEditorRef.current, messageEditorRef.current]);
@@ -266,10 +266,10 @@ const Edit: FC<EditProps> = ({ params }) => {
 
             if (value) {
               // Undo check
-              const undoloc = undoLocation(latestProgram, value);
-              if (undoloc) {
-                if (isBefore(undoloc, kernel.lastLocation())) {
-                  undoUntil(kernel, interacter, undoloc);
+              const changeloc = undoLocation(latestProgram, value);
+              if (changeloc) {
+                if (isBefore(changeloc, kernel.lastLocation())) {
+                  undoUntil(kernel, interacter, changeloc);
                 }
               }
 
@@ -418,8 +418,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           .error-highlight {
             background-color: rgba(255, 192, 203, 0.5);
             border-bottom: 1px solid red;
-          }
-            
+          } 
         `}
       </style>
     </div>
