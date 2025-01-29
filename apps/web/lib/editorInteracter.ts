@@ -2,13 +2,16 @@ import { Range } from '@repo/kernel/parser';
 import * as monaco from 'monaco-editor';
 import { drawHighlight } from './drawHighlight';
 
+
 export class EditorInteracter {
+  monacoInstance: typeof monaco;
   mainEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
   goalEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
   messageEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
   highlightHistory: monaco.editor.IEditorDecorationsCollection[];
 
-  constructor(mainEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, goalEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, messageEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>) {
+  constructor(monacoInstance: typeof monaco, mainEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, goalEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>, messageEditorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>) {
+    this.monacoInstance = monacoInstance;
     this.mainEditorRef = mainEditorRef;
     this.goalEditorRef = goalEditorRef;
     this.messageEditorRef = messageEditorRef;
@@ -42,7 +45,7 @@ export class EditorInteracter {
 
   greenHighlight(range: Range) {
     if (this.mainEditorRef.current) {
-      this.highlightHistory.push(drawHighlight(this.mainEditorRef.current, range, "green-highlight"));
+      this.highlightHistory.push(drawHighlight(this.monacoInstance, this.mainEditorRef.current, range, "green-highlight"));
     }
   }
 
@@ -66,7 +69,7 @@ export class EditorInteracter {
 
     this.highlightHistory = [];
   }
-  
+
 
 
 }
