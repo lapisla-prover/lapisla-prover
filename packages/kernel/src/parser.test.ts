@@ -8,9 +8,9 @@ import {
   parseTerm,
   parseType,
   tokenize,
-} from "./parser.ts";
-import { expectErr, expectOk } from "./test-util.ts";
-import { formatJudgement } from "./ast.ts";
+} from "./parser";
+import { expectErr, expectOk } from "./test-util";
+import { formatJudgement } from "./ast";
 
 describe("tokenize", () => {
   test("head spaces", () => {

@@ -1,7 +1,7 @@
 import { Formula, Ident, Judgement, Rule, Type } from "./ast";
 import { judgeOne } from "./checker";
-import { Err, Ok, Result } from "./common.ts";
-import { Env as TopEnv, initialEnv, insertThm, insertConstant } from "./env.ts";
+import { Err, Ok, Result } from "./common";
+import { Env as TopEnv, initialEnv, insertThm, insertConstant } from "./env";
 
 export class ProofHistory {
   private steps: Judgement[][] = [];

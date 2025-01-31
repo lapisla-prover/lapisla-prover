@@ -1,5 +1,5 @@
 import { assert } from "vitest";
-import { Result } from "./common.ts";
+import { Result } from "./common";
 
 function dumpResult<T, E>(result: Result<T, E>): string {
   if (result.tag === "Ok") {
