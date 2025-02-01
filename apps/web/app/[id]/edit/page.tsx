@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { useAccount } from "@/context/accountContext";
 import {
   executeAll,
@@ -41,7 +42,6 @@ import {
 } from "lucide-react";
 import * as monaco from "monaco-editor";
 import { FC, use, useEffect, useRef, useState } from "react";
-
 export const runtime = "edge";
 
 interface EditProps {
@@ -168,6 +168,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         content={latestProgram}
         version={Math.max(...versions)}
         setRecentSavedTime={setRecentSavedTime}
+        enabledFeatures={new Set(["home", "files", "timeline", "document", "save", "share", "register"])}
       />
 
       <div className="w-[80%] p-4 space-y-4">
