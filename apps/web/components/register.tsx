@@ -105,8 +105,8 @@ export const Register = (props: RegisterProps) => {
           `${props.fileName} v${selectedVersion} is registered`
         );
       } else {
-        setDialogHeader("Not registered");
-        setDialogDescription("No changes were made");
+        setDialogHeader("Failed to register!");
+        setDialogDescription(data.message);
       }
     } catch (error) {
       console.error(error);
