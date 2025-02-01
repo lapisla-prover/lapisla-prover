@@ -180,7 +180,6 @@ const Edit: FC<EditProps> = ({ params }) => {
           </div>
         </div>
 
-        {/* 灰色の線 */}
         <div className="border-b border-gray-300"></div>
 
         <div className="flex justify-end items-center">
@@ -338,7 +337,7 @@ const Edit: FC<EditProps> = ({ params }) => {
             <div className="text-2xl font-bold">Goal</div>
           </div>
 
-          <div className="w-full h-64">
+          <div className="w-full h-48">
             {/* Goal Visualizer */}
             <Editor
               className="h-full w-full"
@@ -364,7 +363,7 @@ const Edit: FC<EditProps> = ({ params }) => {
             <div className="text-2xl font-bold">Messages</div>
           </div>
 
-          <div className="w-full h-32 text-red-500">
+          <div className="w-full h-24 text-red-500">
             {/* Message Visualizer */}
             <Editor
               className="h-full w-full"
@@ -384,30 +383,33 @@ const Edit: FC<EditProps> = ({ params }) => {
 
         <Card className="p-4">
           {/* Environment Table */}
-          <div className="flex items-center space-x-2  py-2">
+          <div className="flex items-center space-x-2 py-2">
             <Mountain className="h-6 w-6 text-primary" />
             <div className="text-2xl font-bold">Environment</div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableCell>Identifier</TableCell>
-                <TableCell>Formula</TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from(globalenv.thms.entries()).map(([key, value]) => {
-                return (
-                  <TableRow key={key}>
-                    <TableCell>{key}</TableCell>
-                    <TableCell>{formatFormula(value)}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <div className="max-h-64 overflow-y-scroll scrollbar scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-200">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableCell>Identifier</TableCell>
+                  <TableCell>Formula</TableCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from(globalenv.thms.entries()).map(([key, value]) => {
+                  return (
+                    <TableRow key={key}>
+                      <TableCell>{key}</TableCell>
+                      <TableCell>{formatFormula(value)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
+
       </div>
       <style>
         {`
