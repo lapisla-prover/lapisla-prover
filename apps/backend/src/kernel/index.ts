@@ -48,7 +48,7 @@ export interface ICodeAnalyzer {
     | {
       kind: 'invalid_source'
     }, KernelError>;
-  validate(sourceCode: string, dependencies: Dependency[]): ValidationResult;
+  validate(sourceCode: string, dependencies: Dependency[]): Promise<ValidationResult>;
 }
 
 @Injectable()
@@ -60,5 +60,5 @@ export abstract class AbstractCodeAnalyzerService implements ICodeAnalyzer {
     | {
       kind: 'invalid_source'
     }, KernelError>;
-  abstract validate(sourceCode: string, dependencies: Dependency[]): ValidationResult;
+  abstract validate(sourceCode: string, dependencies: Dependency[]): Promise<ValidationResult>;
 }
