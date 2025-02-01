@@ -15,11 +15,11 @@ import {
   substPreds,
   Type,
   formatType,
-} from "./ast.ts";
-import { Err, Ok, Result, deepEqual } from "./common.ts";
-import { ProofHistory, TopHistory } from "./history.ts";
-import { Env } from "./env.ts";
-import { checkFormula, normalizeType } from "./typeCheck.ts";
+} from "./ast";
+import { Err, Ok, Result, deepEqual } from "./common";
+import { ProofHistory, TopHistory } from "./history";
+import { Env } from "./env";
+import { checkFormula, normalizeType } from "./typeCheck";
 
 export function judgeOne(
   rule: Rule,

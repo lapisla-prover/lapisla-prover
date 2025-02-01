@@ -1,0 +1,20 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "jsc": {
+    "parser": {
+      "syntax": "typescript"
+    },
+    "target": "es2023",
+    "baseUrl": "./"
+  },
+  "module": {
+    "type": "commonjs",
+    "resolveFully": true,
+    "outFileExtension": "cjs"
+  },
+  "exclude": [
+    "node_modules",
+    ".test.ts"
+  ],
+  "minify": false
+}
