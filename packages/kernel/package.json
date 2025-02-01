@@ -36,6 +36,10 @@
     "./env": {
       "import": "./src/env.ts",
       "require": "./dist/env.cjs"
+    },
+    "./utils": {
+      "import": "./src/utils.ts",
+      "require": "./dist/utils.cjs"
     }
   },
   "devDependencies": {
