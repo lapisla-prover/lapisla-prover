@@ -4,7 +4,7 @@ import { Judgement, TopCmd } from "./ast";
 import { KernelState, topLoop } from "./checker";
 import { Err, Ok, Result } from "./common";
 import { deepCopyEnv, Env, insertConstant, insertThm } from "./env";
-import { TopHistory, TopStep } from "./history";
+import { TopHistory } from "./history";
 import { CmdWithLoc, Location, parseProgram, PartialProgram } from "./parser";
 
 export class Kernel {
@@ -161,32 +161,38 @@ export class Kernel {
     }
 }
 
-/*
-// execute a program. 
-// if execute failed because of **internal** error, return Err with error message.
-// if execute finished successfully, return Ok.
-//    ATTENTION: This does not mean the program is correct. 
-//               If execute failed because of fail of proof, parser error, etc, return Ok with false.
-export function executeProgram(src: string): Result<boolean, string> {
-    const kernel = new Kernel();
-    const program = kernel.parse(src);
+export type ExecuteResult = {
+    success: boolean;
+    errorType?: "InternalError" | "ProgramError";
+    errorMessage?: string;
+};
 
-    if (program.tag === "Err") {
-        return { tag: "Ok", value: false };
+// execute a program.
+// - If an **internal kernel error** occurs, return `ExecuteResult` with `success: false`, `errorType: "KernelError"` and an error message.
+// - If the execution finished successfully, return `success: true`.
+// - If the execution failed due to **program errors** (e.g., parser failure, proof failure), return `success: false` with `errorType: "ProgramError"`.
+export async function executeProgram(
+    src: string,
+    pkggeter: (name: string) => Promise<Result<string, string>>
+): Promise<ExecuteResult> {
+    const kernel = new Kernel(pkggeter);
+    const cmds = kernel.parse(src);
+
+    if (cmds.tag === "Err") {
+        return { success: false, errorType: "ProgramError", errorMessage: "Parse Error: " + cmds.error.error.message };
     }
 
-    for (const cmd of program.value) {
-        const res = kernel.execute(cmd);
+    for (const cmd of cmds.value) {
+        const res = await kernel.execute(cmd);
         if (res.tag === "Err") {
-            return { tag: "Ok", value: false };
+            return { success: false, errorType: "ProgramError", errorMessage: "Execution Error: " + res.error };
         }
     }
 
     // proof is not finished
     if (kernel.getCurrentMode().mode === "Proving") {
-        return { tag: "Ok", value: false };
+        return { success: false, errorType: "ProgramError", errorMessage: "Proof not finished" };
     }
 
-    return { tag: "Ok", value: true };
+    return { success: true };
 }
-*/

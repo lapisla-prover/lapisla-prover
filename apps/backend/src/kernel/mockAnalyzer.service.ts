@@ -1,18 +1,22 @@
 import { Injectable } from "@nestjs/common";
-import { AbstractCodeAnalyzerService, DependencyMetadata, Dependency, ValidationResult } from "./index";
-import { Ok } from "neverthrow"
-import { KernelError } from "./index";
+import { executeProgram } from "@repo/kernel/kernel";
+import { decomposePackageName } from "@repo/kernel/utils";
+import { Ok } from "neverthrow";
+import { PrismaService } from "src/prisma.service";
 import { getSnapshotInfoFromId } from "src/utils";
+import { AbstractCodeAnalyzerService, Dependency, DependencyMetadata, KernelError, ValidationResult } from "./index";
 
 
 @Injectable()
 export class MockAnalyzerService extends AbstractCodeAnalyzerService {
+    protected prisma: PrismaService;
 
-    constructor() {
+    constructor(private prismaService: PrismaService) {
         super();
+        this.prisma = prismaService;
     }
 
-    listDirectDependencies(sourceCode: string): Ok<{kind: 'success', value: DependencyMetadata[]} | {kind: 'invalid_source'}, KernelError> {
+    listDirectDependencies(sourceCode: string): Ok<{ kind: 'success', value: DependencyMetadata[] } | { kind: 'invalid_source' }, KernelError> {
         const importCandidate = sourceCode
             .split('\n')
             .filter(line => line.startsWith('import'));
@@ -46,33 +50,99 @@ export class MockAnalyzerService extends AbstractCodeAnalyzerService {
         return new Ok({ kind: 'success', value: dependencies });
     }
 
-    validate(sourceCode: string, dependencies: Dependency[]): ValidationResult {
-        return {
-            kind: 'validation_success',
-            success: true
+    private async fetchFile(pkgName: string): Promise<string> {
+        const result = decomposePackageName(pkgName);
+        if (result.tag === "Err") {
+            throw new Error(result.error);
         }
-        /* TS build error: Fix Me!
-        const result = executeProgram(sourceCode);
-        if (result.tag == 'Err') {
-            return {
-                success: false,
-                kind: 'kernel_error',
-                errorMessage: result.error
+        const [userName, fileName, version] = result.value;
+
+        const userId = await this.prisma.users.findUnique({
+            where: {
+                name: userName
             }
-        }
-        else if (result.value) {
+        }).catch((err) => {
+            throw new Error('Internal Error');
+        }).then((user) => {
+            if (!user) {
+                throw new Error('User not found');
+            }
+            return user.id;
+        }).finally(() => { });
+
+        const file = await this.prisma.files.findUnique({
+            where: {
+                ownerId_name: {
+                    ownerId: userId,
+                    name: fileName
+                }
+            }
+        }).catch((err) => {
+            throw new Error('Internal Error');
+        }).then((file) => {
+            if (!file) {
+                throw new Error('File not found');
+            }
+            return file;
+        }).finally(() => { });
+
+        const snapshot = await this.prisma.snapshots.findUnique({
+            where: {
+                fileId_version: {
+                    fileId: file.id,
+                    version: version
+                }
+            }
+        }).catch((err) => {
+            throw new Error('Internal Error');
+        }).then((snapshot) => {
+            if (!snapshot) {
+                throw new Error('Snapshot not found');
+            }
+            return snapshot;
+        }).finally(() => { });
+
+        return snapshot.content;
+    }
+
+
+    async validate(sourceCode: string, dependencies: Dependency[]): Promise<ValidationResult> {
+        const result = await executeProgram(sourceCode,
+            async (pkgName: string) => {
+                try {
+                    return {
+                        tag: "Ok",
+                        value: await this.fetchFile(pkgName)
+                    }
+                } catch (e) {
+                    return {
+                        tag: "Err",
+                        error: 'Import Error: ' + e.message
+                    }
+                }
+            },
+        );
+
+        if (result.success) {
             return {
                 kind: 'validation_success',
                 success: true
             }
-        }
-        else {
-            return {
-        success: false,
-        kind: 'source_error',
-                errorMessage: 'Validation failed'
+        } else {
+            if (result.errorType === "InternalError") {
+                return {
+                    success: false,
+                    kind: 'kernel_error',
+                    errorMessage: result.errorMessage
+                }
+            }
+            else if (result.errorType === "ProgramError") {
+                return {
+                    success: false,
+                    kind: 'source_error',
+                    errorMessage: result.errorMessage
+                }
             }
         }
-        */
     }
 }
