@@ -1,0 +1,35 @@
+{
+  "name": "lapisla",
+  "scopeName": "source.lapisla",
+  "patterns": [
+    { "include": "#keyword" },
+    { "include": "#operator" },
+    { "include": "#string" },
+    { "include": "#number" },
+    { "include": "#comment" }
+  ],
+  "repository": {
+    "keyword": {
+      "match": "Theorem|qed|apply|use|import|axiom|constant|prop",
+      "name": "keyword"
+    },
+    "operator": {
+      "match": "∧|∨|→|⊤|⊥|∀|∃|λ|⊢",
+      "name": "keyword.operator"
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double"
+    },
+    "number": {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric"
+    },
+    "comment": {
+      "begin": "#",
+      "end": "$",
+      "name": "comment"
+    }
+  }
+}
