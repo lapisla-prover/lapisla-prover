@@ -1,0 +1,38 @@
+---
+title: Introduction
+---
+
+# Introduction
+
+**Lapisla** is...
+
+- a proof assistant
+- an ecosystem to distribute and reuse proofs
+- a platform to share proofs with others
+
+that helps you get familiar with theorem proving! This page is a simple introduction to Lapisla.
+
+## Quick Start
+
+To start using Lapisla, go to [lapisla.net](https://lapisla.net) and log in with your GitHub account. Then, you can create a new proof file and start writing proofs! Now start with a simple proof:
+
+```lapisla copy
+Theorem and_comm P ∧ Q → Q ∧ P
+    apply ImpR
+    apply AndR
+    apply AndL2
+    apply I
+    apply AndL1
+    apply I
+qed
+```
+
+After writing the proof (or some lines of it), you can execute a single line by pressing <kbd>Ctrl</kbd>+<kbd>↓</kbd> or clicking the down arrow button on the upper right corner of the line. To execute the whole proof, click the double down arrow button. Lines that are successfully executed will be marked with a green highlight.
+
+You can see the proof state on the right side of the editor. It shows the current subgoals (sequents that need to be proved), error messages (if any), and the environment (theorems and axioms that are available).
+
+![Editor screen](/editor-screen.png)
+
+After completing the proof and executing `qed`, you can see the message "No goal. Proven!" and the environment with the proved theorem. Good!
+
+From the sidebar, you can save the proof, share it with others, or register it so that others can import it into their proofs. Enjoy proving with Lapisla!
