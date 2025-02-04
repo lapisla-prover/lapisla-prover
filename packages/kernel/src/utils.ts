@@ -8,7 +8,7 @@ export function decomposePackageName(name: string): Result<[string, string, numb
   const match = name.match(`^(${userNameRegex})/(${fileNameRegex})@(${versionRegex})$`);
 
   if (!match) {
-    return Err(`Invalid package name "${name}"`);
+    return Err(`Invalid package name "${name}". Expected format: "username/filename@version"`);
   }
 
   const userName = match[1];
