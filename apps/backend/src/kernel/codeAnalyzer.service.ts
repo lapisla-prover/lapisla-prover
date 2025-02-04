@@ -8,7 +8,7 @@ import { AbstractCodeAnalyzerService, Dependency, DependencyMetadata, KernelErro
 
 
 @Injectable()
-export class MockAnalyzerService extends AbstractCodeAnalyzerService {
+export class CodeAnalyzerService extends AbstractCodeAnalyzerService {
     protected prisma: PrismaService;
 
     constructor(private prismaService: PrismaService) {
