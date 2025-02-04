@@ -168,7 +168,7 @@ export type ExecuteResult = {
 };
 
 // execute a program.
-// - If an **internal kernel error** occurs, return `ExecuteResult` with `success: false`, `errorType: "KernelError"` and an error message.
+// - If an **internal kernel error** occurs, return `ExecuteResult` with `success: false`, `errorType: "InternalError"` and an error message.
 // - If the execution finished successfully, return `success: true`.
 // - If the execution failed due to **program errors** (e.g., parser failure, proof failure), return `success: false` with `errorType: "ProgramError"`.
 export async function executeProgram(
