@@ -484,7 +484,7 @@ export class MeService {
         }
         const depsSnapsWithMe = depsSnaps.concat(snapshot);
         // Validate
-        const validationResult = this.analyzer.validate(snapshot.content, depsSnapsWithMe.map(depSnap => {
+        const validationResult = await this.analyzer.validate(snapshot.content, depsSnapsWithMe.map(depSnap => {
             const info = getSnapshotInfoFromId(depSnap.snapshotId).match(
                 info => info,
                 () => { throw new HttpException('Internal Error', 500); }
@@ -500,7 +500,8 @@ export class MeService {
         }));
         if (validationResult.kind === 'source_error') {
             return {
-                result: 'invalid'
+                result: 'invalid',
+                message:  validationResult.errorMessage
             }
         }
         else if (validationResult.kind === 'kernel_error') {
@@ -508,7 +509,7 @@ export class MeService {
         }
         await this.prisma.snapshots.update({
             where: {
-                id: snapshot.id
+                id: snapshot.id 
             },
             data: {
                 isPublic: true,

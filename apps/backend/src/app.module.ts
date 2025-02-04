@@ -1,10 +1,10 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { HttpModule, HttpService } from '@nestjs/axios';
-import { AbstractCodeAnalyzerService } from './kernel';
-import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
+import { MiddlewareConsumer } from '@nestjs/common/interfaces';
 import { AbstractAuthService, AuthService, MockAuthService } from './auth.service';
 import { JsonOnlyMiddleware } from './jsonOnly.middleware';
-import { MiddlewareConsumer } from '@nestjs/common/interfaces';
+import { AbstractCodeAnalyzerService } from './kernel';
+import { CodeAnalyzerService } from './kernel/codeAnalyzer.service';
 import { AbstractSearchLogicService, MockSearchLogicService } from './searchlogic';
 
 import {
@@ -13,23 +13,23 @@ import {
   MeService,
   RegistryService,
   SearchService,
-  TimelineService,
-  TagsService
+  TagsService,
+  TimelineService
 } from './api/api';
-import { PrismaService } from './prisma.service';
 import {
   FilesController,
   LoginController,
   MeController,
   RegistryController,
   SearchController,
-  TimelineController,
-  TagsController
+  TagsController,
+  TimelineController
 } from './controllers/controllers';
+import { PrismaService } from './prisma.service';
 
 @Module({
-  imports: [ HttpModule ],
-  exports: [ AbstractAuthService ],
+  imports: [HttpModule],
+  exports: [AbstractAuthService],
   providers: [
     PrismaService,
     FilesService,
@@ -38,7 +38,7 @@ import {
     RegistryService,
     SearchService,
     TimelineService,
-    { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
+    { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: AuthService },
     { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
     TagsService
@@ -63,8 +63,8 @@ export class AppModule {
 }
 
 @Module({
-  imports: [ HttpModule ],
-  exports: [ AbstractAuthService ],
+  imports: [HttpModule],
+  exports: [AbstractAuthService],
   providers: [
     PrismaService,
     FilesService,
@@ -73,7 +73,7 @@ export class AppModule {
     RegistryService,
     SearchService,
     TimelineService,
-    { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
+    { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: MockAuthService },
     { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
   ],
