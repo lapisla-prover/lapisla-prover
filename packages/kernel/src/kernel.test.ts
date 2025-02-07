@@ -3,6 +3,8 @@ import { executeProgram } from "./kernel";
 import { expectOk } from "./test-util";
 
 describe("executeProgram", () => {
+
+
     // simple proof
     const src1 = `
     Theorem id P → P
@@ -11,26 +13,40 @@ describe("executeProgram", () => {
     qed
     `
 
-    test("executeProgram", () => {
-        const res = executeProgram(src1);
-        expectOk(res);
-        expect(res.value).toBe(true);
+
+    test("executeProgram", async () => {
+        const res = await executeProgram(src1, async (pkgName: string) => {
+            return {
+                tag: "Ok",
+                value: ""
+            }
+        }
+        );
+
+        expect(res.success).toBe(true);
     });
 
 
     // not finished
     const src2 = `
     Theorem id P → P
-    apply ImpR
+    apply ImpR 
     apply I
     `
 
-    test("executeProgram", () => {
-        const res = executeProgram(src2);
-        expectOk(res);
-        expect(res.value).toBe(false);
-    });
-    
+    test("executeProgram", async () => {
+        const res = await executeProgram(src2, async (pkgName: string) => {
+            return {
+                tag: "Ok",
+                value: ""
+            }
+        }
+        );
+
+        expect(res.success).toBe(false);
+    }
+    )
+
     // double theorems
     const src3 = `
     Theorem id P → P
@@ -44,10 +60,17 @@ describe("executeProgram", () => {
     qed
     `
 
-    test("executeProgram", () => {
-        const res = executeProgram(src3);
-        expectOk(res);
-        expect(res.value).toBe(true);
+    test("executeProgram", async () => {
+        const res = await executeProgram(src3, async (pkgName: string) => {
+            return {
+                tag: "Ok",
+                value: ""
+            }
+        }
+        );
+
+        expect(res.success).toBe(true);
+
     });
 
 
@@ -59,11 +82,20 @@ describe("executeProgram", () => {
     qed
     `
 
-    test("executeProgram", () => {
-        const res = executeProgram(src4);
-        expectOk(res);
-        expect(res.value).toBe(false);
-    });
+    test("executeProgram", async () => {
+        const res = await executeProgram(src4, async (pkgName: string) => {
+            return {
+                tag: "Ok",
+                value: ""
+            }
+        }
+        );
+
+        expect(res.success).toBe(false);
+        expect(res.errorType).toBe("ProgramError");
+
+    }
+    )
 
     // success
     const src = `
@@ -119,9 +151,17 @@ describe("executeProgram", () => {
     apply I
     qed`;
 
-    test("executeProgram", () => {
-        const res = executeProgram(src);
-        expectOk(res);
-        expect(res.value).toBe(true);
-    });
+    test("executeProgram", async () => {
+        const res = await executeProgram(src, async (pkgName: string) => {
+            return {
+                tag: "Ok",
+                value: ""
+            }
+        }
+        );
+
+        expect(res.success).toBe(true);
+
+    }
+    )
 });
