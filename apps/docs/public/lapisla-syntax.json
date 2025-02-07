@@ -14,7 +14,7 @@
       "name": "keyword"
     },
     "operator": {
-      "match": "∧|∨|→|⊤|⊥|∀|∃|λ|⊢",
+      "match": "∧|∨|→|⊤|⊥|∀|∃|λ|⊢|↦",
       "name": "keyword.operator"
     },
     "string": {
