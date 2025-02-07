@@ -1,0 +1,89 @@
+---
+title: All Available Rules
+---
+
+# All Available Rules
+
+$x, y, z$ are variables $t$ is a term, $A, B$ are formulas, and $\Gamma, \Delta$ are sequences of formulas.
+
+```math
+\frac{}{A \vdash A} \text{(I)}
+```
+```math
+\frac{A, \Gamma \vdash \Delta}{A \land B, \Gamma \vdash \Delta} \text{(AndL1)}
+\qquad \frac{B, \Gamma \vdash \Delta}{A \land B, \Gamma \vdash \Delta} \text{(AndL2)}
+\qquad \frac{\Gamma \vdash A, \Delta \quad \Gamma \vdash B, \Delta}{\Gamma \vdash A \land B, \Delta} \text{(AndR)}
+```
+```math
+\frac{A, \Gamma \vdash \Delta \quad B, \Gamma \vdash \Delta}{A \lor B, \Gamma \vdash \Delta} \text{(OrL)}
+\qquad \frac{\Gamma \vdash A, \Delta}{\Gamma \vdash A \lor B, \Delta} \text{(OrR1)}
+\qquad \frac{\Gamma \vdash B, \Delta}{\Gamma \vdash A \lor B, \Delta} \text{(OrR2)}
+```
+```math
+\frac{\Gamma \vdash A, \Delta \quad B, \Gamma \vdash \Delta}{A \to B, \Gamma \vdash \Delta} \text{(ImpL)}
+\qquad \frac{A, \Gamma \vdash B, \Delta}{\Gamma \vdash A \to B, \Delta} \text{(ImpR)}
+```
+```math
+\frac{}{\bot, \Gamma \vdash \Delta} \text{(BottomL)}
+\qquad \frac{}{\Gamma \vdash \top, \Delta} \text{(TopR)}
+```
+```math
+\frac{A[x \coloneqq t], \Gamma \vdash \Delta}{\forall x. A, \Gamma \vdash \Delta} \text{(ForallL)}
+\qquad \frac{\Gamma \vdash A[x \coloneqq z], \Delta \quad \text{$z$ does not appear freely}}{\Gamma \vdash \forall x. A, \Delta} \text{(ForallR)}
+```
+```math
+\frac{A[x \coloneqq z], \Gamma \vdash \Delta \quad \text{$z$ does not appear freely}}{\Gamma \vdash \exists x. A, \Delta} \text{(ExistsL)}
+\qquad \frac{\Gamma \vdash A[x \coloneqq t], \Delta}{\Gamma \vdash \exists x. A, \Delta} \text{(ExistsR)}
+```
+```math
+\frac{\Gamma \vdash \Delta}{A, \Gamma \vdash \Delta} \text{(WL)}
+\qquad \frac{\Gamma \vdash \Delta}{\Gamma \vdash A, \Delta} \text{(WR)}
+```
+```math
+\frac{A, A, \Gamma \vdash \Delta}{A, \Gamma \vdash \Delta} \text{(CL)}
+\qquad \frac{\Gamma \vdash A, A, \Delta}{\Gamma \vdash A, \Delta} \text{(CR)}
+```
+```math
+\frac{A, \Gamma, \Gamma' \vdash \Delta}{\Gamma, A, \Gamma' \vdash \Delta} \text{(PL)}
+\qquad \frac{\Gamma \vdash A, \Delta, \Delta'}{\Gamma \vdash \Delta, A, \Delta'} \text{(PR)}
+```
+```math
+\frac{\Gamma \vdash A, \Delta \quad A, \Gamma \vdash \Delta}{\Gamma \vdash \Delta} \text{(Cut)}
+```
+
+## Rule Syntax
+
+When you write `apply{:lapisla}` command, you should follow the syntax below.
+
+### Rule without Arguments
+
+For these rules, you can simply write the rule name.
+
+- `I`
+- `AndL1`
+- `AndL2`
+- `AndR`
+- `OrL`
+- `OrR1`
+- `OrR2`
+- `ImpL`
+- `ImpR`
+- `BottomL`
+- `TopR`
+- `WL`
+- `WR`
+- `CL`
+- `CR`
+
+### Rule with Arguments
+
+These rules require an argument. You should write the rule name followed by the argument.
+
+- `ForallL term`
+- `ExistsR term`
+- `ForallR identifier`
+- `ExistsL identifier`
+- `PL number`
+- `PR number`
+  - `number` is the 0-based index of the formula to move to the left.
+- `Cut formula`
