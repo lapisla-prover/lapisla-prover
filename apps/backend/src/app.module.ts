@@ -11,7 +11,7 @@ import { AbstractCodeAnalyzerService } from './kernel';
 import { CodeAnalyzerService } from './kernel/codeAnalyzer.service';
 import {
   AbstractSearchLogicService,
-  MockSearchLogicService,
+  SearchLogicService,
 } from './searchlogic';
 
 import {
@@ -47,7 +47,7 @@ import { RepositoryService } from './repository.service';
     TimelineService,
     { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: AuthService },
-    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
+    { provide: AbstractSearchLogicService, useClass: SearchLogicService },
     TagsService,
   ],
   controllers: [
@@ -79,7 +79,7 @@ export class AppModule {
     TimelineService,
     { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: MockAuthService },
-    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
+    { provide: AbstractSearchLogicService, useClass: SearchLogicService },
   ],
   controllers: [
     FilesController,
