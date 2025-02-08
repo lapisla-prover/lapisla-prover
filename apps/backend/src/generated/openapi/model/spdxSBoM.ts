@@ -11,16 +11,7 @@
  */
 
 
-export interface SnapshotMeta { 
-    id: string;
-    owner: string;
-    fileName: string;
-    version: number;
-    /**
-     * SPDX license identifier
-     */
-    license?: string;
-    registered?: boolean;
-    createdAt: string;
+export interface SpdxSBoM { 
+    sbomRaw: string;
 }
 
