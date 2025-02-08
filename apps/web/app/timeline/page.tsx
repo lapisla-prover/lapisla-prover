@@ -35,7 +35,7 @@ export default function Timeline() {
 
   useEffect(() => {
     fetchTimelines()
-  }, [fetchTimelines])
+  }, [])
 
   return (
     <div className="flex">
