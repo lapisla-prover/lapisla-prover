@@ -1,17 +1,11 @@
 import { RepositoryService } from '@/repository.service';
 
-import { DependencyMetadata } from 'src/kernel';
 import { DbNotFoundError } from '@/repository.service/fromThrowable';
 
-import { getSnapshotInfoFromId, getSnapshotId } from 'src/utils';
-import { Injectable, Optional } from '@nestjs/common';
-import { Project } from '../generated/openapi/model/project';
-import { AbstractCodeAnalyzerService } from '../kernel/index';
+import { getSnapshotInfoFromId, getSnapshotId } from '@/utils';
+import { Injectable } from '@nestjs/common';
 import { HttpException } from '@nestjs/common/exceptions/http.exception';
-import { ProjectFetchResult } from 'src/generated/openapi/model/projectFetchResult';
-import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
-import { Snapshot } from '../generated/openapi/model/snapshot';
-import { Dependency } from '../generated/openapi/model/dependency';
+import { ProjectFetchResult, Project } from '@/generated/openapi/model/models';
 
 @Injectable()
 export class RegistryService {

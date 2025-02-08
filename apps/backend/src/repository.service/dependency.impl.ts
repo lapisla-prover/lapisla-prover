@@ -1,9 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import {
-  fromThrowableSet,
-  fromThrowableGet,
-  fromThrowableDelete,
-} from './fromThrowable';
+import { fromThrowableSet, fromThrowableGet } from './fromThrowable';
 
 export async function setDependencies(
   prisma: PrismaClient,

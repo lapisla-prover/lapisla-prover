@@ -1,11 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { RepositoryService } from '@/repository.service';
 
-import { HttpException, Injectable, Optional } from '@nestjs/common';
-import { SearchResult } from '../generated/openapi/model/searchResult';
-import { AbstractSearchLogicService } from 'src/searchlogic';
-import { SearchCandidate } from 'src/searchlogic';
-import { getSnapshotInfoFromId } from 'src/utils';
+import { Injectable } from '@nestjs/common';
+import { SearchResult } from '@/generated/openapi/model/models';
+import { AbstractSearchLogicService, SearchCandidate } from 'src/searchlogic';
 
 // ReturnType is the snapshots.id in db
 @Injectable()

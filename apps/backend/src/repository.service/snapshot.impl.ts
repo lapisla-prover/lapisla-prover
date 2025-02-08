@@ -2,12 +2,10 @@ import { PrismaClient } from '@prisma/client';
 import {
   fromThrowableSet,
   fromThrowableGet,
-  fromThrowableDelete,
   combineError,
 } from './fromThrowable';
 
-import { Ok, Err, Result } from 'neverthrow';
-import { ok } from 'assert';
+import { Err } from 'neverthrow';
 
 export async function getSnapshot(
   prisma: PrismaClient,

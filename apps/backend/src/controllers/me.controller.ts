@@ -5,17 +5,16 @@ import {
   Delete,
   Patch,
   Param,
-  Query,
   Body,
-  Headers,
   Req,
   HttpException,
 } from '@nestjs/common';
-import { MeService } from '../api/me.service';
-import { AbstractAuthService } from '../auth.service';
-import { SourceCodeWrapper } from 'src/generated/openapi/model/models';
+import { MeService } from '@/api/me.service';
+import {
+  SourceCodeWrapper,
+  Registration,
+} from '@/generated/openapi/model/models';
 import { Request } from 'express';
-import { Registration } from 'src/generated/openapi/model/models';
 
 @Controller('me')
 export class MeController {

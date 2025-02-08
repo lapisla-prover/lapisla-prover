@@ -3,7 +3,7 @@ import { executeProgram } from '@repo/kernel/kernel';
 import { decomposePackageName } from '@repo/kernel/utils';
 import { Ok } from 'neverthrow';
 import { RepositoryService } from '@/repository.service';
-import { getSnapshotInfoFromId } from 'src/utils';
+import { getSnapshotInfoFromId } from '@/utils';
 import {
   AbstractCodeAnalyzerService,
   Dependency,

@@ -1,10 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import { HttpException, Injectable, Optional } from '@nestjs/common';
-import { SearchResult } from '../generated/openapi/model/searchResult';
-import { AbstractSearchLogicService } from 'src/searchlogic';
-import { SearchCandidate } from 'src/searchlogic';
-import { getSnapshotId, getSnapshotInfoFromId } from 'src/utils';
-import { TimelineEntry } from '../generated/openapi/model/timelineEntry';
+import { HttpException, Injectable } from '@nestjs/common';
+import { getSnapshotId } from '@/utils';
+import { TimelineEntry } from '@/generated/openapi/model/timelineEntry';
 import { RepositoryService } from '@/repository.service';
 
 // ReturnType is the snapshots.id in db
