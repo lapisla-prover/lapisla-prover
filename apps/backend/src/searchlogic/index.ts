@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service'
+import { PrismaClient } from '@prisma/client';
+import { RepositoryService } from '../repository.service';
 
 
 export interface SearchCandidate<ReturnType> {
@@ -12,10 +13,10 @@ export interface SearchCandidate<ReturnType> {
 
 @Injectable()
 export abstract class AbstractSearchLogicService<ReturnType> {
-    protected prisma: PrismaService;
+    protected prisma: PrismaClient;
 
-    constructor(prismaService: PrismaService) {
-        this.prisma = prismaService;
+    constructor(repositoryService: RepositoryService) {
+        this.prisma = repositoryService.__doNotUseThisMethodGetPrismaClient();
     }
 
     abstract search(
@@ -28,8 +29,8 @@ export abstract class AbstractSearchLogicService<ReturnType> {
 
 @Injectable()
 export class MockSearchLogicService extends AbstractSearchLogicService<string> {
-    constructor(prismaService: PrismaService) {
-        super(prismaService);
+    constructor(repositoryService: RepositoryService) {
+        super(repositoryService);
     }
 
     async search(

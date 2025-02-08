@@ -1,4 +1,4 @@
-import { PrismaService } from '../prisma.service';
+import { RepositoryService } from '../repository.service';
 
 import { HttpException, Injectable, Optional } from '@nestjs/common';
 import { PrivateFileMeta } from '../generated/openapi/model/privateFileMeta';
@@ -17,15 +17,25 @@ import { Registration } from '../generated/openapi/model/registration';
 import { UserInfo } from '../generated/openapi/model/userInfo';
 import { isValidTag } from '../utils';
 
+import {
+    DbGetQueryError,
+    DbDeleteQueryError,
+    DbSetQueryError,
+    DbInternalError,
+    DbNotFoundError,
+    DbDuplicateError,
+  } from '@/repository.service/fromThrowable';
+  
+
 @Injectable()
 export class MeService {
 
-    private prisma: PrismaService;
+    private repo: RepositoryService;
     private auth: AbstractAuthService;
     private analyzer: AbstractCodeAnalyzerService;
 
-    constructor(private prismaService: PrismaService, private authService: AbstractAuthService, private codeAnalyzerService: AbstractCodeAnalyzerService) {
-        this.prisma = prismaService;
+    constructor(private repositoryService: RepositoryService, private authService: AbstractAuthService, private codeAnalyzerService: AbstractCodeAnalyzerService) {
+        this.repo = repositoryService;
         this.auth = authService;
         this.analyzer = codeAnalyzerService;
     }
@@ -38,48 +48,16 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        (await this.repo.deleteFile(userName, fileName))
+            .match(
+                () => {},
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (!file) {
-                    throw new HttpException('File not found', 404);
-                }
-                return file;
-            })
-            .finally(() => {});
-        await this.prisma.files.delete({
-            where: {
-                id: file.id
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
+            );
         return null;
     }
     
@@ -91,55 +69,23 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        const file = (await this.repo.getFileWithSnapshots(userName, fileName))
+            .match(
+                (file) => file,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
-                }
-            },
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (!file) {
-                    throw new HttpException('File not found', 404);
-                }
-                return file;
-            })
-            .finally(() => {});
-        const snapshots = await this.prisma.snapshots.findMany({
-            where: {
-                fileId: file.id
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
+            );
         return {
             owner: userName,
             fileName: fileName,
-            versions: snapshots.map(snapshot => snapshot.version),
-            registeredVersions: snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
+            versions: file.snapshots.map(snapshot => snapshot.version),
+            registeredVersions: file.snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
             createdAt: file.createdAt.toISOString(),
-            updatedAt: snapshots.reduce((acc, snapshot) => {
+            updatedAt: file.snapshots.reduce((acc, snapshot) => {
                 return snapshot.createdAt > acc ? snapshot.createdAt : acc;
             }, file.createdAt).toISOString()
         }
@@ -154,79 +100,57 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        // duplicate save check
+        const file = (await this.repo.getFileWithSnapshots(userName, fileName))
+            .match(
+                (file) => file,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (!file) {
-                    throw new HttpException('File not found', 404);
-                }
-                return file;
-            })
-            .finally(() => {});
-        const snapshots = await this.prisma.snapshots.findMany({
-            where: {
-                fileId: file.id
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
-        // saving exactly the same snapshot is not allowed
-        if (snapshots.length > 0 && snapshots[snapshots.length - 1].content === body.content) {
-            return {
-                result: 'already_saved',
-                snapshot: {
-                    id: getSnapshotId(userName, fileName, snapshots.length - 1),
-                    owner: userName,
-                    fileName: fileName,
-                    version: snapshots.length - 1,
-                    registered: snapshots[snapshots.length - 1].isPublic,
-                    createdAt: snapshots[snapshots.length - 1].createdAt.toISOString()
+            );
+        if (file.snapshots.length !== 0) {
+            const lastSnapshotVersion = file.snapshots[file.snapshots.length - 1];
+            const lastSnapshot = (await this.repo.getSnapshotWithContent(userName, fileName, lastSnapshotVersion.version))
+                .match(
+                    (snapshot) => snapshot,
+                    (error) => {
+                        if (error instanceof DbNotFoundError) {
+                            throw new HttpException('Internal Error', 500);
+                        }
+                        throw new HttpException('Internal Error', 500);
+                    }
+                );
+            if (lastSnapshot.content.content === body.content) {
+                return {
+                    result: 'already_saved',
+                    snapshot: {
+                        id: getSnapshotId(userName, fileName, lastSnapshotVersion.version),
+                        owner: userName,
+                        fileName: fileName,
+                        version: lastSnapshotVersion.version,
+                        registered: lastSnapshot.isPublic,
+                        createdAt: lastSnapshot.createdAt.toISOString()
+                    }
                 }
             }
         }
-        const thisSnapshot = await this.prisma.snapshots.create({
-            data: {
-                fileId: file.id,
-                version: snapshots.length,
-                content: body.content,
-                isPublic: false,
-                snapshotId: getSnapshotId(userName, fileName, snapshots.length)
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
+        const thisSnapshot = (await this.repo.createSnapshot(userName, fileName, body.content))
+            .match(
+                (snapshot) => snapshot,
+                (error) => {
+                    if (error instanceof DbInternalError) {
+                        throw new HttpException('Internal Error', 500);
+                    }
+                    throw new HttpException('Internal Error', 500);
+                }
+            );
         return {
             result: 'newly_saved',
             snapshot: {
-                id: getSnapshotId(userName, fileName, snapshots.length),
+                id: getSnapshotId(userName, fileName, thisSnapshot.version),
                 owner: userName,
                 fileName: fileName,
                 version: thisSnapshot.version,
@@ -250,57 +174,16 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        const snapshot = (await this.repo.getSnapshotWithContent(userName, fileName, version))
+            .match(
+                (snapshot) => snapshot,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-            const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (!file) {
-                    throw new HttpException('File not found', 404);
-                }
-                return file;
-            })
-            .finally(() => {});
-        const snapshot = await this.prisma.snapshots.findUnique({
-            where: {
-                fileId_version: {
-                    fileId: file.id,
-                    version: version
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((snapshot) => {
-                if (!snapshot) {
-                    throw new HttpException('Snapshot not found', 404);
-                }
-                return snapshot;
-            })
-            .finally(() => {});
+            );
         return {
             meta: {
                 id: getSnapshotId(userName, fileName, version),
@@ -310,7 +193,7 @@ export class MeService {
                 registered: snapshot.isPublic,
                 createdAt: snapshot.createdAt.toISOString()
             },
-            content: snapshot.content
+            content: snapshot.content.content
         };
     }
 
@@ -326,57 +209,26 @@ export class MeService {
         if (!isValidFileName) {
             throw new HttpException('Invalid file name', 400);
         }
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        const file = (await this.repo.createFile(userName, fileName))
+            .match(
+                (file) => file,
+                (error) => {
+                    if (error instanceof DbDuplicateError) {
+                        throw new HttpException('Resource already exists', 409);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        // Check if the file already exists
-        await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
+            );
+        const snapshot = (await this.repo.createSnapshot(userName, fileName, '# Welcome to Lapisla! Write your proof here.\n'))
+            .match(
+                (snapshot) => snapshot,
+                (error) => {
+                    if (error instanceof DbInternalError) {
+                        throw new HttpException('Internal Error', 500);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (file) {
-                    throw new HttpException('File already exists', 409);
-                }
-            });
-        const file = await this.prisma.files.create({
-            data: {
-                ownerId: userId,
-                name: fileName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
-        await this.prisma.snapshots.create({
-            data: {
-                fileId: file.id,
-                version: 0,
-                content: '# Welcome to Lapisla! Write your proof here.\n',
-                isPublic: false,
-                snapshotId: getSnapshotId(userName, fileName, 0)
-            }
-        })
+            );
         return {
             owner: userName,
             fileName: fileName,
@@ -402,62 +254,23 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        const snapshot = (await this.repo.getSnapshotWithContent(userName, fileName, version))
+            .match(
+                (snapshot) => snapshot,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (!file) {
-                    throw new HttpException('File not found', 404);
-                }
-                return file;
-            })
-            .finally(() => {});
-        const snapshot = await this.prisma.snapshots.findUnique({
-            where: {
-                fileId_version: {
-                    fileId: file.id,
-                    version: version
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((snapshot) => {
-                if (!snapshot) {
-                    throw new HttpException('Snapshot not found', 404);
-                }
-                return snapshot;
-            });
+            )
         if (snapshot.isPublic) {
             return {
-                result: 'already_registered'
+                result: SnapshotRegisterResponse.ResultEnum.AlreadyRegistered,
+                message: "Snapshot already registered"
             }
         }
-        const dependencies = this.analyzer.listDirectDependencies(snapshot.content)
+        const dependencies = this.analyzer.listDirectDependencies(snapshot.content.content)
             .match(
                 (deps) => {
                     if (deps.kind === 'invalid_source') {
@@ -467,72 +280,60 @@ export class MeService {
                 },
                 () => { throw new HttpException('Internal Error', 500); }
             );
-        const depsSnapId = dependencies.map(dep => getSnapshotId(dep.owner, dep.name, parseInt(dep.version)));
-        const depsSnaps = await this.prisma.snapshots.findMany({
-            where: {
-                snapshotId: {
-                    in: depsSnapId
+        const dependencyContents = (await this.repo.getPublicSnapshotsWithContent(dependencies))
+            .match(
+                (deps) => {
+                    if (deps.length !== dependencies.length) {
+                        throw new HttpException('Dependency not found', 404);
+                    }
+                    return deps;
                 },
-                isPublic: true
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            });
-        if (depsSnaps.length !== depsSnapId.length) {
-            throw new HttpException('Dependency not found', 404);
-        }
-        const depsSnapsWithMe = depsSnaps.concat(snapshot);
-        // Validate
-        const validationResult = await this.analyzer.validate(snapshot.content, depsSnapsWithMe.map(depSnap => {
-            const info = getSnapshotInfoFromId(depSnap.snapshotId).match(
-                info => info,
                 () => { throw new HttpException('Internal Error', 500); }
-            );
-            return {
-                metadata: {
-                    owner: info.owner,
-                    name: info.fileName,
-                    version: info.version.toString()
-                },
-                source: depSnap.content
-            }
-        }));
-        if (validationResult.kind === 'source_error') {
-            return {
-                result: 'invalid',
-                message:  validationResult.errorMessage
-            }
-        }
-        else if (validationResult.kind === 'kernel_error') {
-            throw new HttpException('Internal Error', 500);
-        }
-        await this.prisma.snapshots.update({
-            where: {
-                id: snapshot.id 
-            },
-            data: {
-                isPublic: true,
-                registeredAt: new Date()
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            });
-        await this.prisma.dependencies.createMany({
-            data: depsSnapsWithMe.map(depSnap => {
+            )
+        const validationResult = await this.analyzer.validate(
+            snapshot.content.content,
+            dependencyContents.map((dep, i) => {
                 return {
-                    dependerId: snapshot.id,
-                    dependeeId: depSnap.id
+                    metadata: dep,
+                    source: dep.content.content
                 }
             })
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            });
+        )
+        if (validationResult.kind === 'source_error') {
+            return {
+                result: SnapshotRegisterResponse.ResultEnum.Invalid,
+                message: "Invalid source code"
+            }
+        }
+        if (validationResult.kind === 'kernel_error') {
+            throw new HttpException("Internal Error", 500);
+        }
+        if (!validationResult.success) {
+            throw new HttpException("Internal Error", 500);
+        }
+        dependencies.push({
+            ownerName: userName,
+            fileName: fileName,
+            version: version
+        });
+        (await this.repo.setDependencies(userName, fileName, version, dependencies))
+            .match(
+                () => {},
+                (error) => {
+                    throw new HttpException('Internal Error', 500);
+                }
+            );
+        (await this.repo.publishSnapshot(userName, fileName, version))
+            .match(
+                () => {},
+                (error) => {
+                    throw new HttpException('Internal Error', 500);
+                }
+            );
         return {
-            result: 'registered'
-        };
+            result: SnapshotRegisterResponse.ResultEnum.Registered,
+            message: "Snapshot registered"
+        }
     }
 
     public async getMyFiles(auth: string): Promise<PrivateFileMeta[]> {
@@ -543,59 +344,28 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        const user = (await this.repo.getUserWithFilesAndSnapshots(userName))
+            .match(
+                (user) => user,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        const files = await this.prisma.files.findMany({
-            where: {
-                ownerId: userId
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
-        const filesAndSnapshots = await this.prisma.files.findMany({
-            where: {
-                ownerId: userId
-            },
-            include: {
-                snapshots: true
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .finally(() => {});
-        let fileIdToFilesAndSnapshots: Map<string, { snapshots: { version: number; isPublic: boolean; createdAt: Date }[] }> = new Map();
-        filesAndSnapshots.forEach(file => {
-            fileIdToFilesAndSnapshots[file.id] = file;
-        });
-        let fileMetas: PrivateFileMeta[] = files.map(file => {
+            );
+        return user.files.map(file => {
             return {
                 owner: userName,
-                fileName: file.name,
-                versions: fileIdToFilesAndSnapshots[file.id].snapshots.map(snapshot => snapshot.version),
-                registeredVersions: fileIdToFilesAndSnapshots[file.id].snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
+                fileName: file.fileName,
+                versions: file.snapshots.map(snapshot => snapshot.version),
+                registeredVersions: file.snapshots.filter(snapshot => snapshot.isPublic).map(snapshot => snapshot.version),
                 createdAt: file.createdAt.toISOString(),
-                updatedAt: fileIdToFilesAndSnapshots[file.id].snapshots.reduce((acc, snapshot) => {
+                updatedAt: file.snapshots.reduce((acc, snapshot) => {
                     return snapshot.createdAt > acc ? snapshot.createdAt : acc;
                 }, file.createdAt).toISOString()
             }
         });
-        return fileMetas;
     }
 
     public async updateTagsAndDescription(fileName: string, version: string, body: Registration, auth: string): Promise<SnapshotMeta> {
@@ -617,100 +387,24 @@ export class MeService {
                 user => user,
                 () => { throw new HttpException('Unauthorized', 401); }
             );
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((user) => {
-                if (!user) {
-                    throw new HttpException('User not found', 404);
+        const snapshot = (await this.repo.updateTagsAndDescription(
+            userName,
+            fileName,
+            versionNumber,
+            body.tags,
+            body.description
+        ))
+            .match(
+                (snapshot) => snapshot,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
                 }
-                return user.id;
-            })
-            .finally(() => {});
-        const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((file) => {
-                if (!file) {
-                    throw new HttpException('File not found', 404);
-                }
-                return file;
-            })
-            .finally(() => {});
-        const snapshot = await this.prisma.snapshots.findUnique({
-            where: {
-                fileId_version: {
-                    fileId: file.id,
-                    version: versionNumber
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            })
-            .then((snapshot) => {
-                if (!snapshot) {
-                    throw new HttpException('Snapshot not found', 404);
-                }
-                return snapshot;
-            })
-            .finally(() => {});
-        await this.prisma.tags.createMany({
-            data: body.tags.map(tag => {
-                return {
-                    name: tag
-                }
-            }),
-            skipDuplicates: true
-        })
-            .catch((err) => {
-                console.log(err);
-                throw new HttpException('Internal Error', 500);
-            });
-        const tags = await this.prisma.tags.findMany({
-            where: {
-                name: {
-                    in: body.tags
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            });
-        await this.prisma.snapshots.update({
-            where: {
-                id: snapshot.id
-            },
-            data: {
-                description: body.description,
-                tags: {
-                    deleteMany: {},
-                    create: tags.map(tag => {
-                        return {
-                            tagId: tag.id
-                        }
-                    })
-                }
-            }
-        })
-            .catch((err) => {
-                throw new HttpException('Internal Error', 500);
-            });
+            );
         return {
-            id: snapshot.snapshotId,
+            id: getSnapshotId(userName, fileName, versionNumber),
             owner: userName,
             fileName: fileName,
             version: versionNumber,
@@ -726,21 +420,18 @@ export class MeService {
                 user => user,
                 (_) => { throw new HttpException('Unauthorized', 401); }
         );
-        const user = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        }).catch((err) => {
-            throw new HttpException('Internal Error', 500);
-        }).then((user) => {
-            if (!user) {
-                throw new HttpException('User not found', 404);
-            }
-            return user;
-        });
-
+        const user = (await this.repo.getUser(userName))
+            .match(
+                (user) => user,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new HttpException('Resource not found', 404);
+                    }
+                    throw new HttpException('Internal Error', 500);
+                }
+            );
         return {
-            username: user.name,
+            username: user.userName,
             github_id: user.githubId,
         };
     }

@@ -1,9 +1,12 @@
-import { PrismaService } from '../prisma.service';
+import { RepositoryService } from '../repository.service';
 
 import { HttpException, Injectable, Optional } from '@nestjs/common';
 import { AbstractAuthService } from '../auth.service';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import { err } from 'neverthrow';
+import { error } from 'console';
+import { DbDuplicateError } from '@/repository.service/fromThrowable';
 
 type GithubAccessTokenResponse = {
     access_token: string;
@@ -29,11 +32,11 @@ const randomString = (len: number) => {
 @Injectable()
 export class LoginService {
 
-    protected prisma: PrismaService;
+    protected repo: RepositoryService;
     protected auth: AbstractAuthService;
 
-    constructor(private prismaService: PrismaService, private authService: AbstractAuthService) {
-        this.prisma = prismaService;
+    constructor(private repositoryService: RepositoryService, private authService: AbstractAuthService) {
+        this.repo = repositoryService;
         this.auth = authService;
     }
 
@@ -75,14 +78,13 @@ export class LoginService {
         const userName = user.login;
         const githubId = user.id;
 
-        await this.prisma.users.upsert({
-            where: {name: userName},
-            update: {},
-            create: {
-                name: userName,
-                githubId: githubId,
-            },
-        });
+        (await this.repo.createUser(userName, githubId)).match(
+            () => {},
+            (error) => {
+                if (error instanceof DbDuplicateError) {}
+                throw new HttpException('Internal Error', 500);
+            }
+        );
 
         const session_id = await this.auth.newToken(userName);
 

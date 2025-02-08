@@ -20,7 +20,6 @@ services:
     build:
       context: ../../
       dockerfile: apps/backend/dev.Dockerfile
-    command: sh -c "cd /app/apps/backend && npx prisma db push --schema=./prisma/schema.prisma && pnpm run start:dev"
     ports:
       - "3000:3000"
     depends_on:

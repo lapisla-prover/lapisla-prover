@@ -24,9 +24,9 @@ export type KernelError = {
 };
 
 export interface DependencyMetadata {
-  owner: string;
-  name: string;
-  version: string;
+  ownerName: string;
+  fileName: string;
+  version: number;
 }
 
 export interface Dependency {

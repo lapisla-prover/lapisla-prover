@@ -25,13 +25,13 @@ import {
   TagsController,
   TimelineController
 } from './controllers/controllers';
-import { PrismaService } from './prisma.service';
+import { RepositoryService } from './repository.service';
 
 @Module({
   imports: [HttpModule],
   exports: [AbstractAuthService],
   providers: [
-    PrismaService,
+    RepositoryService,
     FilesService,
     LoginService,
     MeService,
@@ -66,7 +66,7 @@ export class AppModule {
   imports: [HttpModule],
   exports: [AbstractAuthService],
   providers: [
-    PrismaService,
+    RepositoryService,
     FilesService,
     LoginService,
     MeService,
