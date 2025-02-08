@@ -1,38 +1,85 @@
-# lapisla-prover 🐶🐱
-
-<img  style="text-align: center;" width="1311" alt="image" src="https://github.com/user-attachments/assets/18bebe50-9a35-499a-a2c0-263fa8d17ed9" />
+<h1 align="center" style="border: none;">🐶 lapisla-prover 🐱</h1>
 
 
-lapisla は、みんなのための
+<p align="center">
+    <img align="center" width="800" alt="image" src="https://github.com/user-attachments/assets/98a2382b-f1a3-4d69-acb2-f09bf506d0cd" />
+</p>
 
-- 定理証明支援系
-- エコシステム
-- プラットフォーム
+<p align="center" style="text-align: center;"> <strong>lapisla</strong> は battery-pluggable な定理証明支援系です！</p>
 
-です！
+<p align="center" style="text-align: center;">  <strong> <a href="https://lapisla.net"> lapisla.net </a>  |  <a href="https://docs.lapisla.net"> docs.lapisla.net </a> </strong>  </p>  
 
-## モチベーション
+
+## Concept of lapisla 😸
 
 既存の定理証明支援系は、「一般的な」プログラム開発と比べて難易度が高いと見做されています。
 
-我々は、支持を集めているプログラミング言語には高度に発達したエコシステムが存在してそれを簡単に利用できるのに対して、多くの定理証明支援系にはそのような仕組みがないからだと考えています。
+我々は、支持を集めているプログラミング言語には高度に発達したエコシステムが存在し他のユーザの成果を簡単に利用できるのに対して、多くの定理証明支援系にはそのような仕組みがないからだと考えています。
 
-我々は、ブラウザ上で完全に動作するカーネルと UI, そしてレジストリを作ることによって、容易に成果を共有・利用できる基盤を作り、この問題を解決しようとしています。
+これに対して、 lapisla はブラウザ上で完全に動作するカーネルと UI, そしてレジストリを備えており、容易に成果を共有・利用できる基盤が整っています。
 
-## lapisla-kernel
+我々はこのような他人の成果を容易に利用できることを 「buttery-pluggable」 と呼んでいます。これこそが lapisla のコンセプトです！
 
-lapisla のカーネルは、シーケント計算を基盤にしており、https://github.com/myuon/claire から強い影響を受けています。
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/18bebe50-9a35-499a-a2c0-263fa8d17ed9" />
 
-カーネルは [packages/kernel](packages/kernel) 以下にあります。
 
-## lapisla-webui
+<br>
 
-lapisla は独自に構築された webui で、ローカルと変わらない開発体験を実現します！
+lapisla は、単なる定理証明支援系でなく、レジストリやコミュニティ機能も兼ね備えた「定理証明プラットフォーム」です！
 
-webui は [apps/web](apps/web) 以下にあります。
+証明を共有する Permanent Link を生成して他の人に送ってみたり、タイムラインで他の人の証明を覗いてみたりしてみましょう！
 
-## lapisla-registry
+|  |  | |
+| --- | --- | --- |
+| <img width="1280" alt="image" src="https://github.com/user-attachments/assets/0a000d27-90ec-4eba-bef6-b5f0950469b1" />  |  <img width="1280" alt="image" src="https://github.com/user-attachments/assets/bc1e614a-32e4-41bb-8d64-199a15b0e318" /> |
 
-lapisla は ユーザ管理と registry の機能を持ちます。
-registry を含むバックエンドは [apps/backend](apps/backend) にあります。
+
+
+## How to use lapisla?  
+
+lapisla 開発チームによってホストされている [lapisla.net](https://lapisla.net) から lapisla を利用することができます。
+
+lapisla.net は GitHub アカウントによってログインするため、GitHub アカウントが必要です。
+
+### Simple Proof Example
+
+```coq
+Theorem and_comm P ∧ Q → Q ∧ P
+    apply ImpR
+    apply AndR
+    apply AndL2
+    apply I
+    apply AndL1
+    apply I
+qed
+```
+
+### Documentation
+
+lapisla の使い方や機能については [docs.lapisla.net](https://docs.lapisla.net) を参照してください。
+
+
+## How to contribute to lapisla? 
+
+lapisla は貢献を歓迎しています！
+lapisla に貢献したい方は、[CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
+## Host your own lapisla 🐕💨
+
+lapisla を自分のサーバでホストすることもできます。
+
+[apps/web](apps/web) にフロントエンド, [apps/backend](apps/backend) にバックエンドのプロジェクトがあります。
+
+ホストするには、それぞれの README を参照してください。
+
+## References 
+
+- [lapisla.net](https://lapisla.net)
+- [docs.lapisla.net](https://docs.lapisla.net)
+- [our blog post (日本語)](trap.jp/post/2478/)
+
+
+## License 
+
+lapisla は [MIT License](LICENSE) の下で公開されています。
 
