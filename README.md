@@ -1,44 +1,77 @@
-<div style="text-align: center;">
-     <a href="README.md">English</a> | <a href="README_ja.md">日本語</a>
-</div>
+<h1 align="center" style="border: none;">🐶 lapisla-prover 🐱</h1>
+
+<p align="center">
+    <img align="center" width="800" alt="image" src="https://github.com/user-attachments/assets/98a2382b-f1a3-4d69-acb2-f09bf506d0cd" />
+</p>
+
+<p align="center" style="text-align: center;"> <strong>lapisla</strong> is a battery-pluggable theorem proving assistant!</p>
+
+<p align="center" style="text-align: center;">  <strong> <a href="https://lapisla.net"> lapisla.net </a>  |  <a href="https://docs.lapisla.net"> docs.lapisla.net </a> </strong>  </p>  
+
+## Concept of lapisla 😸
+
+Existing theorem proving assistants are often considered more difficult to use compared to "general" software development.
+
+We believe this is because popular programming languages have well-developed ecosystems that allow users to easily leverage others' work, whereas many theorem provers lack such a system.
+
+To address this, **lapisla** provides a fully browser-based kernel and UI, along with a registry, enabling seamless sharing and utilization of proofs.
+
+We call this ability to easily integrate others' work **"battery-pluggable"**, which is the core concept of **lapisla**!
+
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/18bebe50-9a35-499a-a2c0-263fa8d17ed9" />
+
+<br>
+
+**lapisla is more than just a theorem proving assistant—it's a theorem proving platform!**
+
+You can generate **Permanent Links** to share your proofs with others, or explore the **Timeline** to see what others are proving!
+
+|  |  | |
+| --- | --- | --- |
+| <img width="1280" alt="image" src="https://github.com/user-attachments/assets/0a000d27-90ec-4eba-bef6-b5f0950469b1" />  |  <img width="1280" alt="image" src="https://github.com/user-attachments/assets/bc1e614a-32e4-41bb-8d64-199a15b0e318" /> |
+
+## How to use lapisla?  
+
+You can use **lapisla** from [lapisla.net](https://lapisla.net), hosted by the lapisla development team.
+
+Since **lapisla.net** requires GitHub authentication, you will need a GitHub account to log in.
+
+### Simple Proof Example
+
+```coq
+Theorem and_comm P ∧ Q → Q ∧ P
+    apply ImpR
+    apply AndR
+    apply AndL2
+    apply I
+    apply AndL1
+    apply I
+qed
+```
 
 
-# lapisla-prover 🐶🐱
+###  Documentation
+For details on how to use lapisla, check out the official documentation at docs.lapisla.net.
 
-**lapisla** is a Theorem proving...
+## How to contribute to lapisla?
 
-- assistant system  
-- Ecosystem  
-- Platform
+lapisla welcomes contributions!
+If you are interested in contributing, please refer to CONTRIBUTING.md.
 
-**for everyone!**
- 
-<img  style="text-align: center;" width="1311" alt="image" src="https://github.com/user-attachments/assets/18bebe50-9a35-499a-a2c0-263fa8d17ed9" />
+## Host your own lapisla 🐕💨
+You can also host lapisla on your own server.
 
+The frontend is in [apps/web](apps/web),
+The backend is in [apps/backend](apps/backend).
 
-## Motivation
+For instructions on hosting, refer to the respective README files.
 
-Existing theorem proving assistant systems are often considered challenging compared to "general-purpose" software development.  
+## References
+- [lapisla.net](https://lapisla.net)
+- [docs.lapisla.net](https://docs.lapisla.net)
+- [Our blog post (Japanese)](https://trap.jp/post/2478/)
 
-This is because while popular programming languages enjoy a highly developed ecosystem, active user communities, and a vast array of reusable programs, many theorem proving assistant systems lack such infrastructure.  
+## License
 
-We aim to solve this problem by creating a fully browser-based kernel, user interface (UI), and registry.  
+lapisla is released under the MIT License.
 
-**lapisla** is software for everyone!  
-
-## lapisla-kernel
-
-The **lapisla** kernel is based on sequent calculus and is heavily inspired by [claire](https://github.com/myuon/claire).  
-
-The kernel resides under [packages/kernel](packages/kernel) 
-
-## lapisla-webui
-
-**lapisla** comes with a custom-built web UI that delivers a development experience as seamless as working locally!  
-
-The web UI can be found under [apps/web](apps/web) 
-
-## lapisla-registry
-
-**lapisla** features user management and registry functionalities.  
-The backend, including the registry, can be found under [apps/api](apps/api)

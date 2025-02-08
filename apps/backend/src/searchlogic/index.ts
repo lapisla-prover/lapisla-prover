@@ -1,17 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { RepositoryService } from '../repository.service';
-
-export interface SearchCandidate<ReturnType> {
-  owner: string;
-  fileName: string;
-  version: string;
-  source: string;
-  returnVal: ReturnType;
-}
+import { SnapshotMeta } from '@/generated/openapi/model/models';
+import { getSnapshotId } from '@/utils';
 
 @Injectable()
-export abstract class AbstractSearchLogicService<ReturnType> {
+export abstract class AbstractSearchLogicService {
   protected prisma: PrismaClient;
 
   constructor(repositoryService: RepositoryService) {
@@ -19,28 +13,42 @@ export abstract class AbstractSearchLogicService<ReturnType> {
   }
 
   abstract search(
-    query: string,
+    tags: string[],
     offset: number,
     limit: number,
-    searchCandidate: SearchCandidate<ReturnType>[],
-  ): Promise<ReturnType[]>;
+  ): Promise<SnapshotMeta[]>;
 }
 
 @Injectable()
-export class MockSearchLogicService extends AbstractSearchLogicService<string> {
-  constructor(repositoryService: RepositoryService) {
-    super(repositoryService);
-  }
-
-  async search(
-    query: string,
-    offset: number,
-    limit: number,
-    searchCandidate: SearchCandidate<string>[],
-  ): Promise<string[]> {
-    return searchCandidate
-      .filter((candidate) => candidate.source.includes(query))
-      .slice(offset, offset + limit)
-      .map((candidate) => candidate.returnVal);
+export class SearchLogicService extends AbstractSearchLogicService {
+  public async search(tags: string[]): Promise<SnapshotMeta[]> {
+    const result: SnapshotMeta[] = await this.prisma.snapshot
+      .findMany({
+        where: {
+          tags: {
+            some: {
+              name: {
+                in: tags,
+              },
+            },
+          },
+        },
+      })
+      .then((snapshots) =>
+        snapshots.map((snapshot) => ({
+          id: getSnapshotId(
+            snapshot.ownerName,
+            snapshot.fileName,
+            snapshot.version,
+          ),
+          owner: snapshot.ownerName,
+          fileName: snapshot.fileName,
+          version: snapshot.version,
+          license: snapshot.license,
+          registered: snapshot.isPublic,
+          createdAt: snapshot.createdAt.toISOString(),
+        })),
+      );
+    return result;
   }
 }
