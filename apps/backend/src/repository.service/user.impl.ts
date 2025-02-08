@@ -108,10 +108,10 @@ export async function getUserWithPublicFiles(
                 some: {
                   isPublic: true,
                 },
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       }),
   );
 }

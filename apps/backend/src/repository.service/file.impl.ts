@@ -86,7 +86,7 @@ export async function getPublicFile(
             some: {
               isPublic: true,
             },
-          }
+          },
         },
       }),
   );
@@ -109,7 +109,7 @@ export async function getPublicFileWithPublicSnapshots(
             some: {
               isPublic: true,
             },
-          }
+          },
         },
         include: {
           snapshots: {
@@ -169,7 +169,7 @@ export async function deleteFile(
           where: {
             userName: ownerName,
           },
-        })
+        }),
     ],
     async () =>
       await prisma.file.delete({

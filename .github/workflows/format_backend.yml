@@ -1,0 +1,27 @@
+name: Format Check(Backend)
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        working-directory: apps/backend
+        run: pnpm install
+      - name: Generate prisma client
+        working-directory: apps/backend
+        run: source .env.dev && pnpm prisma:generate
+      - name: Format check
+        working-directory: apps/backend
+        run: pnpm format:check

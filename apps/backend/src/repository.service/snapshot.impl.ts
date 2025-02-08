@@ -27,7 +27,7 @@ export async function getSnapshot(
         },
         include: {
           tags: true,
-        }
+        },
       }),
   );
 }
@@ -111,51 +111,52 @@ export async function createSnapshot(
   fileName: string,
   content: string,
 ) {
-  const result = (await (await fromThrowableGet(
-    async () =>
-      await prisma.file.findUnique({
-        where: {
-          ownerName_fileName: {
-            ownerName: ownerName,
-            fileName: fileName,
+  const result = await (
+    await fromThrowableGet(
+      async () =>
+        await prisma.file.findUnique({
+          where: {
+            ownerName_fileName: {
+              ownerName: ownerName,
+              fileName: fileName,
+            },
           },
-        },
-        include: {
-          snapshots: true,
-        }
-      }),
-  ))
-    .match(
-      async (file) => {
-        return (await fromThrowableSet(
-          [],
-          [],
-          async () =>
-            await prisma.snapshot.create({
-              data: {
-                ownerName: ownerName,
-                fileName: fileName,
-                version: file.snapshots.length,
-                content: {
-                  create: {
-                    content: content,
-                  },
+          include: {
+            snapshots: true,
+          },
+        }),
+    )
+  ).match(
+    async (file) => {
+      return await fromThrowableSet(
+        [],
+        [],
+        async () =>
+          await prisma.snapshot.create({
+            data: {
+              ownerName: ownerName,
+              fileName: fileName,
+              version: file.snapshots.length,
+              content: {
+                create: {
+                  content: content,
                 },
-                isPublic: false,
-                file: {
-                  connect: {
-                    ownerName_fileName: {
-                      ownerName: ownerName,
-                      fileName: fileName,
-                    },
+              },
+              isPublic: false,
+              file: {
+                connect: {
+                  ownerName_fileName: {
+                    ownerName: ownerName,
+                    fileName: fileName,
                   },
                 },
               },
-            }),
-        ))
-      },
-      err => new Err(err),
-    ));
+            },
+          }),
+      );
+    },
+    (err) => new Err(err),
+  );
   return combineError(result);
 }
 

@@ -1,11 +1,18 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { MiddlewareConsumer } from '@nestjs/common/interfaces';
-import { AbstractAuthService, AuthService, MockAuthService } from './auth.service';
+import {
+  AbstractAuthService,
+  AuthService,
+  MockAuthService,
+} from './auth.service';
 import { JsonOnlyMiddleware } from './jsonOnly.middleware';
 import { AbstractCodeAnalyzerService } from './kernel';
 import { CodeAnalyzerService } from './kernel/codeAnalyzer.service';
-import { AbstractSearchLogicService, MockSearchLogicService } from './searchlogic';
+import {
+  AbstractSearchLogicService,
+  MockSearchLogicService,
+} from './searchlogic';
 
 import {
   FilesService,
@@ -14,7 +21,7 @@ import {
   RegistryService,
   SearchService,
   TagsService,
-  TimelineService
+  TimelineService,
 } from './api/api';
 import {
   FilesController,
@@ -23,7 +30,7 @@ import {
   RegistryController,
   SearchController,
   TagsController,
-  TimelineController
+  TimelineController,
 } from './controllers/controllers';
 import { RepositoryService } from './repository.service';
 
@@ -41,7 +48,7 @@ import { RepositoryService } from './repository.service';
     { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: AuthService },
     { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
-    TagsService
+    TagsService,
   ],
   controllers: [
     FilesController,
@@ -50,15 +57,12 @@ import { RepositoryService } from './repository.service';
     RegistryController,
     SearchController,
     TimelineController,
-    TagsController
+    TagsController,
   ],
-
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(JsonOnlyMiddleware)
-      .forRoutes('*');
+    consumer.apply(JsonOnlyMiddleware).forRoutes('*');
   }
 }
 
@@ -75,7 +79,7 @@ export class AppModule {
     TimelineService,
     { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: MockAuthService },
-    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
+    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
   ],
   controllers: [
     FilesController,
@@ -83,14 +87,11 @@ export class AppModule {
     MeController,
     RegistryController,
     SearchController,
-    TimelineController
+    TimelineController,
   ],
-
 })
 export class MockAppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(JsonOnlyMiddleware)
-      .forRoutes('*');
+    consumer.apply(JsonOnlyMiddleware).forRoutes('*');
   }
 }

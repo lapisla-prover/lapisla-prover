@@ -23,24 +23,21 @@ export class FilesService {
     this.repo = repositoryService;
   }
 
-
   public async getPublicFile(
     userName: string,
     fileName: string,
   ): Promise<PublicFileMeta> {
-    const file = (await this.repo.getPublicFileWithPublicSnapshots(
-      userName,
-      fileName,
-    ))
-      .match(
-        (file) => file,
-        (error) => {
-          if (error instanceof DbNotFoundError) {
-            throw new HttpException('Resource not found', 404);
-          }
-          throw new HttpException('Internal Error', 500);
-        },
-      )
+    const file = (
+      await this.repo.getPublicFileWithPublicSnapshots(userName, fileName)
+    ).match(
+      (file) => file,
+      (error) => {
+        if (error instanceof DbNotFoundError) {
+          throw new HttpException('Resource not found', 404);
+        }
+        throw new HttpException('Internal Error', 500);
+      },
+    );
     const fileMeta: PublicFileMeta = {
       owner: userName,
       fileName: fileName,
@@ -57,31 +54,31 @@ export class FilesService {
     return fileMeta;
   }
 
-
   public async getPublicSnapshot(
     userName: string,
     fileName: string,
     version: string,
   ): Promise<Snapshot> {
-    const publicSnapshot = (await this.repo.getPublicSnapshotWithContent(
-      userName,
-      fileName,
-      parseInt(version),
-    ))
-      .match(
-        (snapshot) => {
-          if (!snapshot.isPublic) {
-            throw new HttpException('Resource not found', 404);
-          }
-          return snapshot;
-        },
-        (error) => {
-          if (error instanceof DbNotFoundError) {
-            throw new HttpException('Resource not found', 404);
-          }
-          throw new HttpException('Internal Error', 500);
-        },
-      );
+    const publicSnapshot = (
+      await this.repo.getPublicSnapshotWithContent(
+        userName,
+        fileName,
+        parseInt(version),
+      )
+    ).match(
+      (snapshot) => {
+        if (!snapshot.isPublic) {
+          throw new HttpException('Resource not found', 404);
+        }
+        return snapshot;
+      },
+      (error) => {
+        if (error instanceof DbNotFoundError) {
+          throw new HttpException('Resource not found', 404);
+        }
+        throw new HttpException('Internal Error', 500);
+      },
+    );
     const snapshotMeta: SnapshotMeta = {
       id: getSnapshotId(userName, fileName, parseInt(version)),
       owner: userName,
@@ -97,7 +94,9 @@ export class FilesService {
   }
 
   public async getPublicFiles(userName: string): Promise<PublicFileMeta[]> {
-    const user = (await this.repo.getUserWithPublicFilesAndSnapshots(userName)).match(
+    const user = (
+      await this.repo.getUserWithPublicFilesAndSnapshots(userName)
+    ).match(
       (user) => user,
       (error) => {
         if (error instanceof DbNotFoundError) {
