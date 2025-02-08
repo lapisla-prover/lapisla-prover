@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Query, Req, Res } from '@nestjs/common';
-import { LoginService } from '../api/login.service';
+import { Controller, Get, Query, Req, Res } from '@nestjs/common';
+import { LoginService } from '@/api/login.service';
 import { Request, Response } from 'express';
 
 @Controller('login')

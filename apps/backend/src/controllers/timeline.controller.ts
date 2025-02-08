@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { TimelineService } from '../api/timeline.service';
+import { Controller, Get, Query } from '@nestjs/common';
+import { TimelineService } from '@/api/timeline.service';
 
 @Controller('timeline')
 export class TimelineController {

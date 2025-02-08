@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { TagsService } from 'src/api/tags.service';
+import { Controller, Get } from '@nestjs/common';
+import { TagsService } from '@/api/tags.service';
 
 @Controller('tags')
 export class TagsController {

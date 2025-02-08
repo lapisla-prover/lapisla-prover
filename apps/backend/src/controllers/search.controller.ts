@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { SearchService } from '../api/search.service';
+import { Controller, Get, Query } from '@nestjs/common';
+import { SearchService } from '@/api/search.service';
 
 @Controller('search')
 export class SearchController {

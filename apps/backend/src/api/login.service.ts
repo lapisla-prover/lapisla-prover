@@ -4,8 +4,6 @@ import { HttpException, Injectable, Optional } from '@nestjs/common';
 import { AbstractAuthService } from '../auth.service';
 import axios from 'axios';
 import * as crypto from 'crypto';
-import { err } from 'neverthrow';
-import { error } from 'console';
 import { DbDuplicateError } from '@/repository.service/fromThrowable';
 
 type GithubAccessTokenResponse = {

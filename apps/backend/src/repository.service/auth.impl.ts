@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import {
   fromThrowableSet,
-  fromThrowableGet,
-  fromThrowableDelete,
 } from './fromThrowable';
 
 export async function createState(prisma: PrismaClient, state: string) {

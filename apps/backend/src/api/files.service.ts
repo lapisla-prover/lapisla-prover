@@ -1,18 +1,11 @@
 import { RepositoryService } from '@/repository.service';
-import { getSnapshotId } from 'src/utils';
+import { getSnapshotId } from '@/utils';
 
-import { Injectable, Optional, HttpException } from '@nestjs/common';
-import { PublicFileMeta } from '../generated/openapi/model/publicFileMeta';
-import { Snapshot } from '../generated/openapi/model/snapshot';
-import { SnapshotMeta } from 'src/generated/openapi/model/snapshotMeta';
+import { Injectable, HttpException } from '@nestjs/common';
+import { SnapshotMeta, Snapshot, PublicFileMeta } from '@/generated/openapi/model/models';
 
 import {
-  DbGetQueryError,
-  DbDeleteQueryError,
-  DbSetQueryError,
-  DbInternalError,
   DbNotFoundError,
-  DbDuplicateError,
 } from '@/repository.service/fromThrowable';
 
 @Injectable()

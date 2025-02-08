@@ -1,21 +1,22 @@
-import { RepositoryService } from '../repository.service';
+import { RepositoryService } from '@/repository.service';
 
-import { HttpException, Injectable, Optional } from '@nestjs/common';
-import { PrivateFileMeta } from '../generated/openapi/model/privateFileMeta';
-import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
-import { Snapshot } from '../generated/openapi/model/snapshot';
-import { AbstractAuthService } from '../auth.service';
-import { SourceCodeWrapper } from '../generated/openapi/model/sourceCodeWrapper';
-import { getSnapshotId, getSnapshotInfoFromId } from 'src/utils';
-import { get } from 'http';
-import { AbstractCodeAnalyzerService } from '../kernel/index';
-import { parse } from 'path';
-import { ValidationFailed } from '../kernel/index';
-import { SnapshotRegisterResponse } from '../generated/openapi/model/snapshotRegisterResponse';
-import { SnapshotSaveResponse } from '../generated/openapi/model/snapshotSaveResponse';
-import { Registration } from '../generated/openapi/model/registration';
-import { UserInfo } from '../generated/openapi/model/userInfo';
-import { isValidTag } from '../utils';
+import { HttpException, Injectable } from '@nestjs/common';
+import { AbstractAuthService } from '@/auth.service';
+import { AbstractCodeAnalyzerService } from '@/kernel/index';
+import {
+  UserInfo,
+  Registration,
+  SnapshotSaveResponse,
+  SnapshotRegisterResponse,
+  SourceCodeWrapper,
+  Snapshot,
+  SnapshotMeta,
+  PrivateFileMeta,
+} from '@/generated/openapi/model/models';
+import {
+  isValidTag,
+  getSnapshotId,
+} from '@/utils';
 
 import {
   DbGetQueryError,
