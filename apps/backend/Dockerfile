@@ -1,4 +1,4 @@
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 RUN npm install -g corepack@^0.31.0
 RUN corepack enable
 WORKDIR /app/apps/backend
