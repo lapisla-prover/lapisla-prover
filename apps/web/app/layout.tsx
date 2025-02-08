@@ -21,7 +21,6 @@ export const metadata: Metadata = {
     description:
       "Lapisla is a user-friendly theorem prover and ecosystem designed for everyone. Greetings! 👋",
     type: "website",
-    url: "https://lapisla.net",
     images: [
       {
         url: "https://lapisla.net/ogp.png",
