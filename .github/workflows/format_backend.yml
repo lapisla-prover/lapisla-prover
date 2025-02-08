@@ -1,0 +1,24 @@
+name: Format Check(Backend)
+
+on: [push, pull_request]
+
+jobs:
+  format-check:
+    runs-on: node:20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma:generate
+
+      - name: Run Format Check
+        run: pnpm run format:check
