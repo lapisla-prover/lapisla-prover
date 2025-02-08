@@ -95,7 +95,6 @@ export class LoginService {
         }
       },
     );
-  
 
     const session_id = await this.auth.newToken(userName);
 
