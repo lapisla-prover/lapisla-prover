@@ -90,11 +90,12 @@ export class LoginService {
     (await this.repo.createUser(userName, githubId)).match(
       () => {},
       (error) => {
-        if (error instanceof DbDuplicateError) {
+        if (error.code !== 'DuplicateError') {
+          throw new HttpException('Internal Error', 500);
         }
-        throw new HttpException('Internal Error', 500);
       },
     );
+  
 
     const session_id = await this.auth.newToken(userName);
 
