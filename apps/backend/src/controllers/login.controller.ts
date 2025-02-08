@@ -35,6 +35,7 @@ export class LoginController {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
+      partitioned: true,
     });
     return { url };
   }
