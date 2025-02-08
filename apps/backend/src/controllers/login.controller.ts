@@ -14,6 +14,7 @@ export class LoginController {
       maxAge: 300000,
       sameSite: 'none',
       secure: true,
+      partitioned: true,
     });
     return { url };
   }
@@ -35,6 +36,7 @@ export class LoginController {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
+      partitioned: true,
     });
     return { url };
   }
