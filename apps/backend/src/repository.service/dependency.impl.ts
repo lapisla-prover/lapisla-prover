@@ -18,10 +18,10 @@ export async function setDependencies(
         await prisma.snapshot.findUnique({
           where: {
             ownerName_fileName_version: {
-                ownerName: ownerName,
-                fileName: fileName,
-                version: version,
-              },
+              ownerName: ownerName,
+              fileName: fileName,
+              version: version,
+            },
           },
         }),
     ],
@@ -44,9 +44,9 @@ export async function setDependencies(
                 version: d.version,
               },
             })),
-          }
+          },
         },
-      })
+      }),
   );
 }
 
@@ -70,7 +70,7 @@ export async function getDependencies(
           dependTo: {
             include: {
               content: true,
-            }
+            },
           },
           content: true,
         },
@@ -78,10 +78,9 @@ export async function getDependencies(
   );
 }
 
-
 export async function getPublicSnapshotsWithContent(
   prisma: PrismaClient,
-  snapshots: { ownerName: string; fileName: string, version: number }[],
+  snapshots: { ownerName: string; fileName: string; version: number }[],
 ) {
   return fromThrowableGet(
     async () =>

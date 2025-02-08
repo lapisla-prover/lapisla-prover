@@ -2,7 +2,6 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { get } from 'http';
 
-
 import {
   getUser,
   getUsers,
@@ -40,14 +39,9 @@ import {
   getPublicSnapshotsWithContent,
 } from './dependency.impl';
 
-import {
-  updateTagsAndDescription,
-  getTags,
-} from './tagAndDesc.impl';
+import { updateTagsAndDescription, getTags } from './tagAndDesc.impl';
 
-import {
-  createState,
-} from './auth.impl';
+import { createState } from './auth.impl';
 
 @Injectable()
 export class RepositoryService implements OnModuleInit, OnModuleDestroy {
@@ -142,16 +136,33 @@ export class RepositoryService implements OnModuleInit, OnModuleDestroy {
     return getSnapshot(this.prisma, ownerName, fileName, version);
   }
 
-  async getSnapshotWithContent(ownerName: string, fileName: string, version: number) {
+  async getSnapshotWithContent(
+    ownerName: string,
+    fileName: string,
+    version: number,
+  ) {
     return getSnapshotWithContent(this.prisma, ownerName, fileName, version);
   }
 
-  async getPublicSnapshot(ownerName: string, fileName: string, version: number) {
+  async getPublicSnapshot(
+    ownerName: string,
+    fileName: string,
+    version: number,
+  ) {
     return getPublicSnapshot(this.prisma, ownerName, fileName, version);
   }
 
-  async getPublicSnapshotWithContent(ownerName: string, fileName: string, version: number) {
-    return getPublicSnapshotWithContent(this.prisma, ownerName, fileName, version);
+  async getPublicSnapshotWithContent(
+    ownerName: string,
+    fileName: string,
+    version: number,
+  ) {
+    return getPublicSnapshotWithContent(
+      this.prisma,
+      ownerName,
+      fileName,
+      version,
+    );
   }
 
   async createSnapshot(ownerName: string, fileName: string, content: string) {
@@ -164,7 +175,12 @@ export class RepositoryService implements OnModuleInit, OnModuleDestroy {
   // #endregion
 
   // #region Dependency methods
-  async setDependencies(ownerName: string, fileName: string, version: number, dependTo: { ownerName: string; fileName: string; version: number }[]) {
+  async setDependencies(
+    ownerName: string,
+    fileName: string,
+    version: number,
+    dependTo: { ownerName: string; fileName: string; version: number }[],
+  ) {
     return setDependencies(this.prisma, ownerName, fileName, version, dependTo);
   }
 
@@ -172,21 +188,36 @@ export class RepositoryService implements OnModuleInit, OnModuleDestroy {
     return getDependencies(this.prisma, ownerName, fileName, version);
   }
 
-  async getPublicSnapshotsWithContent(snapshots: { ownerName: string; fileName: string, version: number }[]) {
+  async getPublicSnapshotsWithContent(
+    snapshots: { ownerName: string; fileName: string; version: number }[],
+  ) {
     return getPublicSnapshotsWithContent(this.prisma, snapshots);
   }
   // #endregion
 
   // #region Tag and Description methods
-  async updateTagsAndDescription(ownerName: string, fileName: string, version: number, tags: string[], description: string) {
-    return updateTagsAndDescription(this.prisma, ownerName, fileName, version, tags, description);
+  async updateTagsAndDescription(
+    ownerName: string,
+    fileName: string,
+    version: number,
+    tags: string[],
+    description: string,
+  ) {
+    return updateTagsAndDescription(
+      this.prisma,
+      ownerName,
+      fileName,
+      version,
+      tags,
+      description,
+    );
   }
 
   async getTags() {
     return getTags(this.prisma);
   }
   // #endregion
-  
+
   // #region Auth methods
   async createState(state) {
     return createState(this.prisma, state);

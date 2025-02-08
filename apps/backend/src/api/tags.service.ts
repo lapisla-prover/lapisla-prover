@@ -8,21 +8,19 @@ import { getSnapshotInfoFromId } from 'src/utils';
 
 @Injectable()
 export class TagsService {
+  protected repo: RepositoryService;
 
-    protected repo: RepositoryService;
+  constructor(private repositoryService: RepositoryService) {
+    this.repo = repositoryService;
+  }
 
-    constructor(private repositoryService: RepositoryService) {
-        this.repo = repositoryService;
-    }
-
-    public async getTags(): Promise<string[]> {
-        const tags = (await this.repo.getTags())
-            .match(
-                (tags) => tags,
-                (error) => {
-                    throw new HttpException('Internal Error', 500);
-                },
-            )
-        return tags.map(tag => tag.name);
-    }
+  public async getTags(): Promise<string[]> {
+    const tags = (await this.repo.getTags()).match(
+      (tags) => tags,
+      (error) => {
+        throw new HttpException('Internal Error', 500);
+      },
+    );
+    return tags.map((tag) => tag.name);
+  }
 }
