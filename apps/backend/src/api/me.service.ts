@@ -266,8 +266,7 @@ export class MeService {
             )
         if (snapshot.isPublic) {
             return {
-                result: SnapshotRegisterResponse.ResultEnum.AlreadyRegistered,
-                message: "Snapshot already registered"
+                result: SnapshotRegisterResponse.ResultEnum.AlreadyRegistered
             }
         }
         const dependencies = this.analyzer.listDirectDependencies(snapshot.content.content)
@@ -301,8 +300,7 @@ export class MeService {
         )
         if (validationResult.kind === 'source_error') {
             return {
-                result: SnapshotRegisterResponse.ResultEnum.Invalid,
-                message: "Invalid source code"
+                result: SnapshotRegisterResponse.ResultEnum.Invalid
             }
         }
         if (validationResult.kind === 'kernel_error') {
@@ -331,8 +329,7 @@ export class MeService {
                 }
             );
         return {
-            result: SnapshotRegisterResponse.ResultEnum.Registered,
-            message: "Snapshot registered"
+            result: SnapshotRegisterResponse.ResultEnum.Registered
         }
     }
 

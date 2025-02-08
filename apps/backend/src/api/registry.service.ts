@@ -8,7 +8,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { Project } from '../generated/openapi/model/project';
 import { AbstractCodeAnalyzerService } from '../kernel/index';
 import { HttpException } from '@nestjs/common/exceptions/http.exception';
-import { ProjectFetchResult } from 'src/generated/openapi';
+import { ProjectFetchResult } from 'src/generated/openapi/model/projectFetchResult';
 import { SnapshotMeta } from '../generated/openapi/model/snapshotMeta';
 import { Snapshot } from '../generated/openapi/model/snapshot';
 import { Dependency } from '../generated/openapi/model/dependency';
