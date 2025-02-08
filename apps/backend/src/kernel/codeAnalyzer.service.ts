@@ -2,18 +2,18 @@ import { Injectable } from "@nestjs/common";
 import { executeProgram } from "@repo/kernel/kernel";
 import { decomposePackageName } from "@repo/kernel/utils";
 import { Ok } from "neverthrow";
-import { PrismaService } from "src/prisma.service";
+import { RepositoryService } from "@/repository.service";
 import { getSnapshotInfoFromId } from "src/utils";
 import { AbstractCodeAnalyzerService, Dependency, DependencyMetadata, KernelError, ValidationResult } from "./index";
-
+import { DbNotFoundError } from "@/repository.service/fromThrowable";
 
 @Injectable()
 export class CodeAnalyzerService extends AbstractCodeAnalyzerService {
-    protected prisma: PrismaService;
+    protected repo: RepositoryService;
 
-    constructor(private prismaService: PrismaService) {
+    constructor(private repositoryService: RepositoryService) {
         super();
-        this.prisma = prismaService;
+        this.repo = repositoryService;
     }
 
     listDirectDependencies(sourceCode: string): Ok<{ kind: 'success', value: DependencyMetadata[] } | { kind: 'invalid_source' }, KernelError> {
@@ -42,8 +42,8 @@ export class CodeAnalyzerService extends AbstractCodeAnalyzerService {
                 return new Ok({ kind: 'invalid_source' });
             }
             dependencies.push({
-                owner: snapInfo.owner,
-                name: snapInfo.fileName,
+                ownerName: snapInfo.owner,
+                fileName: snapInfo.fileName,
                 version: snapInfo.version
             });
         }
@@ -56,53 +56,16 @@ export class CodeAnalyzerService extends AbstractCodeAnalyzerService {
             throw new Error(result.error);
         }
         const [userName, fileName, version] = result.value;
-
-        const userId = await this.prisma.users.findUnique({
-            where: {
-                name: userName
-            }
-        }).catch((err) => {
-            throw new Error('Internal Error');
-        }).then((user) => {
-            if (!user) {
-                throw new Error('User not found');
-            }
-            return user.id;
-        }).finally(() => { });
-
-        const file = await this.prisma.files.findUnique({
-            where: {
-                ownerId_name: {
-                    ownerId: userId,
-                    name: fileName
+        return (await this.repo.getPublicSnapshotWithContent(userName, fileName, version))
+            .match(
+                snapshot => snapshot.content.content,
+                (error) => {
+                    if (error instanceof DbNotFoundError) {
+                        throw new Error('Resource not found');
+                    }
+                    throw new Error('Internal Error');
                 }
-            }
-        }).catch((err) => {
-            throw new Error('Internal Error');
-        }).then((file) => {
-            if (!file) {
-                throw new Error('File not found');
-            }
-            return file;
-        }).finally(() => { });
-
-        const snapshot = await this.prisma.snapshots.findUnique({
-            where: {
-                fileId_version: {
-                    fileId: file.id,
-                    version: version
-                }
-            }
-        }).catch((err) => {
-            throw new Error('Internal Error');
-        }).then((snapshot) => {
-            if (!snapshot) {
-                throw new Error('Snapshot not found');
-            }
-            return snapshot;
-        }).finally(() => { });
-
-        return snapshot.content;
+            );
     }
 
 

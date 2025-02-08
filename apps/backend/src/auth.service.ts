@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Result, Ok, Err } from "neverthrow";
-import { PrismaService } from "./prisma.service";
+import { PrismaClient } from "@prisma/client";
+import { RepositoryService } from "./repository.service";
 
 @Injectable()
 export abstract class AbstractAuthService {
@@ -40,15 +41,15 @@ export class MockAuthService extends AbstractAuthService {
 
 @Injectable()
 export class AuthService extends AbstractAuthService {
-    protected prisma: PrismaService;
+    protected prisma: PrismaClient;
 
-    constructor(private prismaService: PrismaService) {
+    constructor(private repositoryService: RepositoryService) {
         super();
-        this.prisma = prismaService;
+        this.prisma = repositoryService.__doNotUseThisMethodGetPrismaClient();
     }
 
     async saveState(state: string): Promise<string> {
-        const state_id = await this.prisma.states.create({
+        const state_id = await this.prisma.state.create({
             data: {
                 state: state
             }
@@ -64,7 +65,7 @@ export class AuthService extends AbstractAuthService {
 
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
-        await this.prisma.states.deleteMany({
+        await this.prisma.state.deleteMany({
             where: {
                 createdAt: {
                     lt: fiveMinutesAgo,
@@ -72,7 +73,7 @@ export class AuthService extends AbstractAuthService {
             },
         });
 
-        const state = await this.prisma.states.findUnique({
+        const state = await this.prisma.state.findUnique({
             where: {
                 id: state_id
             }
@@ -86,7 +87,7 @@ export class AuthService extends AbstractAuthService {
     }
 
     async newToken(userName: string): Promise<string> {
-        const session = await this.prisma.sessions.create({
+        const session = await this.prisma.session.create({
             data: {
                 value: userName,
             }
@@ -100,7 +101,7 @@ export class AuthService extends AbstractAuthService {
             return new Err("Invalid token");
         }
         
-        const session = await this.prisma.sessions.findUnique({
+        const session = await this.prisma.session.findUnique({
             where: {
                 sessionId: token
             }
