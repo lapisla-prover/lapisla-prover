@@ -9,10 +9,7 @@ import {
 import { JsonOnlyMiddleware } from './jsonOnly.middleware';
 import { AbstractCodeAnalyzerService } from './kernel';
 import { CodeAnalyzerService } from './kernel/codeAnalyzer.service';
-import {
-  AbstractSearchLogicService,
-  SearchLogicService,
-} from './searchlogic';
+import { AbstractSearchLogicService, SearchLogicService } from './searchlogic';
 
 import {
   FilesService,
