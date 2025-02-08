@@ -1,6 +1,10 @@
 import { Result, Ok, Err } from 'neverthrow';
 
-export function getSnapshotId(owner: string, fileName: string, version: number) {
+export function getSnapshotId(
+  owner: string,
+  fileName: string,
+  version: number,
+) {
   const data = `${owner}/${fileName}@${version}`;
   return Buffer.from(data).toString('hex');
 }
@@ -11,7 +15,9 @@ type SnapshotInfo = {
   version: number;
 };
 
-export function getSnapshotInfoFromId(id: string): Result<SnapshotInfo, string> {
+export function getSnapshotInfoFromId(
+  id: string,
+): Result<SnapshotInfo, string> {
   const data = Buffer.from(id, 'hex').toString();
   const [owner, other] = data.split('/');
   const [fileName, version] = other.split('@');

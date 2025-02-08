@@ -1,20 +1,23 @@
 import { Result, Ok, Err } from 'neverthrow';
 
 export type DbGetQueryError = DbInternalError | DbNotFoundError;
-export type DbSetQueryError = DbInternalError | DbNotFoundError | DbDuplicateError;
+export type DbSetQueryError =
+  | DbInternalError
+  | DbNotFoundError
+  | DbDuplicateError;
 export type DbDeleteQueryError = DbInternalError | DbNotFoundError;
 export class DbInternalError {
   message: string;
   code: 'InternalError';
-};
+}
 export class DbNotFoundError {
   message: string;
   code: 'NotFoundError';
-};
+}
 export class DbDuplicateError {
   message: string;
   code: 'DuplicateError';
-};
+}
 
 export async function fromThrowableGet<T>(
   fn: () => Promise<T>,
@@ -90,8 +93,7 @@ export function combineError<T1, E1, T2, E2, T3, E3>(
 ): Result<T1, E2 | E3> {
   if (result1 instanceof Ok) {
     return new Ok(result1.value);
-  }
-  else {
+  } else {
     return new Err(result1.error);
   }
 }
