@@ -1,7 +1,7 @@
+import { AccountProvider } from "@/context/accountContext";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { AccountProvider } from "@/context/accountContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,6 +16,25 @@ export const metadata: Metadata = {
   title: "Lapisla.net",
   description:
     "Lapisla is a user-friendly theorem prover and ecosystem designed for everyone. Greetings! 👋",
+  openGraph: {
+    title: "Lapisla.net",
+    description:
+      "Lapisla is a user-friendly theorem prover and ecosystem designed for everyone. Greetings! 👋",
+    type: "website",
+    url: "https://lapisla.net",
+    images: [
+      {
+        url: "https://lapisla.net/ogp.png",
+        width: 1200,
+        height: 630,
+        alt: "Lapisla.net",
+      },
+    ],
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
+
 };
 
 export const runtime = "edge";
