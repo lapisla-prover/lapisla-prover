@@ -55,7 +55,7 @@ export class AuthService extends AbstractAuthService {
       },
     });
 
-    return state_id.id;
+    return state_id.state;
   }
 
   async getState(state_id: string): Promise<string> {
