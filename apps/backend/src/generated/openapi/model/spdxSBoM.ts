@@ -11,10 +11,7 @@
  */
 
 
-export interface RegisterMySnapshot201Response { 
-    /**
-     * Whether the snapshot is registered
-     */
-    registered?: boolean;
+export interface SpdxSBoM { 
+    sbomRaw: string;
 }
 
