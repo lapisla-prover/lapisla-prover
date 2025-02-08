@@ -24,9 +24,9 @@ export type KernelError = {
 };
 
 export interface DependencyMetadata {
-  owner: string;
-  name: string;
-  version: string;
+  ownerName: string;
+  fileName: string;
+  version: number;
 }
 
 export interface Dependency {
@@ -38,27 +38,39 @@ export type InvalidSingleSourceCode = {
   success: false;
   reason: 'invalid_single_source_code';
   errorMessage: string;
-}
+};
 
 export interface ICodeAnalyzer {
   listDirectDependencies(sourceCode: string): Result<
-    {
-      kind: 'success', value: DependencyMetadata[]
-    }
     | {
-      kind: 'invalid_source'
-    }, KernelError>;
-  validate(sourceCode: string, dependencies: Dependency[]): ValidationResult;
+        kind: 'success';
+        value: DependencyMetadata[];
+      }
+    | {
+        kind: 'invalid_source';
+      },
+    KernelError
+  >;
+  validate(
+    sourceCode: string,
+    dependencies: Dependency[],
+  ): Promise<ValidationResult>;
 }
 
 @Injectable()
 export abstract class AbstractCodeAnalyzerService implements ICodeAnalyzer {
   abstract listDirectDependencies(sourceCode: string): Result<
-    {
-      kind: 'success', value: DependencyMetadata[]
-    }
     | {
-      kind: 'invalid_source'
-    }, KernelError>;
-  abstract validate(sourceCode: string, dependencies: Dependency[]): ValidationResult;
+        kind: 'success';
+        value: DependencyMetadata[];
+      }
+    | {
+        kind: 'invalid_source';
+      },
+    KernelError
+  >;
+  abstract validate(
+    sourceCode: string,
+    dependencies: Dependency[],
+  ): Promise<ValidationResult>;
 }

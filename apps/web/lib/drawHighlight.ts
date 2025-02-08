@@ -1,8 +1,9 @@
 import * as monaco from "monaco-editor";
 
-import { Location, Range } from "@repo/kernel/parser";
+import { Range } from "@repo/kernel/parser";
 
 export function drawHighlight(
+    monacoInstance: typeof monaco,
     editor: monaco.editor.IStandaloneCodeEditor,
     range: Range,
     className: string,
@@ -23,9 +24,11 @@ export function drawHighlight(
                     hoverMessage: {
                         value: hovermessage,
                     },
+                    stickiness: monacoInstance.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
                 },
-            },
+            }
         ]
     )
-  
-}
+
+};
+

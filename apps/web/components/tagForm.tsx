@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PlusCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,10 @@ export default function TagForm({ onChange }: TagFormProps) {
     }
   };
 
+  useEffect(() => {
+    onChange(tags);
+  }, [tags]);
+
   return (
     <div className="w-full max-w-md mx-auto p-4 space-y-4">
       <h2 className="mb-4">Add tags! (optional)</h2>
@@ -41,7 +45,6 @@ export default function TagForm({ onChange }: TagFormProps) {
           value={inputValue}
           onChange={(e) => {
             setInputValue(e.target.value);
-            onChange(tags);
           }}
           onKeyDown={handleInputKeyDown}
           placeholder="input new tag"

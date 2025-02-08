@@ -8,8 +8,8 @@ import {
   Rule,
   Predicate,
   Type,
-} from "./ast.ts";
-import { Err, Ok, Result } from "./common.ts";
+} from "./ast";
+import { Err, Ok, Result } from "./common";
 
 export type Location = {
   line: number;

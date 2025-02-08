@@ -402,6 +402,23 @@ paths:
                 items:
                   $ref: '#/components/schemas/Tag'
       operationId: getTags
+  /sbom/{snapshotId}:
+    get:
+      tags:
+        - sbom
+      summary: Get the software bill of materials of a snapshot
+      parameters:
+        - $ref: '#/components/parameters/snapshotId'
+      responses:
+        '200':
+          description: License information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpdxSBoM'
+        '404':
+          description: Snapshot not found
+      operationId: getLicense
 
 components:
   parameters:
@@ -457,6 +474,16 @@ components:
     Tag:
       type: string
       pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
+    SpdxLicenseId:
+      type: string
+      description: SPDX license identifier
+    SpdxSBoM:
+      type: object
+      properties:
+        sbomRaw:
+          type: string
+      required:
+        - sbomRaw
     # metadata schemas
     PrivateFileMeta:
       description: Metadata shown to the owner
@@ -522,6 +549,8 @@ components:
           $ref: '#/components/schemas/FileName'
         version:
           $ref: '#/components/schemas/Version'
+        license:
+          $ref: '#/components/schemas/SpdxLicenseId'
         registered:
           type: boolean
         createdAt:

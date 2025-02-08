@@ -2,23 +2,51 @@
   "name": "@repo/kernel",
   "type": "module",
   "scripts": {
+    "build": "swc src -d dist --strip-leading-paths --out-file-extension cjs",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "exports": {
-    "./ast": "./src/ast.ts",
-    "./checker": "./src/checker.ts",
-    "./common": "./src/common.ts",
-    "./parser": "./src/parser.ts",
-    "./kernel": "./src/kernel.ts",
-    "./history": "./src/history.ts",
-    "./env": "./src/env.ts"
+    "./ast": {
+      "import": "./src/ast.ts",
+      "require": "./dist/ast.cjs"
+    },
+    "./checker": {
+      "import": "./src/checker.ts",
+      "require": "./dist/checker.cjs"
+    },
+    "./common": {
+      "import": "./src/common.ts",
+      "require": "./dist/common.cjs"
+    },
+    "./parser": {
+      "import": "./src/parser.ts",
+      "require": "./dist/parser.cjs"
+    },
+    "./kernel": {
+      "import": "./src/kernel.ts",
+      "require": "./dist/kernel.cjs"
+    },
+    "./history": {
+      "import": "./src/history.ts",
+      "require": "./dist/history.cjs"
+    },
+    "./env": {
+      "import": "./src/env.ts",
+      "require": "./dist/env.cjs"
+    },
+    "./utils": {
+      "import": "./src/utils.ts",
+      "require": "./dist/utils.cjs"
+    }
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@swc/cli": "^0.5.0",
+    "@swc/core": "^1.10.12",
     "@types/node": "^22.10.7",
     "typescript": "5.5.4",
     "vitest": "^3.0.2"

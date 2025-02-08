@@ -1,82 +1,46 @@
-import { PrismaService } from '../prisma.service';
-import { getSnapshotId } from 'src/utils';
+import { RepositoryService } from '@/repository.service';
+import { getSnapshotId } from '@/utils';
 
-import { Injectable, Optional, HttpException } from '@nestjs/common';
-import { PublicFileMeta } from '../generated/openapi/model/publicFileMeta';
-import { Snapshot } from '../generated/openapi/model/snapshot';
-import { Configuration } from '../generated/openapi/configuration';
-import { COLLECTION_FORMATS } from '../generated/openapi/variables';
-import { SnapshotMeta } from 'src/generated/openapi';
+import { Injectable, HttpException } from '@nestjs/common';
+import {
+  SnapshotMeta,
+  Snapshot,
+  PublicFileMeta,
+} from '@/generated/openapi/model/models';
+
+import { DbNotFoundError } from '@/repository.service/fromThrowable';
 
 @Injectable()
 export class FilesService {
-  protected prisma: PrismaService;
+  protected repo: RepositoryService;
 
-  constructor(private prismaService: PrismaService) {
-    this.prisma = prismaService;
+  constructor(private repositoryService: RepositoryService) {
+    this.repo = repositoryService;
   }
 
   public async getPublicFile(
     userName: string,
     fileName: string,
   ): Promise<PublicFileMeta> {
-    const userId = await this.prisma.users
-      .findUnique({
-        where: {
-          name: userName,
-        },
-      })
-      .catch((err) => {
-        throw new HttpException('Internal Error', 500);
-      })
-      .then((user) => {
-        if (!user) {
-          throw new HttpException('User not found', 404);
+    const file = (
+      await this.repo.getPublicFileWithPublicSnapshots(userName, fileName)
+    ).match(
+      (file) => file,
+      (error) => {
+        if (error instanceof DbNotFoundError) {
+          throw new HttpException('Resource not found', 404);
         }
-        return user.id;
-      })
-      .finally(() => {});
-    const file = await this.prisma.files
-      .findUnique({
-        where: {
-          ownerId_name: {
-            ownerId: userId,
-            name: fileName,
-          },
-        },
-      })
-      .catch((err) => {
         throw new HttpException('Internal Error', 500);
-      })
-      .then((file) => {
-        if (!file) {
-          throw new HttpException('File not found', 404);
-        }
-        return file;
-      })
-      .finally(() => {});
-    const public_snapshots = await this.prisma.snapshots
-      .findMany({
-        where: {
-          fileId: file.id,
-          isPublic: true,
-        },
-      })
-      .catch((err) => {
-        throw new Error('Todo: Internal Error');
-      })
-      .then((snapshots) => {
-        return snapshots;
-      })
-      .finally(() => {});
+      },
+    );
     const fileMeta: PublicFileMeta = {
       owner: userName,
       fileName: fileName,
-      registeredVersions: public_snapshots
+      registeredVersions: file.snapshots
         .map((snapshot) => snapshot.version)
         .sort((a, b) => a - b),
       createdAt: file.createdAt.toISOString(),
-      updatedAt: public_snapshots
+      updatedAt: file.snapshots
         .reduce((acc, snapshot) => {
           return snapshot.createdAt > acc ? snapshot.createdAt : acc;
         }, file.createdAt)
@@ -90,156 +54,61 @@ export class FilesService {
     fileName: string,
     version: string,
   ): Promise<Snapshot> {
-    const userId = await this.prisma.users
-      .findUnique({
-        where: {
-          name: userName,
-        },
-      })
-      .catch((err) => {
-        throw new HttpException('Internal Error', 500);
-      })
-      .then((user) => {
-        if (!user) {
-          throw new HttpException('User not found', 404);
-        }
-        return user.id;
-      })
-      .finally(() => {});
-    const file = await this.prisma.files
-      .findUnique({
-        where: {
-          ownerId_name: {
-            ownerId: userId,
-            name: fileName,
-          },
-        },
-      })
-      .catch((err) => {
-        throw new HttpException('Internal Error', 500);
-      })
-      .then((file) => {
-        if (!file) {
-          throw new HttpException('File not found', 404);
-        }
-        return file;
-      })
-      .finally(() => {});
-    const snapshot = await this.prisma.snapshots
-      .findUnique({
-        where: {
-          fileId_version: {
-            fileId: file.id,
-            version: parseInt(version),
-          },
-        },
-      })
-      .catch((err) => {
-        throw new HttpException('Internal Error', 500);
-      })
-      .then((snapshot) => {
-        if (!snapshot) {
-          throw new HttpException('Snapshot not found', 404);
+    const publicSnapshot = (
+      await this.repo.getPublicSnapshotWithContent(
+        userName,
+        fileName,
+        parseInt(version),
+      )
+    ).match(
+      (snapshot) => {
+        if (!snapshot.isPublic) {
+          throw new HttpException('Resource not found', 404);
         }
         return snapshot;
-      })
-      .finally(() => {});
+      },
+      (error) => {
+        if (error instanceof DbNotFoundError) {
+          throw new HttpException('Resource not found', 404);
+        }
+        throw new HttpException('Internal Error', 500);
+      },
+    );
     const snapshotMeta: SnapshotMeta = {
       id: getSnapshotId(userName, fileName, parseInt(version)),
       owner: userName,
       fileName: fileName,
       version: parseInt(version),
-      registered: snapshot.isPublic,
-      createdAt: snapshot.createdAt.toISOString(),
+      registered: publicSnapshot.isPublic,
+      createdAt: publicSnapshot.createdAt.toISOString(),
     };
     return {
       meta: snapshotMeta,
-      content: snapshot.content,
+      content: publicSnapshot.content.content,
     };
   }
 
   public async getPublicFiles(userName: string): Promise<PublicFileMeta[]> {
-    const userId = await this.prisma.users
-      .findUnique({
-        where: {
-          name: userName,
-        },
-      })
-      .catch((err) => {
-        throw new HttpException('Internal Error', 500);
-      })
-      .then((user) => {
-        if (!user) {
-          throw new HttpException('User not found', 404);
+    const user = (
+      await this.repo.getUserWithPublicFilesAndSnapshots(userName)
+    ).match(
+      (user) => user,
+      (error) => {
+        if (error instanceof DbNotFoundError) {
+          throw new HttpException('Resource not found', 404);
         }
-        return user.id;
-      })
-      .finally(() => {});
-    const files = await this.prisma.files
-      .findMany({
-        where: {
-          ownerId: userId,
-        },
-      })
-      .catch((err) => {
         throw new HttpException('Internal Error', 500);
-      })
-      .then((files) => {
-        return files;
-      })
-      .finally(() => {});
-    const publicSnapshots = await this.prisma.snapshots
-      .findMany({
-        where: {
-          fileId: {
-            in: files.map((file) => file.id),
-          },
-          isPublic: true,
-        },
-      })
-      .catch((err) => {
-        throw new HttpException('Internal Error', 500);
-      })
-      .then((snapshots) => {
-        return snapshots;
-      })
-      .finally(() => {});
-    let fileIdToFileName = new Map<string, string>();
-    files.forEach((file) => {
-      fileIdToFileName.set(file.id, file.name);
-    });
-    let fileNameToSnapshots = new Map<
-      string,
-      { file_id: string; version: number; created_at: Date }[]
-    >();
-    files.forEach((file) => {
-      fileNameToSnapshots.set(file.name, []);
-    });
-    publicSnapshots.forEach((snapshot) => {
-      const fileName = fileIdToFileName.get(snapshot.fileId);
-      if (!fileNameToSnapshots.has(fileName)) {
-        fileNameToSnapshots.set(fileName, []);
-      }
-      fileNameToSnapshots.get(fileName).push({
-        file_id: snapshot.fileId,
-        version: snapshot.version,
-        created_at: snapshot.createdAt,
-      });
-    });
-    const publicFileMeta: PublicFileMeta[] = files.map((file) => {
+      },
+    );
+    const publicFileMeta: PublicFileMeta[] = user.files.map((file) => {
       return {
         owner: userName,
-        fileName: file.name,
-        registeredVersions: fileNameToSnapshots
-          .get(file.name)
-          .map((snapshot) => snapshot.version)
-          .sort((a, b) => a - b),
+        fileName: file.fileName,
+        registeredVersions: file.snapshots.map((snapshot) => snapshot.version),
         createdAt: file.createdAt.toISOString(),
-        updatedAt: fileNameToSnapshots
-          .get(file.name)
-          .reduce((acc, snapshot) => {
-            return snapshot.created_at > acc ? snapshot.created_at : acc;
-          }, file.createdAt)
+        updatedAt: file.snapshots
+          .map((snapshot) => snapshot.createdAt)
+          .reduce((acc, cur) => (cur > acc ? cur : acc), file.createdAt)
           .toISOString(),
       };
     });

@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { useAccount } from "@/context/accountContext";
 import {
   executeAll,
@@ -22,6 +23,7 @@ import {
 import { EditorInteracter } from "@/lib/editorInteracter";
 import { configureMonaco } from "@/lib/monacoConfig";
 import { useKernel } from "@/lib/userKernel";
+import { ensureFileExtension } from "@/utils/ensureFileExtension";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { formatFormula } from "@repo/kernel/ast";
@@ -40,7 +42,6 @@ import {
 } from "lucide-react";
 import * as monaco from "monaco-editor";
 import { FC, use, useEffect, useRef, useState } from "react";
-
 export const runtime = "edge";
 
 interface EditProps {
@@ -66,13 +67,13 @@ const Edit: FC<EditProps> = ({ params }) => {
 
   const kernel = useKernel();
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const goalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const messageEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const [latestProgram, setLatestProgram] = useState<string>("");
   const [interacter, setInteracter] = useState<EditorInteracter | null>(null);
@@ -85,7 +86,7 @@ const Edit: FC<EditProps> = ({ params }) => {
       messageEditorRef.current
     ) {
       setInteracter(
-        new EditorInteracter(mainEditorRef, goalEditorRef, messageEditorRef)
+        new EditorInteracter(monacoInstance, mainEditorRef, goalEditorRef, messageEditorRef),
       );
     }
   }, [mainEditorRef.current, goalEditorRef.current, messageEditorRef.current]);
@@ -104,10 +105,10 @@ const Edit: FC<EditProps> = ({ params }) => {
     if (kernel && interacter) {
       mainEditorRef.current.addCommand(
         monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.DownArrow,
-        () => {
-          step(kernel, interacter);
+        async () => {
+          await step(kernel, interacter);
           updateEnv();
-        }
+        },
       );
 
       mainEditorRef.current.addCommand(
@@ -115,7 +116,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         () => {
           undo(kernel, interacter, 1);
           updateEnv();
-        }
+        },
       );
     }
   }, [kernel, interacter]);
@@ -127,7 +128,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}`,
           {
             credentials: "include",
-          }
+          },
         );
         const data = await response.json();
         setVersions([...data.versions]);
@@ -147,7 +148,7 @@ const Edit: FC<EditProps> = ({ params }) => {
             `${process.env.NEXT_PUBLIC_API_URL}/me/files/${id}/${Math.max(...versions).toString()}`,
             {
               credentials: "include",
-            }
+            },
           );
           const data2 = await response2.json();
           mainEditorRef.current?.setValue(data2.content);
@@ -167,19 +168,19 @@ const Edit: FC<EditProps> = ({ params }) => {
         content={latestProgram}
         version={Math.max(...versions)}
         setRecentSavedTime={setRecentSavedTime}
+        enabledFeatures={new Set(["home", "files", "timeline", "document", "save", "share", "register"])}
       />
 
       <div className="w-[80%] p-4 space-y-4">
         <div className="flex justify-between items-end">
           <div className="text-3xl text-gray-700 font-bold g-4 p-4 font-monaco">
-            {account.username}/{id}
+            {account.username}/{ensureFileExtension(id)}
           </div>
           <div className="text-gray-500">
             Last saved {formatRelativeTime(recentSavedTime)}
           </div>
         </div>
 
-        {/* 灰色の線 */}
         <div className="border-b border-gray-300"></div>
 
         <div className="flex justify-end items-center">
@@ -265,10 +266,10 @@ const Edit: FC<EditProps> = ({ params }) => {
 
             if (value) {
               // Undo check
-              const undoloc = undoLocation(latestProgram, value);
-              if (undoloc) {
-                if (isBefore(undoloc, kernel.lastLocation())) {
-                  undoUntil(kernel, interacter, undoloc);
+              const changeloc = undoLocation(latestProgram, value);
+              if (changeloc) {
+                if (isBefore(changeloc, kernel.lastLocation())) {
+                  undoUntil(kernel, interacter, changeloc);
                 }
               }
 
@@ -337,7 +338,7 @@ const Edit: FC<EditProps> = ({ params }) => {
             <div className="text-2xl font-bold">Goal</div>
           </div>
 
-          <div className="w-full h-64">
+          <div className="w-full h-48">
             {/* Goal Visualizer */}
             <Editor
               className="h-full w-full"
@@ -363,7 +364,7 @@ const Edit: FC<EditProps> = ({ params }) => {
             <div className="text-2xl font-bold">Messages</div>
           </div>
 
-          <div className="w-full h-32 text-red-500">
+          <div className="w-full h-24 text-red-500">
             {/* Message Visualizer */}
             <Editor
               className="h-full w-full"
@@ -383,30 +384,33 @@ const Edit: FC<EditProps> = ({ params }) => {
 
         <Card className="p-4">
           {/* Environment Table */}
-          <div className="flex items-center space-x-2  py-2">
+          <div className="flex items-center space-x-2 py-2">
             <Mountain className="h-6 w-6 text-primary" />
             <div className="text-2xl font-bold">Environment</div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableCell>Identifier</TableCell>
-                <TableCell>Formula</TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from(globalenv.thms.entries()).map(([key, value]) => {
-                return (
-                  <TableRow key={key}>
-                    <TableCell>{key}</TableCell>
-                    <TableCell>{formatFormula(value)}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <div className="max-h-64 overflow-y-scroll scrollbar scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-200">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableCell>Identifier</TableCell>
+                  <TableCell>Formula</TableCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from(globalenv.thms.entries()).map(([key, value]) => {
+                  return (
+                    <TableRow key={key}>
+                      <TableCell>{key}</TableCell>
+                      <TableCell>{formatFormula(value)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
+
       </div>
       <style>
         {`
@@ -417,8 +421,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           .error-highlight {
             background-color: rgba(255, 192, 203, 0.5);
             border-bottom: 1px solid red;
-          }
-            
+          } 
         `}
       </style>
     </div>

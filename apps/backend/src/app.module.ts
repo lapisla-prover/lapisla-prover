@@ -1,11 +1,18 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { HttpModule, HttpService } from '@nestjs/axios';
-import { AbstractCodeAnalyzerService } from './kernel';
-import { MockAnalyzerService } from './kernel/mockAnalyzer.service';
-import { AbstractAuthService, AuthService, MockAuthService } from './auth.service';
-import { JsonOnlyMiddleware } from './jsonOnly.middleware';
 import { MiddlewareConsumer } from '@nestjs/common/interfaces';
-import { AbstractSearchLogicService, MockSearchLogicService } from './searchlogic';
+import {
+  AbstractAuthService,
+  AuthService,
+  MockAuthService,
+} from './auth.service';
+import { JsonOnlyMiddleware } from './jsonOnly.middleware';
+import { AbstractCodeAnalyzerService } from './kernel';
+import { CodeAnalyzerService } from './kernel/codeAnalyzer.service';
+import {
+  AbstractSearchLogicService,
+  MockSearchLogicService,
+} from './searchlogic';
 
 import {
   FilesService,
@@ -13,35 +20,35 @@ import {
   MeService,
   RegistryService,
   SearchService,
+  TagsService,
   TimelineService,
-  TagsService
 } from './api/api';
-import { PrismaService } from './prisma.service';
 import {
   FilesController,
   LoginController,
   MeController,
   RegistryController,
   SearchController,
+  TagsController,
   TimelineController,
-  TagsController
 } from './controllers/controllers';
+import { RepositoryService } from './repository.service';
 
 @Module({
-  imports: [ HttpModule ],
-  exports: [ AbstractAuthService ],
+  imports: [HttpModule],
+  exports: [AbstractAuthService],
   providers: [
-    PrismaService,
+    RepositoryService,
     FilesService,
     LoginService,
     MeService,
     RegistryService,
     SearchService,
     TimelineService,
-    { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
+    { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: AuthService },
     { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
-    TagsService
+    TagsService,
   ],
   controllers: [
     FilesController,
@@ -50,32 +57,29 @@ import {
     RegistryController,
     SearchController,
     TimelineController,
-    TagsController
+    TagsController,
   ],
-
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(JsonOnlyMiddleware)
-      .forRoutes('*');
+    consumer.apply(JsonOnlyMiddleware).forRoutes('*');
   }
 }
 
 @Module({
-  imports: [ HttpModule ],
-  exports: [ AbstractAuthService ],
+  imports: [HttpModule],
+  exports: [AbstractAuthService],
   providers: [
-    PrismaService,
+    RepositoryService,
     FilesService,
     LoginService,
     MeService,
     RegistryService,
     SearchService,
     TimelineService,
-    { provide: AbstractCodeAnalyzerService, useClass: MockAnalyzerService },
+    { provide: AbstractCodeAnalyzerService, useClass: CodeAnalyzerService },
     { provide: AbstractAuthService, useClass: MockAuthService },
-    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService }
+    { provide: AbstractSearchLogicService, useClass: MockSearchLogicService },
   ],
   controllers: [
     FilesController,
@@ -83,14 +87,11 @@ export class AppModule {
     MeController,
     RegistryController,
     SearchController,
-    TimelineController
+    TimelineController,
   ],
-
 })
 export class MockAppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(JsonOnlyMiddleware)
-      .forRoutes('*');
+    consumer.apply(JsonOnlyMiddleware).forRoutes('*');
   }
 }

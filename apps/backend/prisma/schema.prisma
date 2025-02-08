@@ -8,83 +8,68 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  id        String  @id @default(uuid())
-  name      String  @unique
-  githubId  Int  @unique
-  files files[]
+model User {
+    userName      String  @unique @id
+    githubId  Int  @unique
+    files File[]
 }
 
-model files {
-  id        String      @id @default(uuid()) // permalink_id 
-  ownerId   String
-  name      String
-  createdAt DateTime    @default(now())
-  owner     users       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  snapshots snapshots[]
-
-  @@unique([ownerId, name])
-  @@index([ownerId])
+model File {
+    id        String      @id @default(uuid())
+    ownerName String
+    fileName  String
+    createdAt DateTime    @default(now())
+    owner     User       @relation(fields: [ownerName], references: [userName], onDelete: Cascade)
+    snapshots Snapshot[]
+    @@unique([ownerName, fileName])
+    @@index([ownerName, fileName])
 }
 
-model snapshots {
-  id        String   @id @default(uuid())
-  fileId    String
-  snapshotId String
-  version   Int
-  isPublic  Boolean
-  createdAt DateTime @default(now())
-  content   String   @db.Text
-  file      files    @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  dependees dependencies[]
-  tags      tagSnaps[]
-  registeredAt DateTime @default(now())
-  description String @db.Text @default("")
-
-  @@unique([fileId, version])
-  @@index([fileId])
-  @@index([snapshotId])
+model Snapshot {
+    id        String   @id @default(uuid())
+    fileId    String
+    ownerName String
+    fileName  String
+    version   Int
+    isPublic  Boolean
+    license   String @default("MIT")
+    createdAt DateTime @default(now())
+    file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+    dependTo  Snapshot[] @relation("dependencies")
+    dependBy  Snapshot[] @relation("dependencies")
+    tags      Tag[] @relation("tagSnaps")
+    registeredAt DateTime @default(now())
+    description String @db.Text @default("")
+    content  Content?
+    @@unique([ownerName, fileName, version])
+    @@index([ownerName, fileName, version])
 }
 
-model dependencies {
-  id         String @id @default(uuid())
-  dependerId String
-  dependeeId String
-  depender   snapshots @relation(fields: [dependerId], references: [id], onDelete: Cascade)
 
-  @@index([dependerId])
+model Content {
+    snapshotId String @id
+    content String  @db.Text
+    snapshot Snapshot @relation(fields: [snapshotId], references: [id])
 }
 
-model tags {
-  id       String @id @default(uuid())
-  name      String
-  snaps     tagSnaps[]
-  createdAt DateTime @default(now())
 
-  @@unique([name])
+model Tag {
+    id       String @id @default(uuid())
+    name      String
+    snapshots Snapshot[] @relation("tagSnaps")
+    createdAt DateTime @default(now())
+    @@unique([name])
 }
 
-model tagSnaps {
-  id      String @id @default(uuid())
-  tagId    String
-  snapDbId   String
-  createdAt DateTime @default(now())
-  tag      tags @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  snap     snapshots @relation(fields: [snapDbId], references: [id], onDelete: Cascade)
 
-  @@unique([tagId, snapDbId])
-  @@index([tagId])
-  @@index([snapDbId])
-}
-
-model sessions {
+model Session {
   sessionId    String   @id @default(uuid())
   value        String
 
   @@unique([sessionId])
 }
 
-model states {
+model State {
   id        String   @id @default(uuid())
   state     String
   createdAt DateTime @default(now())

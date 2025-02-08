@@ -1,7 +1,7 @@
 import { Formula, Ident, Judgement, Rule, Type } from "./ast";
 import { judgeOne } from "./checker";
-import { Err, Ok, Result } from "./common.ts";
-import { Env as TopEnv, initialEnv, insertThm, insertConstant } from "./env.ts";
+import { Err, Ok, Result } from "./common";
+import { Env as TopEnv, initialEnv, insertThm, insertConstant } from "./env";
 
 export class ProofHistory {
   private steps: Judgement[][] = [];
@@ -58,6 +58,7 @@ export type TopStep =
     }
   | { tag: "Constant"; name: string; ty: Type; env: TopEnv }
   | { tag: "Axiom"; name: string; formula: Formula; env: TopEnv }
+  | { tag: "Import"; name: string; env: TopEnv }
   | { tag: "Other"; env: TopEnv };
 
 export class TopHistory {
@@ -90,6 +91,11 @@ export class TopHistory {
   insertAxiom(name: Ident, formula: Formula): TopEnv {
     const new_env = insertThm(this.top().env, name, formula);
     this.steps.push({ tag: "Axiom", name, formula, env: new_env });
+    return new_env;
+  }
+
+  insertImport(name: Ident, new_env: TopEnv): TopEnv {
+    this.steps.push({ tag: "Import", name, env: new_env });
     return new_env;
   }
 

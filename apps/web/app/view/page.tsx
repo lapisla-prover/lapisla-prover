@@ -5,6 +5,7 @@ import * as monaco from "monaco-editor";
 import { getSnapshotInfoFromId } from "@/utils/parseSnapshot";
 import { useSearchParams } from "next/navigation";
 import { configureMonaco } from "@/lib/monacoConfig";
+import { ensureFileExtension } from "@/utils/ensureFileExtension";
 
 interface ViewProps {
   params: Promise<{
@@ -75,7 +76,7 @@ const View: FC<ViewProps> = ({ params }) => {
       <div className="w-[60%] p-4 space-y-4">
         <div className="flex justify-between items-end">
           <div className="text-2xl font-bold">
-            {snapshotInfo.owner}/{snapshotInfo.fileName}
+            {snapshotInfo.owner}/{ensureFileExtension(snapshotInfo.fileName)}
           </div>
         </div>
         <div className="h-0.5 w-full bg-black" />
