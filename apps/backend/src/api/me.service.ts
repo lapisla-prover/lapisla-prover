@@ -13,10 +13,7 @@ import {
   SnapshotMeta,
   PrivateFileMeta,
 } from '@/generated/openapi/model/models';
-import {
-  isValidTag,
-  getSnapshotId,
-} from '@/utils';
+import { isValidTag, getSnapshotId } from '@/utils';
 
 import {
   DbGetQueryError,

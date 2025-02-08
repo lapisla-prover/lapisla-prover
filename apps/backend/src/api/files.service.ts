@@ -2,11 +2,13 @@ import { RepositoryService } from '@/repository.service';
 import { getSnapshotId } from '@/utils';
 
 import { Injectable, HttpException } from '@nestjs/common';
-import { SnapshotMeta, Snapshot, PublicFileMeta } from '@/generated/openapi/model/models';
-
 import {
-  DbNotFoundError,
-} from '@/repository.service/fromThrowable';
+  SnapshotMeta,
+  Snapshot,
+  PublicFileMeta,
+} from '@/generated/openapi/model/models';
+
+import { DbNotFoundError } from '@/repository.service/fromThrowable';
 
 @Injectable()
 export class FilesService {

@@ -10,7 +10,10 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { MeService } from '@/api/me.service';
-import { SourceCodeWrapper, Registration } from '@/generated/openapi/model/models';
+import {
+  SourceCodeWrapper,
+  Registration,
+} from '@/generated/openapi/model/models';
 import { Request } from 'express';
 
 @Controller('me')
