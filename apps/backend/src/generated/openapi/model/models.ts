@@ -13,5 +13,6 @@ export * from './snapshotMeta';
 export * from './snapshotRegisterResponse';
 export * from './snapshotSaveResponse';
 export * from './sourceCodeWrapper';
+export * from './spdxSBoM';
 export * from './timelineEntry';
 export * from './userInfo';

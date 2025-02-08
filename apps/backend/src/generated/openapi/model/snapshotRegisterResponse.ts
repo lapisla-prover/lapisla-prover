@@ -13,7 +13,6 @@
 
 export interface SnapshotRegisterResponse { 
     result: SnapshotRegisterResponse.ResultEnum;
-    message?: string;
 }
 export namespace SnapshotRegisterResponse {
     export type ResultEnum = 'registered' | 'already_registered' | 'invalid';

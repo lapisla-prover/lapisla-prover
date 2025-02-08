@@ -4,9 +4,7 @@ import { getSnapshotId } from 'src/utils';
 import { Injectable, Optional, HttpException } from '@nestjs/common';
 import { PublicFileMeta } from '../generated/openapi/model/publicFileMeta';
 import { Snapshot } from '../generated/openapi/model/snapshot';
-import { Configuration } from '../generated/openapi/configuration';
-import { COLLECTION_FORMATS } from '../generated/openapi/variables';
-import { SnapshotMeta } from 'src/generated/openapi';
+import { SnapshotMeta } from 'src/generated/openapi/model/snapshotMeta';
 
 import {
   DbGetQueryError,

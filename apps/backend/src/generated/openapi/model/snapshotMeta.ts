@@ -16,6 +16,10 @@ export interface SnapshotMeta {
     owner: string;
     fileName: string;
     version: number;
+    /**
+     * SPDX license identifier
+     */
+    license?: string;
     registered?: boolean;
     createdAt: string;
 }
