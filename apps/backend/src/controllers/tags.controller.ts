@@ -1,13 +1,12 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { TagsService } from 'src/api/tags.service';
-
+import { Controller, Get } from '@nestjs/common';
+import { TagsService } from '@/api/tags.service';
 
 @Controller('tags')
 export class TagsController {
-    constructor(private timelineService: TagsService) {}
+  constructor(private timelineService: TagsService) {}
 
-    @Get()
-    async getTags() {
-        return await this.timelineService.getTags();
-    }
+  @Get()
+  async getTags() {
+    return await this.timelineService.getTags();
+  }
 }

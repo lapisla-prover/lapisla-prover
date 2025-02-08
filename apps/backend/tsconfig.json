@@ -19,6 +19,9 @@
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "bundler",
     "isolatedModules": false,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
 }

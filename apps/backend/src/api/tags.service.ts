@@ -1,26 +1,22 @@
-import { PrismaService } from '../prisma.service';
+import { RepositoryService } from '../repository.service';
 
-import { HttpException, Injectable, Optional } from '@nestjs/common';
-import { SearchResult } from '../generated/openapi/model/searchResult';
-import { AbstractSearchLogicService } from 'src/searchlogic';
-import { SearchCandidate } from 'src/searchlogic';
-import { getSnapshotInfoFromId } from 'src/utils';
+import { HttpException, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class TagsService {
+  protected repo: RepositoryService;
 
-    protected prisma: PrismaService;
+  constructor(private repositoryService: RepositoryService) {
+    this.repo = repositoryService;
+  }
 
-    constructor(private prismaService: PrismaService) {
-        this.prisma = prismaService;
-    }
-
-    public async getTags(): Promise<string[]> {
-        const tags = await this.prisma.tags.findMany({
-            select: {
-                name: true
-            }
-        });
-        return tags.map(tag => tag.name);
-    }
+  public async getTags(): Promise<string[]> {
+    const tags = (await this.repo.getTags()).match(
+      (tags) => tags,
+      (error) => {
+        throw new HttpException('Internal Error', 500);
+      },
+    );
+    return tags.map((tag) => tag.name);
+  }
 }
