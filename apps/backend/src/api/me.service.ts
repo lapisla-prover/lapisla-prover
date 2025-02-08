@@ -297,7 +297,6 @@ export class MeService {
     if (snapshot.isPublic) {
       return {
         result: SnapshotRegisterResponse.ResultEnum.AlreadyRegistered,
-        message: 'Snapshot already registered',
       };
     }
     const dependencies = this.analyzer
@@ -338,7 +337,6 @@ export class MeService {
     if (validationResult.kind === 'source_error') {
       return {
         result: SnapshotRegisterResponse.ResultEnum.Invalid,
-        message: 'Invalid source code',
       };
     }
     if (validationResult.kind === 'kernel_error') {
@@ -368,7 +366,6 @@ export class MeService {
     );
     return {
       result: SnapshotRegisterResponse.ResultEnum.Registered,
-      message: 'Snapshot registered',
     };
   }
 
