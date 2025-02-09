@@ -225,7 +225,7 @@ export class MeService {
         throw new HttpException('Unauthorized', 401);
       },
     );
-    const isValidFileName = /^[a-zA-Z0-9-]+$/.test(fileName);
+    const isValidFileName = /^[a-z\d](?:[a-z\d]|-_(?=[a-z\d])){0,38}$/i
     if (!isValidFileName) {
       throw new HttpException('Invalid file name', 400);
     }
