@@ -8,6 +8,12 @@
 
 <p align="center" style="text-align: center;">  <strong> <a href="https://lapisla.net"> lapisla.net </a>  |  <a href="https://docs.lapisla.net"> docs.lapisla.net </a> </strong>  </p>  
 
+<p align="center">
+    <a href="README.md">English</a> | <a href="README_ja.md">日本語</a>
+</p>
+
+
+
 ## Concept of lapisla 😸
 
 Existing theorem proving assistants are often considered more difficult to use compared to "general" software development.
@@ -26,8 +32,8 @@ We call this ability to easily integrate others' work **"battery-pluggable"**, w
 
 You can generate **Permanent Links** to share your proofs with others, or explore the **Timeline** to see what others are proving!
 
-|  |  | |
-| --- | --- | --- |
+|  |  |
+| --- | --- |
 | <img width="1280" alt="image" src="https://github.com/user-attachments/assets/0a000d27-90ec-4eba-bef6-b5f0950469b1" />  |  <img width="1280" alt="image" src="https://github.com/user-attachments/assets/bc1e614a-32e4-41bb-8d64-199a15b0e318" /> |
 
 ## How to use lapisla?  
