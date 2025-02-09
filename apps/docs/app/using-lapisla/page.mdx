@@ -1,0 +1,44 @@
+---
+title: Using Lapisla
+---
+
+# Using Lapisla
+
+This page explains how to use lapisla.net to write and publish proofs.
+
+## Writing a Proof
+
+First, you must log in with GitHub account from top page. Then, you will be navigated to [lapisla.net/files](https://lapisla.net/files). In this page, you can see a list of your proofs. Also you can edit them and create a new file.
+
+In the edit page, there are the editor, the sidebar, and the message panels. I will explain them one by one.
+
+The editor is the main part of the page. The editor supports syntax highlighting and auto-completion. You can input all of unicode characters used in Lapisla by typing its name. Following is the list of supported characters. Note that some of them currently have no use yet.
+
+| Symbol | Name |
+| ------ | ---- |
+| `∀` | `forall` |
+| `∃` | `exist` |
+| `∧` | `and` |
+| `∨` | `or` |
+| `→` | `imply` |
+| `⊢` | `vdash` |
+| `↦` | `mapsto` |
+| `⊥` | `bottom` |
+| `⊤` | `top` |
+| `λ` | `lambda` |
+
+You can execute or undo commands by clicking the buttons on the upper right corner of the editor. The down/up buttons execute/undo a single line, and the double down/up buttons execute/undo the whole proof. You can also execute/undo a single line by pressing <kbd>Ctrl</kbd>+<kbd>↓</kbd>/<kbd>↑</kbd>.
+
+On the right, there are panels showing current subgoals, error messages, and the environment. 
+
+You can save the proof file by clicking the save button on the sidebar anytime. This will create a new snapshot. Snapshots have serial version numbers unique to each file.
+
+## Sharing a Proof
+
+After completing the proof, you can share a permalink to it or register any snapshot of it by the sidebar. Sharing a proof does not require registration, but importing it does.
+
+For example, this is the permalink to `zer0-star/nat.l` at version 1: https://lapisla.net/view?id=7a6572302d737461722f6e61744031
+
+When you register a proof, the message will come up on the [timeline](https://lapisla.net/timeline).
+
+Timeline shows the some of the recent proofs registered by people. You can view the details of a proof by clicking its name.

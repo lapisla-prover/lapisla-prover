@@ -200,6 +200,8 @@ A substitution `P(x, y, …) ↦ A` means that every occurrence of `P(s, t, …)
 
 For example, execute `use forall_or { P(x) ↦ P(f(x)), Q ↦ A ∨ B }{:lapisla}` with `forall_or: ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q{:lapisla}`, you will get `∀x.(P(f(x)) ∨ (A ∨ B)) → ∀x.P(f(x)) ∨ (A ∨ B){:lapisla}`.
 
+Substitutions can be omitted if you don't need to substitute anything. For example, `use eq_refl{:lapisla}` is valid.
+
 #### `qed`
 
 ```lapisla
