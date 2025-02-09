@@ -53,7 +53,7 @@ export const Save = (props: SaveProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Share" onClick={save}>
+        <Button variant="ghost" size="icon" title="Save" onClick={save}>
           <SaveIcon className="h-6 w-6" />
         </Button>
       </DialogTrigger>
