@@ -467,10 +467,10 @@ components:
       pattern: '^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}@[0-9]+$'
     User:
       type: string
-      pattern: '/^[a-z\d](?:[a-z\d]|-_(?=[a-z\d])){0,38}$/i'
+      pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
     FileName:
       type: string
-      pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
+      pattern: '/^[a-z\d](?:[a-z\d]|[-_](?=[a-z\d])){0,38}$/i'
     Tag:
       type: string
       pattern: '/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i'
