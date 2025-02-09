@@ -4,12 +4,8 @@ import { getPageMap } from "nextra/page-map";
 import "nextra-theme-docs/style.css";
 import { FaUpRightFromSquare } from "react-icons/fa6";
 import style from "./layout.module.css";
+import { Metadata } from "next";
 
-export const metadata = {
-  // Define your metadata here
-  // For more information on metadata API, see: https://nextjs.org/docs/app/building-your-application/optimizing/metadata
-  title: "Lapisla - The User-Friendly Theorem Proof Platform",
-};
 
 const navbar = (
   <Navbar
@@ -74,3 +70,28 @@ export default async function RootLayout({
     </html>
   );
 }
+
+
+export const metadata: Metadata = {
+  title: "docs.lapisla.net",
+  description:
+    "Documentation for lapisla, a user-friendly theorem prover and ecosystem designed for everyone. Greetings! 👋",
+  openGraph: {
+    title: "docs.lapisla.net",
+    description:
+      "Documentation for lapisla, a user-friendly theorem prover and ecosystem designed for everyone. Greetings! 👋",
+    type: "website",
+    images: [
+      {
+        url: "https://lapisla.net/ogp.png",
+        width: 1200,
+        height: 630,
+        alt: "docs.lapisla.net",
+      },
+    ],
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
+
+};
