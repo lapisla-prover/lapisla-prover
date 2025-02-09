@@ -40,7 +40,9 @@ export default function Files() {
     const fetchFiles = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/files/${account.username}`
+          `${process.env.NEXT_PUBLIC_API_URL}/me/files`, {
+            credentials: "include",
+          }
         );
         const data = await response.json();
         setFiles(data);

@@ -1,0 +1,205 @@
+---
+title: All Available Rules
+---
+
+# All Available Rules
+
+$x, y, z$ are variables, $t$ is a term, $A, B$ are formulas, and $\Gamma, \Delta$ are sequences of formulas.
+
+For rules with suffix `L` or `R`, they will manipulate the left or right side of the sequent, respectively.
+
+## `I`
+
+Syntax: `I`
+
+```math
+\frac{}{A \vdash A} \text{(I)}
+```
+
+Closes the current goal.
+
+## `Cut`
+
+Syntax: `Cut formula`
+
+```math
+\frac{\Gamma \vdash A, \Delta \quad A, \Gamma \vdash \Delta}{\Gamma \vdash \Delta} \text{(Cut)}
+```
+
+`formula` is the intermediate formula $A$.
+
+## `AndL1`
+
+Syntax: `AndL1`
+
+```math
+\frac{A, \Gamma \vdash \Delta}{A \land B, \Gamma \vdash \Delta} \text{(AndL1)}
+```
+
+## `AndL2`
+
+Syntax: `AndL2`
+
+```math
+\frac{B, \Gamma \vdash \Delta}{A \land B, \Gamma \vdash \Delta} \text{(AndL2)}
+```
+
+## `AndR`
+
+Syntax: `AndR`
+
+```math
+\frac{\Gamma \vdash A, \Delta \quad \Gamma \vdash B, \Delta}{\Gamma \vdash A \land B, \Delta} \text{(AndR)}
+```
+
+## `OrL`
+
+Syntax: `OrL`
+
+```math
+\frac{A, \Gamma \vdash \Delta \quad B, \Gamma \vdash \Delta}{A \lor B, \Gamma \vdash \Delta} \text{(OrL)}
+```
+
+## `OrR1`
+
+Syntax: `OrR1`
+
+```math
+\frac{\Gamma \vdash A, \Delta}{\Gamma \vdash A \lor B, \Delta} \text{(OrR1)}
+```
+
+## `OrR2`
+
+Syntax: `OrR2`
+
+```math
+\frac{\Gamma \vdash B, \Delta}{\Gamma \vdash A \lor B, \Delta} \text{(OrR2)}
+```
+
+## `ImpL`
+
+Syntax: `ImpL`
+
+```math
+\frac{\Gamma \vdash A, \Delta \quad B, \Gamma \vdash \Delta}{A \to B, \Gamma \vdash \Delta} \text{(ImpL)}
+```
+
+## `ImpR`
+
+Syntax: `ImpR`
+
+```math
+\frac{A, \Gamma \vdash B, \Delta}{\Gamma \vdash A \to B, \Delta} \text{(ImpR)}
+```
+
+## `BottomL`
+
+Syntax: `BottomL`
+
+```math
+\frac{}{\bot, \Gamma \vdash \Delta} \text{(BottomL)}
+```
+
+## `TopR`
+
+Syntax: `TopR`
+
+```math
+\frac{}{\Gamma \vdash \top, \Delta} \text{(TopR)}
+```
+
+## `ForallL`
+
+Syntax: `ForallL term`
+
+```math
+\frac{A[x \coloneqq t], \Gamma \vdash \Delta}{\forall x. A, \Gamma \vdash \Delta} \text{(ForallL)}
+```
+
+## `ForallR`
+
+Syntax: `ForallR identifier`
+
+```math
+\frac{\Gamma \vdash A[x \coloneqq z], \Delta}{\Gamma \vdash \forall x. A, \Delta} \text{(ForallR)}
+```
+
+The variable $z$ should not occur free in the conclusion.
+
+## `ExistsL`
+
+Syntax: `ExistsL identifier`
+
+```math
+\frac{A[x \coloneqq z], \Gamma \vdash \Delta}{\Gamma \vdash \exists x. A, \Delta} \text{(ExistsL)}
+```
+
+The variable $z$ should not occur free in the conclusion.
+
+## `ExistsR`
+
+Syntax: `ExistsR term`
+
+```math
+\frac{\Gamma \vdash A[x \coloneqq t], \Delta}{\Gamma \vdash \exists x. A, \Delta} \text{(ExistsR)}
+```
+
+## `WL`
+
+Syntax: `WL`
+
+```math
+\frac{\Gamma \vdash \Delta}{A, \Gamma \vdash \Delta} \text{(WL)}
+```
+
+Weakening left. Erases the first formula on the left side.
+
+## `WR`
+
+Syntax: `WR`
+
+```math
+\frac{\Gamma \vdash \Delta}{\Gamma \vdash A, \Delta} \text{(WR)}
+```
+
+Weakening right. Erases the first formula on the right side.
+
+## `CL`
+
+Syntax: `CL`
+
+```math
+\frac{A, A, \Gamma \vdash \Delta}{A, \Gamma \vdash \Delta} \text{(CL)}
+```
+
+Contraction left. Duplicates the first formula on the left side.
+
+## `CR`
+
+Syntax: `CR`
+
+```math
+\frac{\Gamma \vdash A, A, \Delta}{\Gamma \vdash A, \Delta} \text{(CR)}
+```
+
+Contraction right. Duplicates the first formula on the right side.
+
+## `PL`
+
+Syntax: `PL number`
+
+```math
+\frac{A, \Gamma, \Gamma' \vdash \Delta}{\Gamma, A, \Gamma' \vdash \Delta} \text{(PL)}
+```
+
+Permutation left. Moves the formula at the given index `number` on the left side to the first position.
+
+## `PR`
+
+Syntax: `PR number`
+
+```math
+\frac{\Gamma \vdash A, \Delta, \Delta'}{\Gamma \vdash \Delta, A, \Delta'} \text{(PR)}
+```
+
+Permutation right. Moves the formula at the given index `number` on the right side to the first position.

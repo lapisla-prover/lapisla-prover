@@ -168,6 +168,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         content={latestProgram}
         version={Math.max(...versions)}
         setRecentSavedTime={setRecentSavedTime}
+        setNewVersion={(version) => { setVersions([...versions, version]); }}
         enabledFeatures={new Set(["home", "files", "timeline", "document", "save", "share", "register"])}
       />
 

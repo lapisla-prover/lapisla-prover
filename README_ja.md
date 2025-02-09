@@ -2,13 +2,16 @@
 
 
 <p align="center">
-    <img align="center" width="800" alt="image" src="https://github.com/user-attachments/assets/98a2382b-f1a3-4d69-acb2-f09bf506d0cd" />
+    <img align="center" width="800" alt="image" src="https://github.com/user-attachments/assets/37e98c08-2333-463d-9fd3-c8c165a62433" />
 </p>
 
 <p align="center" style="text-align: center;"> <strong>lapisla</strong> は battery-pluggable な定理証明支援系です！</p>
 
 <p align="center" style="text-align: center;">  <strong> <a href="https://lapisla.net"> lapisla.net </a>  |  <a href="https://docs.lapisla.net"> docs.lapisla.net </a> </strong>  </p>  
 
+<p align="center">
+    <a href="README.md">English</a> | <a href="README_ja.md">日本語</a>
+</p>
 
 ## Concept of lapisla 😸
 
@@ -29,8 +32,8 @@ lapisla は、単なる定理証明支援系でなく、レジストリやコミ
 
 証明を共有する Permanent Link を生成して他の人に送ってみたり、タイムラインで他の人の証明を覗いてみたりしてみましょう！
 
-|  |  | |
-| --- | --- | --- |
+|  |  | 
+| --- | --- | 
 | <img width="1280" alt="image" src="https://github.com/user-attachments/assets/0a000d27-90ec-4eba-bef6-b5f0950469b1" />  |  <img width="1280" alt="image" src="https://github.com/user-attachments/assets/bc1e614a-32e4-41bb-8d64-199a15b0e318" /> |
 
 

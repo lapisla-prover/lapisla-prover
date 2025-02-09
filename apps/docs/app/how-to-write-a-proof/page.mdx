@@ -1,0 +1,213 @@
+---
+title: How to Write a Proof
+---
+
+# How to Write a Proof
+
+In this page, we will see how to write a formal proof in Lapisla.
+
+## Concepts
+
+First, let's see some basic concepts in Lapisla.
+
+In Lapisla, we write proofs by applying **rules** to **goals**.
+
+A **goal** (or sometimes a subgoal when it is one of some goals) is a sequent that is meant to be proved. A sequent is a pair of a sequence of formulas, written as $P_1, \ldots, P_n \vdash Q_1, \ldots, Q_m$. You can think the "meaning" of a sequent as "if all of $P_1, \ldots, P_n$ are true, then at least one of $Q_1, \ldots, Q_m$ is true." We sometimes use a greek letter (mostly $\Gamma$ or $\Delta$) to represent a sequence of formulas, like $\Gamma, A \vdash B$.
+
+A **rule** is a step that transforms a sequent into some simpler sequents. Rules are always applied to the first subgoal. For example, the rule `AndR` transforms $\Gamma \vdash P \land Q, \Delta$ into $\Gamma \vdash P, \Delta$ and $\Gamma \vdash Q, \Delta$. If a sequent is completely broken down into the sequent $A \vdash A$ for some $A$, we can mark it as done and remove it from subgoals by applying the rule `I`.
+
+Rules are described in the form
+
+```math
+\frac{\Gamma_1 \vdash \Delta_1 \quad \cdots \quad \Gamma_n \vdash \Delta_n}{\Gamma \vdash \Delta} \text{(\textit{RuleName})}
+```
+
+which means that from $\Gamma_1 \vdash \Delta_1, \ldots, \Gamma_n \vdash \Delta_n$, we can derive $\Gamma \vdash \Delta$ (note that $n$ can be zero). In other words, if we want to derive $\Gamma \vdash \Delta$, it is sufficient to derive $\Gamma_1 \vdash \Delta_1, \ldots, \Gamma_n \vdash \Delta_n$. That is, we can transform the goal $\Gamma \vdash \Delta$ into subgoals $\Gamma_1 \vdash \Delta_1, \ldots, \Gamma_n \vdash \Delta_n$.
+
+For all rules, see [All Available Rules](/reference/rules).
+
+A **proof** of a formula $P$ is a sequence of rules that breaks down the initial goal $\vdash P$ into trivial sequents. If we erased all of subgoals, we can say that $P$ is proved and call it a theorem!
+
+A proof of $P$ can be seen as connecting rules in a tree with root $\vdash P$ (see the example below).
+
+Once you proved a theorem, it can be used in other proofs by putting it in the left-hand side of the current goal with free predicate variables substituted. This operation is justified by the fact that we can construct a proof without using another theorem.
+
+## Example
+
+Before seeing more explanations, let's see an example of a proof in Lapisla.
+
+Here is an example from previous page:
+
+```lapisla
+Theorem and_comm P ∧ Q → Q ∧ P
+    apply ImpR
+    apply AndR
+    apply AndL2
+    apply I
+    apply AndL1
+    apply I
+qed
+```
+
+We will look at this proof line by line.
+
+At the first line, we declare that we are going to prove the formula $P \land Q \to Q \land P$ named `and_comm`. The goal is $\vdash P \land Q \to Q \land P$.
+
+At the second line, we apply the rule `ImpR` to the goal. It transforms the goal into $P \land Q \vdash Q \land P$.
+
+At the third line, we apply the rule `AndR` to the goal. It splits the goal into two subgoals $P \land Q \vdash Q$ and $P \land Q \vdash P$.
+
+At the fourth line, we apply the rule `AndL2` to the first subgoal. It transforms the subgoal into $Q \vdash Q$.
+
+At the fifth line, the current goal is $Q \vdash Q$, so we can apply the rule `I` to conclude it.
+
+Similarly, at the sixth and seventh lines, we make the goal $P \vdash P$ and mark it as completed.
+
+Then, there are no subgoals left, so the proof is completed. By executing command `qed{:lapisla}`, we declare that the theorem `and_comm` is proved!
+
+This proof creates the proof tree
+
+```math
+\dfrac{
+  \dfrac{\dfrac{}{Q \vdash Q} \mathrlap{\text{(I)}}}{P \land Q \vdash Q} \text{(AndL2)}
+  \quad \dfrac{\dfrac{}{P \vdash P} \mathrlap{\text{(I)}}}{P \land Q \vdash P} \mathrlap{\text{(AndL1)}}
+}{\dfrac{ P \land Q \vdash Q \land P }{\vdash P \land Q \to Q \land P} \mathrlap{\text{(ImpR)}}} \text{(AndR)}
+```
+
+which shows "how the initial goal is broken down into simpler sequents" or "how the proof is constructed from primitive sequents".
+
+## Commands
+
+In Lapisla, every file consists of a sequence of commands. Each of them can be used in only one of **declare mode** or **proof mode**.
+
+### Declare Mode
+
+#### `Theorem`
+
+```lapisla
+Theorem name formula
+```
+
+```lapisla filename="example"
+Theorem eq_sym ∀x. ∀y. (eq(x, y) → eq(y, x))
+```
+
+Declares a theorem `name` with the formula `formula`. Enter proof mode with the goal $\vdash \text{formula}$.
+
+#### `import`
+
+```lapisla
+import "snapshot"
+```
+
+```lapisla filename="example"
+import "zer0-star/equality@6"
+```
+
+Imports theorems, axioms and constants from another file. Currently only importing from snapshots on Lapisla registry is supported. The format is `username/repository@version`.
+
+#### `axiom`
+
+```lapisla
+axiom name: formula
+```
+
+```lapisla filename="example"
+axiom eq_refl: ∀x. eq(x, x)
+```
+
+Introduce a new axiom `name` with the formula `formula`. Axioms are like theorems, but instead of proving them, you assume them to be true. Be careful not to make system inconsistent!
+
+
+#### `constant`
+
+```lapisla
+constant name: type
+```
+
+```lapisla filename="example"
+constant eq: 'a → 'a → prop
+```
+
+Introduce a new constant `name` with the type `type`. With axioms, you can define some mathematical objects and its properties.
+
+For example, you can define equality
+
+```lapisla filename="abap34/eqdef.l"
+constant eq: 'a → 'a → prop
+axiom eq_refl: ∀x. eq(x, x)
+axiom eq_subst: ∀x. ∀y. (eq(x, y) → P(x) → P(y))
+```
+
+and prove symmetry of equality like
+
+```lapisla filename="zer0-star/equality.l"
+import "abap34/eqdef@2"
+
+Theorem eq_sym ∀x. ∀y. (eq(x, y) → eq(y, x))
+  apply ForallR x1
+  apply ForallR y1
+  apply ImpR
+  use eq_subst { P(x) ↦ eq(x, x1) }
+  apply ForallL x1
+  apply ForallL y1
+  apply ImpL
+  apply PR 1
+  apply WR
+  apply I 
+  apply ImpL 
+  apply WL
+  apply PR 1
+  apply WR
+  use eq_refl 
+  apply ForallL x1 
+  apply I 
+  apply PL 1
+  apply WL
+  apply I
+qed
+```
+
+### Proof Mode
+
+#### `apply`
+
+```lapisla
+apply rule
+```
+
+```lapisla filename="example"
+apply ForallR x1
+```
+
+Applies `rule` to the current goal.
+
+See [Rule Syntax](/reference/rules#rule-syntax).
+
+#### `use`
+
+```lapisla
+use theorem { P1(x1, y1, …) ↦ A1, P2(x2, y2, …) ↦ A2, … }
+```
+
+```lapisla filename="example"
+use forall_or { P(x) ↦ P(f(x)) ∨ Q, Q ↦ ∀x. P(x) }
+```
+
+Puts `theorem` applied with the given substitutions into the current goal. Note that all substitutions are applied simultaneously and not recursively, namely, if any of `A1`, `A2`, … contains some of `P1`, `P2`, …, they are not substituted.
+
+A substitution `P(x, y, …) ↦ A` means that every occurrence of `P(s, t, …)` with free `P` in `theorem` is replaced by `A[x := s, y := t, …]`.
+
+For example, execute `use forall_or { P(x) ↦ P(f(x)), Q ↦ A ∨ B }{:lapisla}` with `forall_or: ∀x. (P(x) ∨ Q) → ∀x. P(x) ∨ Q{:lapisla}`, you will get `∀x.(P(f(x)) ∨ (A ∨ B)) → ∀x.P(f(x)) ∨ (A ∨ B){:lapisla}`.
+
+Substitutions can be omitted if you don't need to substitute anything. For example, `use eq_refl{:lapisla}` is valid.
+
+#### `qed`
+
+```lapisla
+qed
+```
+
+Check if there is no goals left and finish the proof. Enter declare mode.
+
+Every theorem should end with `qed{:lapisla}`.

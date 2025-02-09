@@ -28,7 +28,7 @@ export function NewFile() {
     fileName: z
       .string()
       .regex(
-        /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i,
+        /^[a-z\d](?:[a-z\d]|[-_](?=[a-z\d])){0,38}$/i,
         "Invalid file name format"
       ),
   });
