@@ -13,7 +13,8 @@ All contributors are expected to adhere to the following code of conduct:
 - Be constructive in your feedback.
 - Any form of harassment or discrimination will not be tolerated.
 
-Any violation of the code of conduct will result in the removal of the contribution.
+
+Violations of the Code of Conduct will be reviewed by the maintainers. Depending on the severity, actions may include a warning, request for revision, or in extreme cases, removal of the contribution. If you witness a violation, please report it to the maintainers.
 
 
 ## What should I know before contributing?
@@ -23,12 +24,6 @@ lapisla-prover consists of several components. Depending on the component, diffe
 - **[kernel](packages/kernel)** (core logic): Algorithm improvements, bug fixes, optimizations.
 - **[webfront](apps/web)** (frontend): UI improvements, accessibility fixes, UX enhancements.
 - **[backend](apps/backend)** (server-side logic): API improvements, security enhancements, database optimizations.
-
-Before making a contribution, consider which component aligns with your expertise.
-
-
-Violations of the Code of Conduct will be reviewed by the maintainers. Depending on the severity, actions may include a warning, request for revision, or in extreme cases, removal of the contribution. If you witness a violation, please report it to the maintainers.
-
 
 
 ## How can I contribute?
