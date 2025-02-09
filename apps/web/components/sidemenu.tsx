@@ -58,14 +58,11 @@ export function SideMenu(props: SideMenuProps) {
       )}
 
       {props.enabledFeatures.has("document") && (
-        <Button
-          variant="ghost"
-          size="icon"
-          title="Document"
-          onClick={() => router.push("/")}
-        >
-          <Book className="h-6 w-6" />
-        </Button>
+        <a href="https://docs.lapisla.net" target="_blank" rel="noreferrer">
+          <Button variant="ghost" size="icon" title="Document">
+            <Book className="h-6 w-6" />
+          </Button>
+        </a>
       )}
 
       {props.enabledFeatures.has("save") && props.fileName && props.content && props.setRecentSavedTime && (
