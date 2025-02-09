@@ -12,6 +12,7 @@ interface SideMenuProps {
   content?: string;
   version?: number;
   setRecentSavedTime?: (recentSavedTime: string) => void;
+  setNewVersion?: (newVersion: number) => void;
   enabledFeatures: Set<
     "home" | "files" | "timeline" | "document" | "save" | "share" | "register"
   >;
@@ -70,6 +71,7 @@ export function SideMenu(props: SideMenuProps) {
           fileName={props.fileName}
           content={props.content}
           setRecentSavedTime={props.setRecentSavedTime}
+          setNewVersion={props.setNewVersion}
         />
       )}
 
