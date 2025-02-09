@@ -53,7 +53,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
       <main className="w-full max-w-6xl mx-auto">
         <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-4">
-          <Image src="/logo.png" alt="Lapisla Logo" width={120} height={120} className="mb-8" />
+          <Image src="/logo.svg" alt="Lapisla Logo" width={120} height={120} className="mb-8" />
 
           <h1 className="text-4xl md:text-6xl font-bold mb-4">Lapisla.net</h1>
 
@@ -146,7 +146,7 @@ export default function Home() {
               </Button>
             </Link>
 
-            <Link href="https://gihub.com/lapisla-prover/lapisla-prover">
+            <Link href="https://github.com/lapisla-prover/lapisla-prover">
               <Button variant="outline" className="hover:bg-gray-200 dark:hover:bg-gray-700">
                 <Image src="/mark-github.svg" alt="GitHub" width={20} height={20} />
                 Go to Repository
