@@ -1,7 +1,7 @@
 <h1 align="center" style="border: none;">🐶 lapisla-prover 🐱</h1>
 
 <p align="center">
-    <img align="center" width="800" alt="image" src="https://github.com/user-attachments/assets/98a2382b-f1a3-4d69-acb2-f09bf506d0cd" />
+    <img align="center" width="800" alt="image" src="https://github.com/user-attachments/assets/37e98c08-2333-463d-9fd3-c8c165a62433" />
 </p>
 
 <p align="center" style="text-align: center;"> <strong>lapisla</strong> is a battery-pluggable theorem proving assistant!</p>
