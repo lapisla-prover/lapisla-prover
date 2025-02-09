@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { executeProgram } from '@repo/kernel/kernel';
+import { tokenize } from '@repo/kernel/parser';
 import { decomposePackageName } from '@repo/kernel/utils';
 import { Ok } from 'neverthrow';
 import { RepositoryService } from '@/repository.service';
@@ -84,6 +85,14 @@ export class CodeAnalyzerService extends AbstractCodeAnalyzerService {
     sourceCode: string,
     dependencies: Dependency[],
   ): Promise<ValidationResult> {
+    const tokens = tokenize(sourceCode);
+    if (tokens.length <= 1) {
+      return {
+        success: false,
+        kind: 'source_error',
+        errorMessage: 'Empty source code',
+      };
+    }
     const result = await executeProgram(sourceCode, async (pkgName: string) => {
       try {
         return {
