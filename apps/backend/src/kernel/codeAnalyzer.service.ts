@@ -91,7 +91,7 @@ export class CodeAnalyzerService extends AbstractCodeAnalyzerService {
         success: false,
         kind: 'source_error',
         errorMessage: 'Empty source code',
-      }
+      };
     }
     const result = await executeProgram(sourceCode, async (pkgName: string) => {
       try {
