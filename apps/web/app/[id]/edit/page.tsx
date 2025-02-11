@@ -207,8 +207,9 @@ const Edit: FC<EditProps> = ({ params }) => {
               className="p-1"
               title="Move Down"
               onClick={() => {
-                step(kernel, interacter);
-                updateEnv();
+                step(kernel, interacter).then(() => {
+                  updateEnv();
+                });
               }}
             >
               <ChevronDown className="h-4 w-4" />
@@ -236,8 +237,9 @@ const Edit: FC<EditProps> = ({ params }) => {
               title="Move to Bottom"
               onClick={() => {
                 resetAll();
-                executeAll(kernel, interacter);
-                updateEnv();
+                executeAll(kernel, interacter).then(() => {
+                  updateEnv();
+                });
               }}
             >
               <ChevronsDown className="h-4 w-4" />
