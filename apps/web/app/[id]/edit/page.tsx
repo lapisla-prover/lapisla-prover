@@ -59,6 +59,24 @@ const Edit: FC<EditProps> = ({ params }) => {
   const [recentSavedTime, setRecentSavedTime] = useState<string>("");
   const [isEditorMounted, setEditorMounted] = useState(false);
 
+  // flag to check there is any unsaved changes
+  const [isDirty, setIsDirty] = useState(false);
+
+  // beforeunload event listener
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty) {
+        event.preventDefault();
+        event.returnValue = ""; // Chrome requires returnValue to be set
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
+
   useEffect(() => {
     if (monacoInstance) {
       configureMonaco(monacoInstance);
@@ -153,6 +171,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           const data2 = await response2.json();
           mainEditorRef.current?.setValue(data2.content);
           setCurrentSnapshotId(data2.meta.id);
+          setIsDirty(false);
         } catch (error) {
           console.error(error);
         }
@@ -168,7 +187,10 @@ const Edit: FC<EditProps> = ({ params }) => {
         content={latestProgram}
         version={Math.max(...versions)}
         setRecentSavedTime={setRecentSavedTime}
-        setNewVersion={(version) => { setVersions([...versions, version]); }}
+        setNewVersion={(version) => { 
+          setVersions([...versions, version]); 
+          setIsDirty(false);
+        }}
         enabledFeatures={new Set(["home", "files", "timeline", "document", "save", "share", "register"])}
       />
 
@@ -266,6 +288,8 @@ const Edit: FC<EditProps> = ({ params }) => {
             }
 
             if (value) {
+              setIsDirty(true);
+
               // Undo check
               const changeloc = undoLocation(latestProgram, value);
               if (changeloc) {
@@ -286,7 +310,6 @@ const Edit: FC<EditProps> = ({ params }) => {
                     "\n at row " +
                     (errorloc.start.line + 1) +
                     ".";
-
                   interacter.setMessagesEditorContent(msg);
 
                   const model = mainEditorRef.current.getModel();
