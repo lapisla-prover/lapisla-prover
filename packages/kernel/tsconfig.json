@@ -6,7 +6,8 @@
     "allowImportingTsExtensions": true,
     "target": "ES2023",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
   "exclude": ["node_modules"]
