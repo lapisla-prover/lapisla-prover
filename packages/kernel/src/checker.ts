@@ -23,7 +23,7 @@ import { checkFormula, normalizeType } from "./typeCheck";
 
 export function judgeOne(
   rule: Rule,
-  goals: Judgement[]
+  goals: Judgement[],
 ): Result<Judgement[], string> {
   if (goals.length === 0) {
     return Err("No goal");
@@ -365,7 +365,7 @@ export function judgeOne(
 
 export function judgeMany(
   rules: Rule[],
-  goals: Judgement[]
+  goals: Judgement[],
 ): Result<Judgement[], [cause: Rule, error: string, restGoals: Judgement[]]> {
   for (const rule of rules) {
     const result = judgeOne(rule, goals);
@@ -379,7 +379,7 @@ export function judgeMany(
 
 export function* proofLoop(
   history: ProofHistory,
-  env: Env
+  env: Env,
 ): Generator<Result<void, string>, Result<void, string>, ProofCmd | UndoCmd> {
   let result: Result<void, string> = Ok();
 
@@ -433,7 +433,7 @@ export function* proofLoop(
           for (const arg of pred.args) {
             if (tmpType.tag !== "Arr") {
               result = Err(
-                `invalid use: too many number of arguments for ${ident} : ${formatType(predType)}`
+                `invalid use: too many number of arguments for ${ident} : ${formatType(predType)}`,
               );
               continue loop;
             }
@@ -445,7 +445,7 @@ export function* proofLoop(
 
           if (tmpType.tag !== "Prop") {
             result = Err(
-              `invalid use: insufficient number of arguments for ${ident} : ${formatType(predType)}`
+              `invalid use: insufficient number of arguments for ${ident} : ${formatType(predType)}`,
             );
             continue loop;
           }
@@ -510,7 +510,7 @@ export type KernelState = {
 };
 
 export function* topLoop(
-  topHistory: TopHistory
+  topHistory: TopHistory,
 ): Generator<Result<KernelState, string>, never, TopCmd> {
   let result: Result<KernelState, string> = Ok({ mode: "DeclareWait" });
 
@@ -535,7 +535,7 @@ export function* topLoop(
         const checkResult = checkFormula(
           topHistory.top().env.types,
           new Map(),
-          thmFormula
+          thmFormula,
         );
 
         if (checkResult.tag === "Err") {
@@ -572,7 +572,7 @@ export function* topLoop(
 
       if (topCmd.tag === "Import") {
         result = Err(
-          "Invalid command; do not send checker an import command directly! please import theorems via wrapper."
+          "Invalid command; do not send checker an import command directly! please import theorems via wrapper.",
         );
         continue topMode;
       }
@@ -593,7 +593,7 @@ export function* topLoop(
         const checkResult = checkFormula(
           topHistory.top().env.types,
           new Map(),
-          formula
+          formula,
         );
 
         if (checkResult.tag === "Err") {

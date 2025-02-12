@@ -40,9 +40,10 @@ export default function Files() {
     const fetchFiles = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/me/files`, {
+          `${process.env.NEXT_PUBLIC_API_URL}/me/files`,
+          {
             credentials: "include",
-          }
+          },
         );
         const data = await response.json();
         setFiles(data);
@@ -138,8 +139,8 @@ export default function Files() {
                               deleteFile(file.fileName);
                               setFiles(
                                 files.filter(
-                                  (f) => f.fileName !== file.fileName
-                                )
+                                  (f) => f.fileName !== file.fileName,
+                                ),
                               );
                             }}
                           >

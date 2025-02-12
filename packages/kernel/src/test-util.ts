@@ -10,13 +10,13 @@ function dumpResult<T, E>(result: Result<T, E>): string {
 }
 
 export function expectOk<T, E>(
-  result: Result<T, E>
+  result: Result<T, E>,
 ): asserts result is { tag: "Ok"; value: T } {
   assert.equal(result.tag, "Ok", `expected Ok but got ${dumpResult(result)}`);
 }
 
 export function expectErr<T, E>(
-  result: Result<T, E>
+  result: Result<T, E>,
 ): asserts result is { tag: "Err"; error: E } {
   assert.equal(result.tag, "Err", `expected Err but got ${dumpResult(result)}`);
 }

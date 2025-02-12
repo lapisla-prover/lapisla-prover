@@ -86,7 +86,12 @@ const Edit: FC<EditProps> = ({ params }) => {
       messageEditorRef.current
     ) {
       setInteracter(
-        new EditorInteracter(monacoInstance, mainEditorRef, goalEditorRef, messageEditorRef),
+        new EditorInteracter(
+          monacoInstance,
+          mainEditorRef,
+          goalEditorRef,
+          messageEditorRef,
+        ),
       );
     }
   }, [mainEditorRef.current, goalEditorRef.current, messageEditorRef.current]);
@@ -168,8 +173,20 @@ const Edit: FC<EditProps> = ({ params }) => {
         content={latestProgram}
         version={Math.max(...versions)}
         setRecentSavedTime={setRecentSavedTime}
-        setNewVersion={(version) => { setVersions([...versions, version]); }}
-        enabledFeatures={new Set(["home", "files", "timeline", "document", "save", "share", "register"])}
+        setNewVersion={(version) => {
+          setVersions([...versions, version]);
+        }}
+        enabledFeatures={
+          new Set([
+            "home",
+            "files",
+            "timeline",
+            "document",
+            "save",
+            "share",
+            "register",
+          ])
+        }
       />
 
       <div className="w-[80%] p-4 space-y-4">
@@ -413,7 +430,6 @@ const Edit: FC<EditProps> = ({ params }) => {
             </Table>
           </div>
         </Card>
-
       </div>
       <style>
         {`

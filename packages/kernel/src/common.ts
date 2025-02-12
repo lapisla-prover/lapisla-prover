@@ -24,7 +24,7 @@ export function traverseResult<T, E>(results: Result<T, E>[]): Result<T[], E> {
 export function reduceResult<T, E, A>(
   f: (acc: A, value: T) => Result<A, E>,
   init: A,
-  arr: T[]
+  arr: T[],
 ): Result<A, E> {
   let acc = init;
   for (const value of arr) {

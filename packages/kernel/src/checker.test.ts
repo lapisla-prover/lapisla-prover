@@ -70,7 +70,7 @@ describe("rules", () => {
     const concls: Formula[] = [{ tag: "Pred", ident: "Q", args: [] }];
     const result = judgeOne(
       { tag: "Cut", formula: { tag: "Pred", ident: "A", args: [] } },
-      [{ assms, concls }]
+      [{ assms, concls }],
     );
     expectOk(result);
     expect(result.value).toHaveLength(2);
@@ -359,7 +359,7 @@ describe("rules", () => {
       ]);
       expectErr(result);
       expect(result.error).toEqual(
-        "The variable must not appear free in the conclusion"
+        "The variable must not appear free in the conclusion",
       );
     });
   });
@@ -399,7 +399,7 @@ describe("rules", () => {
       ]);
       expectErr(result);
       expect(result.error).toEqual(
-        "The variable must not appear free in the conclusion"
+        "The variable must not appear free in the conclusion",
       );
     });
   });
@@ -777,7 +777,7 @@ describe("type checker", () => {
     expectErr(res.value);
 
     expect(res.value.error).toEqual(
-      "Type mismatch: failed to unify nat and Prop"
+      "Type mismatch: failed to unify nat and Prop",
     );
   });
 
@@ -808,7 +808,7 @@ describe("type checker", () => {
     expectErr(res.value);
 
     expect(res.value.error).toEqual(
-      "Type mismatch: failed to unify nat and Prop"
+      "Type mismatch: failed to unify nat and Prop",
     );
   });
 
@@ -877,7 +877,7 @@ describe("type checker", () => {
     expectErr(res.value);
 
     expect(res.value.error).toEqual(
-      "invalid use: too many number of arguments for a : Prop"
+      "invalid use: too many number of arguments for a : Prop",
     );
   });
 
@@ -892,7 +892,7 @@ describe("type checker", () => {
     });
 
     const induction = parseFormula(
-      "P(zero) → ∀n. (P(n) → P(succ(n))) → ∀n. P(n)"
+      "P(zero) → ∀n. (P(n) → P(succ(n))) → ∀n. P(n)",
     );
     expectOk(induction);
 
@@ -947,7 +947,7 @@ describe("type checker", () => {
 
     expectErr(res.value);
     expect(res.value.error).toEqual(
-      "invalid use: Type mismatch: failed to unify bool and nat"
+      "invalid use: Type mismatch: failed to unify bool and nat",
     );
   });
 });

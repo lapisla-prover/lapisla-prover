@@ -6,7 +6,6 @@ import { FaUpRightFromSquare } from "react-icons/fa6";
 import style from "./layout.module.css";
 import { Metadata } from "next";
 
-
 const navbar = (
   <Navbar
     logo={<b>Lapisla</b>}
@@ -71,7 +70,6 @@ export default async function RootLayout({
   );
 }
 
-
 export const metadata: Metadata = {
   title: "docs.lapisla.net",
   description:
@@ -93,5 +91,4 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-
 };
