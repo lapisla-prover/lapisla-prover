@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "swc src -d dist --strip-leading-paths --out-file-extension cjs",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint .",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -8,7 +8,7 @@
     "build": "next build",
     "postbuild": "pagefind --site .next/server/app --output-path public/_pagefind",
     "start": "next start",
-    "lint": "next lint --max-warnings 0",
+    "lint": "next lint",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {

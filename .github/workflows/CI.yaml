@@ -90,7 +90,6 @@ jobs:
 
       - run: pnpm lint --parallel --continue
         id: run_lint
-        continue-on-error: true # TODO: remove this after remove all lint errors
 
   format:
     name: Check format
