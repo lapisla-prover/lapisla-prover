@@ -171,4 +171,4 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - run: pnpm check-types
+      - run: pnpm check-types --parallel --continue
