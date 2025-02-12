@@ -90,11 +90,7 @@ jobs:
 
       - run: pnpm lint --parallel --continue
         id: run_lint
-        continue-on-error: true
-
-      - name: Warning
-        if: ${{ steps.run_lint.outcome == 'failure' }}
-        run: "echo '::warning:: lint did not succeed'"
+        continue-on-error: true # TODO: remove this after remove all lint errors
 
   format:
     name: Check format
