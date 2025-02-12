@@ -1,22 +1,13 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es2023",
-      "ESNext.Collection",
-    ],
-    "types": [
-      "node"
-    ],
+    "lib": ["es2023", "ESNext.Collection"],
+    "types": ["node"],
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "target": "ES2023",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

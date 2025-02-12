@@ -1,3 +1,3 @@
 export function ensureFileExtension(fileName: string): string {
-  return fileName.endsWith('.l') ? fileName : `${fileName}.l`;
+  return fileName.endsWith(".l") ? fileName : `${fileName}.l`;
 }

@@ -35,7 +35,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_API_URL}/me/user`,
         {
           credentials: "include",
-        }
+        },
       );
       const data = await response.json();
       setAccount(data);

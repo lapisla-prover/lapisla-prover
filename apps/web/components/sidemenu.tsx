@@ -24,7 +24,6 @@ export function SideMenu(props: SideMenuProps) {
 
   return (
     <div className="left-0 top-0 h-screen bg-gray-100 w-24 flex flex-col items-center py-4 space-y-4">
-        
       {props.enabledFeatures.has("home") && (
         <Button
           variant="ghost"
@@ -66,27 +65,31 @@ export function SideMenu(props: SideMenuProps) {
         </a>
       )}
 
-      {props.enabledFeatures.has("save") && props.fileName && props.content && props.setRecentSavedTime && (
-        <Save
-          fileName={props.fileName}
-          content={props.content}
-          setRecentSavedTime={props.setRecentSavedTime}
-          setNewVersion={props.setNewVersion}
-        />
-      )}
+      {props.enabledFeatures.has("save") &&
+        props.fileName &&
+        props.content &&
+        props.setRecentSavedTime && (
+          <Save
+            fileName={props.fileName}
+            content={props.content}
+            setRecentSavedTime={props.setRecentSavedTime}
+            setNewVersion={props.setNewVersion}
+          />
+        )}
 
-      {props.enabledFeatures.has("share") && props.fileName && props.version !== undefined && (
-        <Share
-          owner={account.username}
-          fileName={props.fileName}
-          version={props.version}
-        />
-      )}
+      {props.enabledFeatures.has("share") &&
+        props.fileName &&
+        props.version !== undefined && (
+          <Share
+            owner={account.username}
+            fileName={props.fileName}
+            version={props.version}
+          />
+        )}
 
       {props.enabledFeatures.has("register") && props.fileName && (
         <Register fileName={props.fileName} />
       )}
-
 
       <Avatar className="h-10 w-10">
         <AvatarImage

@@ -29,7 +29,7 @@ export function NewFile() {
       .string()
       .regex(
         /^[a-z\d](?:[a-z\d]|[-_](?=[a-z\d])){0,38}$/i,
-        "Invalid file name format"
+        "Invalid file name format",
       ),
   });
 
@@ -47,7 +47,7 @@ export function NewFile() {
         {
           method: "POST",
           credentials: "include",
-        }
+        },
       );
       if (response.status === 201) {
         router.push(`/${values.fileName}/edit`);

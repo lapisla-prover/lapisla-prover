@@ -111,7 +111,6 @@ describe("Basic History Tests", () => {
   });
 });
 
-
 describe("TopHistory Tests", () => {
   test("Basic TopHistory Tests", () => {
     const sampleFormula: Formula = {
@@ -131,7 +130,7 @@ describe("TopHistory Tests", () => {
       { tag: "Apply", rule: { tag: "ImpR" } },
       { tag: "Apply", rule: { tag: "I" } },
       { tag: "Qed" },
-    ]
+    ];
 
     const thm2: TopCmd[] = [
       { tag: "Theorem", name: "id2", formula: sampleFormula2 },
@@ -163,7 +162,6 @@ describe("TopHistory Tests", () => {
       expectOk(res.value);
     }
 
-
     expect(history.top().tag).toEqual("Theorem");
     const thms: Array<string> = Array.from(history.top().env.thms.keys());
     expect(thms).toEqual(["id"]);
@@ -173,7 +171,6 @@ describe("TopHistory Tests", () => {
     expect(history.top().tag).toEqual("Other");
     const thms2: Array<string> = Array.from(history.top().env.thms.keys());
     expect(thms2).toEqual([]);
-
 
     // redo qed
     loop2.next({ tag: "Qed" });
@@ -198,7 +195,4 @@ describe("TopHistory Tests", () => {
     const thms4: Array<string> = Array.from(history.top().env.thms.keys());
     expect(thms4).toEqual([]);
   });
-}
-
-
-);
+});

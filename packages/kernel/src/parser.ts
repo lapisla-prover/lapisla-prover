@@ -1322,7 +1322,7 @@ export function parseJudgement(str: string): Result<Judgement, ParseError> {
 }
 
 export function parseProgram(
-  str: string
+  str: string,
 ): Result<CmdWithLoc[], PartialProgram> {
   const tokens = tokenize(str);
   const parser = new Parser(tokens);

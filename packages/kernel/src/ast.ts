@@ -203,7 +203,7 @@ export function renameTerm(term: Term, from_to_table: Map<Ident, Ident>): Term {
 
 export function renameFormula(
   formula: Formula,
-  from_to_table: Map<Ident, Ident>
+  from_to_table: Map<Ident, Ident>,
 ): Formula {
   switch (formula.tag) {
     case "Pred":
@@ -297,7 +297,7 @@ export function substTerm(term: Term, v: Ident, target: Term): Term {
 export function substFormula(
   formula: Formula,
   v: Ident,
-  target: Term
+  target: Term,
 ): Formula {
   switch (formula.tag) {
     case "Pred":
@@ -342,7 +342,7 @@ export function substFormula(
           body: substFormula(
             renameFormula(formula, new Map([[formula.ident, new_ident]])),
             v,
-            target
+            target,
           ),
         };
       }
@@ -368,7 +368,7 @@ export function substFormula(
           body: substFormula(
             renameFormula(formula, new Map([[formula.ident, new_ident]])),
             v,
-            target
+            target,
           ),
         };
       }
@@ -436,7 +436,7 @@ export function substAllTerm(term: Term, mapping: Map<Ident, Term>): Term {
 
 export function substAllFormula(
   formula: Formula,
-  mapping: Map<Ident, Term>
+  mapping: Map<Ident, Term>,
 ): Formula {
   switch (formula.tag) {
     case "Pred":
@@ -487,7 +487,7 @@ export function substAllFormula(
           ident: new_ident,
           body: substAllFormula(
             renameFormula(formula.body, new Map([[formula.ident, new_ident]])),
-            new_mapping
+            new_mapping,
           ),
         };
       }
@@ -519,7 +519,7 @@ export function substAllFormula(
           ident: new_ident,
           body: substAllFormula(
             renameFormula(formula.body, new Map([[formula.ident, new_ident]])),
-            new_mapping
+            new_mapping,
           ),
         };
       }
@@ -535,7 +535,7 @@ export function substAllFormula(
 
 export function substPreds(
   formula: Formula,
-  mapping: Map<Ident, Predicate>
+  mapping: Map<Ident, Predicate>,
 ): Result<Formula, string> {
   switch (formula.tag) {
     case "Pred": {
@@ -628,7 +628,7 @@ export function substPreds(
       let fvarsInTarget = new Set<Ident>();
       for (const target of new_mapping.values()) {
         fvarsInTarget = fvarsInTarget.union(
-          allFreeVarsInFormula(target.body).difference(new Set(target.args))
+          allFreeVarsInFormula(target.body).difference(new Set(target.args)),
         );
       }
       if (fvarsInTarget.has(formula.ident)) {
@@ -636,7 +636,7 @@ export function substPreds(
 
         const bodyResult = substPreds(
           renameFormula(formula.body, new Map([[formula.ident, ident]])),
-          new_mapping
+          new_mapping,
         );
 
         if (bodyResult.tag === "Err") {
@@ -677,7 +677,7 @@ export function substPreds(
       let fvarsInTarget = new Set<Ident>();
       for (const target of new_mapping.values()) {
         fvarsInTarget = fvarsInTarget.union(
-          allFreeVarsInFormula(target.body).difference(new Set(target.args))
+          allFreeVarsInFormula(target.body).difference(new Set(target.args)),
         );
       }
       if (fvarsInTarget.has(formula.ident)) {
@@ -685,7 +685,7 @@ export function substPreds(
 
         const bodyResult = substPreds(
           renameFormula(formula.body, new Map([[formula.ident, ident]])),
-          new_mapping
+          new_mapping,
         );
 
         if (bodyResult.tag === "Err") {
@@ -725,7 +725,7 @@ export function allFreeVarsInTerm(term: Term): Set<Ident> {
     case "App":
       return term.args.reduce(
         (acc, arg) => acc.union(allFreeVarsInTerm(arg)),
-        allFreeVarsInTerm(term.func)
+        allFreeVarsInTerm(term.func),
       );
   }
 }
@@ -735,7 +735,7 @@ export function allFreeVarsInFormula(formula: Formula): Set<Ident> {
     case "Pred":
       return formula.args.reduce(
         (acc, arg) => acc.union(allFreeVarsInTerm(arg)),
-        new Set([formula.ident])
+        new Set([formula.ident]),
       );
     case "Top":
     case "Bottom":
@@ -744,12 +744,12 @@ export function allFreeVarsInFormula(formula: Formula): Set<Ident> {
     case "Or":
     case "Imply":
       return allFreeVarsInFormula(formula.left).union(
-        allFreeVarsInFormula(formula.right)
+        allFreeVarsInFormula(formula.right),
       );
     case "Forall":
     case "Exist":
       return allFreeVarsInFormula(formula.body).difference(
-        new Set([formula.ident])
+        new Set([formula.ident]),
       );
   }
 }

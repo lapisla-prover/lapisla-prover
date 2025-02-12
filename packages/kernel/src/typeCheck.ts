@@ -23,7 +23,7 @@ function occurIn(v: Ident, type: Type): boolean {
 
 function assign(
   tvar: { tag: "Var"; ident: Ident; content?: Type },
-  type: Type
+  type: Type,
 ) {
   tvar.content = type;
 }
@@ -36,12 +36,12 @@ function unify(type1: Type, type2: Type): Result<void, string> {
   if (type1.tag === "Con" && type2.tag === "Con") {
     if (type1.ident !== type2.ident) {
       return Err(
-        `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`
+        `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`,
       );
     }
     if (type1.args.length !== type2.args.length) {
       return Err(
-        `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`
+        `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`,
       );
     }
     for (let i = 0; i < type1.args.length; i++) {
@@ -97,7 +97,7 @@ function unify(type1: Type, type2: Type): Result<void, string> {
   }
 
   return Err(
-    `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`
+    `Type mismatch: failed to unify ${formatType(type1)} and ${formatType(type2)}`,
   );
 }
 
@@ -157,7 +157,7 @@ function freshenTVars(type: Type): Type {
 export function inferTerm(
   sig: Map<Ident, Type>,
   ctx: Map<Ident, Type>,
-  term: Term
+  term: Term,
 ): Result<Type, string> {
   switch (term.tag) {
     case "Var": {
@@ -186,13 +186,13 @@ export function inferTerm(
 
       const ty = paramTys.reduceRight<Type>(
         (acc, [_, paramTys]) => ({ tag: "Arr", left: paramTys, right: acc }),
-        retTy.value
+        retTy.value,
       );
 
       paramTys.forEach(([ident, _]) =>
         oldCtx.has(ident)
           ? ctx.set(ident, oldCtx.get(ident))
-          : ctx.delete(ident)
+          : ctx.delete(ident),
       );
 
       return Ok(ty);
@@ -203,7 +203,7 @@ export function inferTerm(
         return funcTy;
       }
       const argTys = traverseResult(
-        term.args.map((arg) => inferTerm(sig, ctx, arg))
+        term.args.map((arg) => inferTerm(sig, ctx, arg)),
       );
       if (argTys.tag === "Err") {
         return argTys;
@@ -211,7 +211,7 @@ export function inferTerm(
       return reduceResult(
         (acc, argTy) => matchArr(acc, argTy),
         funcTy.value,
-        argTys.value
+        argTys.value,
       );
     }
   }
@@ -221,7 +221,7 @@ export function inferTerm(
 export function checkFormula(
   sig: Map<string, Type>,
   ctx: Map<Ident, Type>,
-  formula: Formula
+  formula: Formula,
 ): Result<void, string> {
   switch (formula.tag) {
     case "Pred": {
@@ -244,7 +244,7 @@ export function checkFormula(
           return matchArr(acc, argTy.value);
         },
         pTy,
-        formula.args
+        formula.args,
       );
 
       if (retTy.tag === "Err") {

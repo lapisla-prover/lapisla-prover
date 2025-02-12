@@ -21,7 +21,7 @@ interface SaveProps {
 export const Save = (props: SaveProps) => {
   const [dialogHeader, setDialogHeader] = useState<string>("New version saved");
   const [dialogDescription, setDialogDescription] = useState<string>(
-    "Your new version is "
+    "Your new version is ",
   );
   const save = async () => {
     try {
@@ -36,7 +36,7 @@ export const Save = (props: SaveProps) => {
           body: JSON.stringify({
             content: props.content,
           }),
-        }
+        },
       );
       const data = await response.json();
       if (data.result === "newly_saved") {

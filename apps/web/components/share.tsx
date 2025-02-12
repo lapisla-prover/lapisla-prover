@@ -45,7 +45,7 @@ export const Share = (props: SaveProps) => {
                 onClick={() => {
                   window.open(
                     `https://x.com/intent/post?url=${permanentLink}`,
-                    "_blank"
+                    "_blank",
                   );
                 }}
               >

@@ -29,7 +29,7 @@ const View: FC<ViewProps> = ({ params }) => {
   const [isEditorMounted, setEditorMounted] = useState(false);
 
   const viewEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
   const monacoInstance = useMonaco();
   useEffect(() => {
@@ -60,7 +60,7 @@ const View: FC<ViewProps> = ({ params }) => {
           `${process.env.NEXT_PUBLIC_API_URL}/files/${snapshotInfo.owner}/${snapshotInfo.fileName}/${snapshotInfo.version}`,
           {
             credentials: "include",
-          }
+          },
         );
         const data = await response.json();
         viewEditorRef.current?.setValue(data.content);

@@ -118,7 +118,6 @@ axiom eq_refl: ∀x. eq(x, x)
 
 Introduce a new axiom `name` with the formula `formula`. Axioms are like theorems, but instead of proving them, you assume them to be true. Be careful not to make system inconsistent!
 
-
 #### `constant`
 
 ```lapisla
@@ -154,14 +153,14 @@ Theorem eq_sym ∀x. ∀y. (eq(x, y) → eq(y, x))
   apply ImpL
   apply PR 1
   apply WR
-  apply I 
-  apply ImpL 
+  apply I
+  apply ImpL
   apply WL
   apply PR 1
   apply WR
-  use eq_refl 
-  apply ForallL x1 
-  apply I 
+  use eq_refl
+  apply ForallL x1
+  apply I
   apply PL 1
   apply WL
   apply I

@@ -32,12 +32,12 @@ export const Register = (props: RegisterProps) => {
   const [selectedVersion, setSelectedVersion] = useState<number>(0);
   const [dialogHeader, setDialogHeader] = useState<string>("Registered");
   const [dialogDescription, setDialogDescription] = useState<string>(
-    "Your new version is registered"
+    "Your new version is registered",
   );
   const [tags, setTags] = useState<string[]>([]);
 
   const mainEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
-    null
+    null,
   );
 
   const fetchFile = async () => {
@@ -46,7 +46,7 @@ export const Register = (props: RegisterProps) => {
         `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}`,
         {
           credentials: "include",
-        }
+        },
       );
       const data = await response.json();
       setVersions(data.versions.sort((a: number, b: number) => b - a));
@@ -66,7 +66,7 @@ export const Register = (props: RegisterProps) => {
         `${process.env.NEXT_PUBLIC_API_URL}/me/files/${props.fileName}/${version}`,
         {
           credentials: "include",
-        }
+        },
       );
       const data = await response.json();
       mainEditorRef.current?.setValue(data.content);
@@ -96,13 +96,13 @@ export const Register = (props: RegisterProps) => {
             tags: tags,
             description: "",
           }),
-        }
+        },
       );
       const data = await response.json();
       if (data.result === "registered") {
         setDialogHeader("Registered");
         setDialogDescription(
-          `${props.fileName} v${selectedVersion} is registered`
+          `${props.fileName} v${selectedVersion} is registered`,
         );
       } else {
         setDialogHeader("Failed to register!");

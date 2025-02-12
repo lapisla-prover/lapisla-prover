@@ -18,7 +18,7 @@ async function handleCallback(router: any) {
       `${process.env.NEXT_PUBLIC_API_URL}/login/callback?code=${code}&state=${state}`,
       {
         credentials: "include",
-      }
+      },
     );
 
     if (!response.ok) {
