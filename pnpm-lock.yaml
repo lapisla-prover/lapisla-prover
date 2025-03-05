@@ -235,6 +235,9 @@ importers:
       next:
         specifier: ^15.1.0
         version: 15.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next-navigation-guard:
+        specifier: ^0.1.2
+        version: 0.1.2(next@15.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -5312,6 +5315,12 @@ packages:
   neverthrow@8.1.1:
     resolution: {integrity: sha512-DpbZ/UDI0B+TxJB1JysXSfi1++3YK2xLBqQLTlRN0b4zxlZ2MoiB+dKKV8dMRzt1fAFjRKDknXOVJgpl+a4Amw==}
     engines: {node: '>=18'}
+
+  next-navigation-guard@0.1.2:
+    resolution: {integrity: sha512-gh+hUMqnI9a/iQ3sxCd7aagQB0NTioe7kj7UJagVfWh+GWfyr4mErlBy2yNZk0VyXebtW86I3cP6lcwraIFhYA==}
+    peerDependencies:
+      next: ^14 || ^15
+      react: ^18.3.1
 
   next-themes@0.4.4:
     resolution: {integrity: sha512-LDQ2qIOJF0VnuVrrMSMLrWGjRMkq+0mpgl6e0juCLqdJ+oo8Q84JRWT6Wh11VDQKkMMe+dVzDKLWs5n87T+PkQ==}
@@ -13208,6 +13217,11 @@ snapshots:
   neverthrow@8.1.1:
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu': 4.31.0
+
+  next-navigation-guard@0.1.2(next@15.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1):
+    dependencies:
+      next: 15.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
 
   next-themes@0.4.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
