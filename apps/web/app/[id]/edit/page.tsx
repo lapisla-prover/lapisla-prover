@@ -42,6 +42,9 @@ import {
 } from "lucide-react";
 import * as monaco from "monaco-editor";
 import { FC, use, useEffect, useRef, useState } from "react";
+
+import { useNavigationGuard } from "next-navigation-guard";
+
 export const runtime = "edge";
 
 interface EditProps {
@@ -58,6 +61,17 @@ const Edit: FC<EditProps> = ({ params }) => {
   const [currentSnapshotId, setCurrentSnapshotId] = useState<string>("");
   const [recentSavedTime, setRecentSavedTime] = useState<string>("");
   const [isEditorMounted, setEditorMounted] = useState(false);
+
+  // flag to check there is any unsaved changes
+  const [isDirty, setIsDirty] = useState(false);
+
+  useNavigationGuard({
+    enabled: isDirty,
+    confirm: () =>
+      window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?",
+      ),
+  });
 
   useEffect(() => {
     if (monacoInstance) {
@@ -158,6 +172,7 @@ const Edit: FC<EditProps> = ({ params }) => {
           const data2 = await response2.json();
           mainEditorRef.current?.setValue(data2.content);
           setCurrentSnapshotId(data2.meta.id);
+          setIsDirty(false);
         } catch (error) {
           console.error(error);
         }
@@ -175,6 +190,7 @@ const Edit: FC<EditProps> = ({ params }) => {
         setRecentSavedTime={setRecentSavedTime}
         setNewVersion={(version) => {
           setVersions([...versions, version]);
+          setIsDirty(false);
         }}
         enabledFeatures={
           new Set([
@@ -285,6 +301,8 @@ const Edit: FC<EditProps> = ({ params }) => {
             }
 
             if (value) {
+              setIsDirty(true);
+
               // Undo check
               const changeloc = undoLocation(latestProgram, value);
               if (changeloc) {
@@ -305,7 +323,6 @@ const Edit: FC<EditProps> = ({ params }) => {
                     "\n at row " +
                     (errorloc.start.line + 1) +
                     ".";
-
                   interacter.setMessagesEditorContent(msg);
 
                   const model = mainEditorRef.current.getModel();

@@ -1,5 +1,6 @@
 import { AccountProvider } from "@/context/accountContext";
 import type { Metadata } from "next";
+import { NavigationGuardProvider } from "next-navigation-guard";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -45,7 +46,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <AccountProvider>{children}</AccountProvider>
+        <NavigationGuardProvider>
+          <AccountProvider>{children}</AccountProvider>
+        </NavigationGuardProvider>
       </body>
     </html>
   );
